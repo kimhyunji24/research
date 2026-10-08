@@ -1,0 +1,9 @@
+torch
+transformers
+accelerate
+scikit-learn
+numpy
+pandas
+pyyaml
+tqdm
+alfworld
