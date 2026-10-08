@@ -1,10 +1,12 @@
 # Pilot: 모델별 성공률/속도/메모리 측정용
 model_name: Qwen/Qwen2.5-0.5B-Instruct   # 1.5B, 3B로 바꿔 실행
 dtype: bfloat16                           # MPS에서 문제 시 float16
-device: mps
+device: cuda                              # 맥에서는 mps
 num_episodes: 20
 max_steps: 30
-max_new_tokens: 48
+policy: score                             # score: admissible 후보 로그확률로 선택 / generate: 자유 생성
+score_norm: sum                           # sum 또는 mean(토큰 평균)
+max_new_tokens: 48                        # policy=generate일 때만 사용
 temperature: 0.0                          # deterministic (greedy)
 relative_layers: [0.25, 0.5, 0.75, 1.0]   # 전체 깊이 대비 위치 (1.0 = final)
 alfworld_config: configs/alfworld_base.yaml

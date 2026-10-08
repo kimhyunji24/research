@@ -1,0 +1,15 @@
+# 결정용 실험: train 게임 풀(3553개)에서 episode를 뽑아 성공률을 추정
+model_name: Qwen/Qwen2.5-1.5B-Instruct   # --model 로 덮어씀
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 100
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/decision
+seed: 0
