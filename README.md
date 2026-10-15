@@ -49,9 +49,10 @@ python probes/run_probes.py data/decision_rerun/Qwen2.5-3B-Instruct --layer 1 --
 ## probes/ 주의
 
 - `lib.py`: 라운드 r에 살아 있는 episode당 1행, task(게임) 단위 GroupKFold, 표준화와 PCA는 Pipeline 안에서 fold별로 학습, 무작위 라벨 대조군, bootstrap CI.
-- `--rounds`는 0-based step이다. 1이 두 번째 action이다.
-- 알려진 문제(미수정): 셔플 대조군이 0.5가 아니라 0.33~0.41로 나온다(작은 표본의 cross-fitting 아티팩트로 보이나 원인 확인 필요),
-  baseline `C=1.0`과 프로브 `C=0.01`이 달라 비교가 공정하지 않다, PCA k가 fold 표본 수를 넘으면 실패한다(n=100에서 k=128),
-  전체 차원 대비 손실(explained variance)을 출력하지 않는다.
+- `--rounds`는 0-based step이다. 1이 두 번째 action이다. "라운드 1"의 기준은 미결정이다.
+- 절차는 `docs/analysis_plan_2026-10-15.md`: 장면 단위 StratifiedGroupKFold(x2), nested C(baseline과 프로브 같은 격자),
+  순열 대조군 다회, 장면 단위 cluster bootstrap CI, PCA 설정별 explained variance 출력(k가 fold 학습 표본 수 이상이면 건너뜀).
+- baseline 사다리 1~5단 구현. 5단(TF-IDF)과 4단의 물체 특징은 `steps.jsonl`의 `prompt`가 있는 데이터(`main_3b` 이후)에서만 쓸 수 있다.
+- `--baselines_only`로 hidden state 없이 baseline만 실행할 수 있다.
 - `synth_check.py`는 합성 데이터 점검용이다. 연구 결과가 아니다.
-- baseline 사다리는 1~3단만 있다. 4단(진행도), 5단(TF-IDF), teacher-forced 재추출 스크립트는 없다.
+- teacher-forced 재추출 스크립트는 아직 없다.

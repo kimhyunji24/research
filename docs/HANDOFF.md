@@ -18,6 +18,8 @@
 | 라운드별 n (`main_3b`, 0-based step 0~3) | 각 250, 실패 194, 양성(실패) 비율 0.776. step 4는 n=241 | 성공은 모두 4 step 이상이라 step 0~3은 전원 생존 |
 | `main_3b`의 처음 100 episode vs `decision_rerun` | 게임 순서와 성공 여부 모두 동일 | 같은 머신에서 2회 실행했을 때의 결정성만 확인. 두 데이터는 독립 표본이 아니다 |
 | `score_norm: sum`의 길이 선호 (`main_3b`, 6,490 step) | 선택된 후보의 평균 토큰 수 8.98, 전체 후보 평균 8.73. 선택된 후보보다 짧은 후보의 평균 비율 0.36(0.5면 순위상 선호 없음). 가장 짧은 후보가 선택된 비율 0.23. mean 정규화로 바꾸면 12.7%의 step에서 다른 action이 선택됨 | 짧은 action을 체계적으로 선호한다는 증거는 이 데이터에서 보이지 않는다. 다만 후보 구성(go to 위주)과 task 진행의 영향을 분리하지 못했다 |
+| **baseline 1~5단, `main_3b`** (50% layer 불필요, hidden 미사용, n=250, 실패 194, 장면 86개, 장면 단위 5-fold x2 + nested C, 순열 100회) | step 0: 0.500 / 0.603 / 0.659 / 0.673 / 0.701. step 1: 0.500 / 0.603 / 0.633 / 0.700 / 0.732. step 2: 0.500 / 0.603 / 0.671 / 0.834 / 0.823. step 3: 0.500 / 0.603 / 0.700 / 0.814 / 0.818 (1~5단 순). 2~5단의 95% CI(장면 cluster bootstrap)는 약 ±0.07~0.08, 순열 null 평균 0.50(95% 구간 약 0.38~0.62), p_perm 0.01~0.03 | 프로브가 이겨야 할 기준선이 step 0에서 이미 0.70이다(과제·방 묘사 텍스트만으로). 4단의 진행도가 step 2부터 0.83으로 급상승. 5단이 4단보다 낮은 라운드가 있다(과적합 가능). `results/baselines_main_3b.csv` |
+| 순열 대조군 보정 | 다회(100) 순열 평균이 0.498~0.507로 0.5. 예비 실행의 0.33~0.41은 단일 순열 공유의 우연으로 보이나 확정은 아님 | 예비 실행과 절차가 달라(장면 분할, nested C) 같은 조건에서 재현해 본 것은 아니다 |
 | Qwen2.5 0.5B/1.5B/3B/7B 토크나이저, chat template | 샘플 프롬프트에서 동일 (vocab 151,665) | 실제 프롬프트 전체 검증은 재추출 스크립트에서 |
 | 저장한 prompt를 3B에 다시 통과 | 마지막 토큰 hidden이 저장값과 일치(5 step, diff 0.0) | 다른 크기는 미확인 |
 
@@ -27,17 +29,20 @@
 1. `score_norm: sum`의 길이 선호: `main_3b`에서 확인했고 체계적 선호는 보이지 않았다(위 표). 동결된 설정이므로 바꾸지 않는다.
    다만 mean 정규화와 12.7%의 step에서 다른 action을 고르므로, 논문에는 sum 정규화를 사용했다고 명시한다.
 2. 설계 문서 4절의 "episode당 forward 한 번"은 틀렸다. 프롬프트가 step마다 달라서 reader는 **step당 prefill 한 번**이다.
-3. `probes/` 수정 필요: 셔플 대조군을 여러 번 반복해 null 분포 보고, explained variance 출력, baseline과 프로브의 `C` 통일(또는 nested CV),
-   k가 fold 표본 수 이상이면 건너뛰기.
+3. (수정 완료, 2026-10-15) `probes/`: 장면 단위 StratifiedGroupKFold, nested C, 순열 대조군 다회 반복, explained variance 출력,
+   k가 fold 표본 수 이상이면 건너뛰기, 장면 cluster bootstrap과 짝지은 차이 CI. 계획은 `docs/analysis_plan_2026-10-15.md`.
+   **hidden state 프로브는 아직 `main_3b`에 돌리지 않았다**(라운드 기준 확정 후).
 4. "라운드 1"의 기준(첫 번째 action이 step 0)을 정하지 않았다. 사전 등록 전 확정 필요.
-5. baseline 4단(진행도 추출기), 5단(TF-IDF), teacher-forced 재추출 스크립트(0.5B/1.5B/3B, 선택 7B 4-bit)는 아직 없다.
+5. teacher-forced 재추출 스크립트(0.5B/1.5B/3B, 선택 7B 4-bit)는 아직 없다. baseline 4~5단은 구현했다
+   (목표 물체 파싱 성공 96%. 4단의 `obj_seen`은 프롬프트 창 6 step 안에서만 확인 가능).
 
 ## 다음 순서 (설계 문서 12절 기준)
 1. (완료) `main_3b` 수집: 성공 56개.
 2. teacher-forced 추출 스크립트 작성: `steps.jsonl`의 `prompt`를 reader 모델에 통과, 마지막 토큰의 25/50/75/100% layer 저장.
    prompt 토큰 수가 `prompt_tokens`와 같은지 검증한다.
-3. `probes/` 수정(위 3번) 후 reader별 라운드별 AUROC.
-4. baseline 4~5단 구현.
+3. **사용자 결정**: "라운드 1"의 기준(첫 번째 action이 step 0인지)을 정한 뒤, 3B reader(저장된 hidden)로
+   `python probes/run_probes.py data/main_3b/Qwen2.5-3B-Instruct --layer 1 --rounds <정한 step들>`을 한 번 실행.
+4. (완료) baseline 4~5단 구현과 `main_3b` 실행.
 5. 선택: 1.5B 궤적 수집(탐색적 H5), 7B 4-bit reader.
 
 ## 규칙 (사용자 지시)
