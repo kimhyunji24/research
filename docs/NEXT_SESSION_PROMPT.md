@@ -6,7 +6,7 @@
 ## 0. 준비
 - 저장소를 받고 docs/RESTART.md, docs/critical_review_2026-10-15.md(비판적 검토와 대응 우선순위), docs/HANDOFF.md를 먼저 읽어라. 이어서 docs/freeze_2026-10-15.md, docs/analysis_plan_2026-10-15.md,
   docs/confirmatory_plan_2026-10-15.md, docs/multi_rollout_plan_2026-10-15.md, docs/paper_draft_2026-10-15.md를 읽어라.
-- Notion의 "연구 진행 현황: 소형 LM 에이전트 실패 신호 스케일링"(https://app.notion.com/p/3f26d17a2fa281c38157f8367886fa03)의 11절과 하위 페이지 "설계 재검토"를 읽어라.
+- Notion의 "연구 진행 현황: 소형 LM 에이전트 실패 신호 스케일링"(https://app.notion.com/p/3f26d17a2fa281c38157f8367886fa03)의 요약 표와 일자별 하위 페이지(2026-10-08, 2026-10-15), "설계 재검토" 페이지를 읽어라.
 - data/는 git에 없다. 있는지 먼저 확인하고, 없으면 docs/RESTART.md 3절대로 복구 계획만 보고하고 내 결정을 기다려라.
 
 ## 지금 상태 (요약)
