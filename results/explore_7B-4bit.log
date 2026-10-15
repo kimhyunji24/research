@@ -25,3 +25,60 @@ episodes=250 steps=6490 scenes=86 success=56 prompt_saved=True
   step 2 mlp_L1_pcafull: auroc=0.674
   step 2 linear_L2_pcafull: auroc=0.802
   step 2 mlp_L2_pcafull: auroc=0.729
+  step 2 linear_L3_pcafull: auroc=0.806
+  step 2 mlp_L3_pcafull: auroc=0.784
+ step            method   n  n_fail  base_rate  auroc  ci_lo  ci_hi  ci_ep_lo  ci_ep_hi  auprc  null_mean  null_lo  null_hi  p_perm  C_median  pca_evr
+    0         baseline5 250     194      0.776  0.701  0.631  0.772     0.626     0.771  0.890      0.506    0.407    0.606   0.010     0.055      NaN
+    0 linear_L0_pcafull 250     194      0.776  0.593  0.507  0.689     0.510     0.679  0.829      0.496    0.396    0.585   0.030     0.010      NaN
+    0    mlp_L0_pcafull 250     194      0.776  0.547  0.473  0.627     0.469     0.632  0.824      0.493    0.422    0.580   0.190       NaN      NaN
+    0 linear_L1_pcafull 250     194      0.776  0.602  0.518  0.688     0.511     0.680  0.825      0.492    0.400    0.593   0.030     0.001      NaN
+    0    mlp_L1_pcafull 250     194      0.776  0.510  0.432  0.591     0.432     0.594  0.795      0.489    0.364    0.595   0.429       NaN      NaN
+    0 linear_L2_pcafull 250     194      0.776  0.582  0.502  0.664     0.494     0.670  0.811      0.499    0.388    0.599   0.069     0.000      NaN
+    0    mlp_L2_pcafull 250     194      0.776  0.576  0.486  0.663     0.486     0.668  0.815      0.498    0.395    0.620   0.143       NaN      NaN
+    0 linear_L3_pcafull 250     194      0.776  0.642  0.555  0.726     0.559     0.724  0.841      0.509    0.400    0.617   0.010     0.500      NaN
+    0    mlp_L3_pcafull 250     194      0.776  0.629  0.546  0.709     0.551     0.714  0.847      0.493    0.403    0.592   0.048       NaN      NaN
+    1         baseline5 250     194      0.776  0.732  0.651  0.810     0.659     0.801  0.890      0.503    0.408    0.607   0.010     0.100      NaN
+    1 linear_L0_pcafull 250     194      0.776  0.596  0.515  0.678     0.495     0.683  0.817      0.497    0.397    0.613   0.050     0.010      NaN
+    1    mlp_L0_pcafull 250     194      0.776  0.600  0.508  0.691     0.504     0.697  0.818      0.487    0.405    0.566   0.048       NaN      NaN
+    1 linear_L1_pcafull 250     194      0.776  0.679  0.595  0.762     0.594     0.755  0.872      0.496    0.397    0.596   0.010     1.000      NaN
+    1    mlp_L1_pcafull 250     194      0.776  0.610  0.535  0.693     0.526     0.689  0.849      0.490    0.402    0.574   0.048       NaN      NaN
+    1 linear_L2_pcafull 250     194      0.776  0.728  0.631  0.807     0.633     0.807  0.870      0.501    0.382    0.635   0.010     0.001      NaN
+    1    mlp_L2_pcafull 250     194      0.776  0.653  0.563  0.741     0.559     0.738  0.829      0.508    0.413    0.619   0.048       NaN      NaN
+    1 linear_L3_pcafull 250     194      0.776  0.702  0.612  0.785     0.610     0.780  0.870      0.497    0.396    0.615   0.010     0.001      NaN
+    1    mlp_L3_pcafull 250     194      0.776  0.645  0.553  0.732     0.553     0.733  0.844      0.502    0.415    0.597   0.048       NaN      NaN
+    2         baseline5 250     194      0.776  0.823  0.754  0.883     0.757     0.883  0.931      0.506    0.392    0.621   0.010     0.100      NaN
+    2 linear_L0_pcafull 250     194      0.776  0.635  0.547  0.717     0.541     0.718  0.845      0.494    0.402    0.607   0.020     0.000      NaN
+    2    mlp_L0_pcafull 250     194      0.776  0.680  0.604  0.756     0.601     0.755  0.871      0.469    0.380    0.570   0.048       NaN      NaN
+    2 linear_L1_pcafull 250     194      0.776  0.649  0.562  0.736     0.559     0.734  0.851      0.495    0.376    0.606   0.020     0.000      NaN
+    2    mlp_L1_pcafull 250     194      0.776  0.674  0.593  0.748     0.589     0.758  0.862      0.492    0.385    0.584   0.048       NaN      NaN
+    2 linear_L2_pcafull 250     194      0.776  0.802  0.725  0.875     0.725     0.870  0.899      0.494    0.407    0.605   0.010     0.000      NaN
+    2    mlp_L2_pcafull 250     194      0.776  0.729  0.631  0.816     0.634     0.815  0.847      0.492    0.425    0.581   0.048       NaN      NaN
+    2 linear_L3_pcafull 250     194      0.776  0.806  0.731  0.875     0.729     0.876  0.910      0.496    0.388    0.618   0.010     0.000      NaN
+    2    mlp_L3_pcafull 250     194      0.776  0.784  0.695  0.855     0.699     0.862  0.886      0.489    0.405    0.565   0.048       NaN      NaN
+
+프로브 - baseline 짝지은 AUROC 차이 (장면 단위 cluster bootstrap 95% CI)
+ step            method        vs  auroc_diff  ci_lo  ci_hi
+    0 linear_L0_pcafull baseline5      -0.107 -0.208 -0.005
+    0    mlp_L0_pcafull baseline5      -0.154 -0.251 -0.051
+    0 linear_L1_pcafull baseline5      -0.099 -0.177 -0.019
+    0    mlp_L1_pcafull baseline5      -0.191 -0.286 -0.096
+    0 linear_L2_pcafull baseline5      -0.119 -0.189 -0.048
+    0    mlp_L2_pcafull baseline5      -0.124 -0.216 -0.036
+    0 linear_L3_pcafull baseline5      -0.058 -0.141  0.022
+    0    mlp_L3_pcafull baseline5      -0.071 -0.158  0.012
+    1 linear_L0_pcafull baseline5      -0.136 -0.215 -0.051
+    1    mlp_L0_pcafull baseline5      -0.132 -0.232 -0.028
+    1 linear_L1_pcafull baseline5      -0.053 -0.141  0.032
+    1    mlp_L1_pcafull baseline5      -0.122 -0.221 -0.021
+    1 linear_L2_pcafull baseline5      -0.004 -0.094  0.093
+    1    mlp_L2_pcafull baseline5      -0.079 -0.162  0.011
+    1 linear_L3_pcafull baseline5      -0.030 -0.113  0.056
+    1    mlp_L3_pcafull baseline5      -0.087 -0.177  0.001
+    2 linear_L0_pcafull baseline5      -0.189 -0.277 -0.104
+    2    mlp_L0_pcafull baseline5      -0.144 -0.229 -0.060
+    2 linear_L1_pcafull baseline5      -0.175 -0.251 -0.097
+    2    mlp_L1_pcafull baseline5      -0.149 -0.226 -0.072
+    2 linear_L2_pcafull baseline5      -0.021 -0.080  0.046
+    2    mlp_L2_pcafull baseline5      -0.094 -0.170 -0.020
+    2 linear_L3_pcafull baseline5      -0.017 -0.080  0.050
+    2    mlp_L3_pcafull baseline5      -0.039 -0.115  0.031
