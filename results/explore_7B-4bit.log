@@ -1,0 +1,27 @@
+episodes=250 steps=6490 scenes=86 success=56 prompt_saved=True
+목표 물체 파싱 성공 episode 비율: 0.960
+  step 0 baseline5: auroc=0.701
+  step 0 linear_L0_pcafull: auroc=0.593
+  step 0 mlp_L0_pcafull: auroc=0.547
+  step 0 linear_L1_pcafull: auroc=0.602
+  step 0 mlp_L1_pcafull: auroc=0.510
+  step 0 linear_L2_pcafull: auroc=0.582
+  step 0 mlp_L2_pcafull: auroc=0.576
+  step 0 linear_L3_pcafull: auroc=0.642
+  step 0 mlp_L3_pcafull: auroc=0.629
+  step 1 baseline5: auroc=0.732
+  step 1 linear_L0_pcafull: auroc=0.596
+  step 1 mlp_L0_pcafull: auroc=0.600
+  step 1 linear_L1_pcafull: auroc=0.679
+  step 1 mlp_L1_pcafull: auroc=0.610
+  step 1 linear_L2_pcafull: auroc=0.728
+  step 1 mlp_L2_pcafull: auroc=0.653
+  step 1 linear_L3_pcafull: auroc=0.702
+  step 1 mlp_L3_pcafull: auroc=0.645
+  step 2 baseline5: auroc=0.823
+  step 2 linear_L0_pcafull: auroc=0.635
+  step 2 mlp_L0_pcafull: auroc=0.680
+  step 2 linear_L1_pcafull: auroc=0.649
+  step 2 mlp_L1_pcafull: auroc=0.674
+  step 2 linear_L2_pcafull: auroc=0.802
+  step 2 mlp_L2_pcafull: auroc=0.729

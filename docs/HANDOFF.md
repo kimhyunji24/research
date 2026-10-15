@@ -87,3 +87,9 @@ n=250, 실패 194(양성 비율 0.776), 장면 86개. `results/probe_main_3b_pri
   즉 결과의 대부분은 게임이 정하고 게임 내 변동은 일부 게임에서만 있다.
 - 같은 게임 안의 서로 다른 경로 비율 평균 0.80. 소요 약 22분(episode당 약 8초).
 - 본 규모 예상: 100게임이면 갈리는 게임 약 40개, 쌍 수는 게임당 (실패 수 x 성공 수)로 제한된다.
+
+## 중단 시점 상태 (2026-10-15 밤, 컴퓨터 초기화 전)
+- 다중 rollout 본 규모(`data/multi_rollout_main`)는 24/640 episode에서 중단했다(내일 처음부터 또는 `--resume`). 파일럿 160 episode는 완료.
+- 확증 분석(`results/confirm_main_3b.log`)은 6개 평가 중 3개가 끝난 시점의 로그다. 완료 여부는 파일 끝을 확인한다.
+- 7B 탐색 프로브(`results/explore_7B-4bit.*`)는 미완료일 수 있다.
+- 재시작 방법은 `docs/RESTART.md`, 새 세션 프롬프트는 `docs/NEXT_SESSION_PROMPT.md`.

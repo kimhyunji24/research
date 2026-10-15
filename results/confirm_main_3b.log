@@ -1,0 +1,5 @@
+episodes=500 steps=13209 scenes=103 success=101 prompt_saved=True
+목표 물체 파싱 성공 episode 비율: 0.968
+  step 0 baseline5: auroc=0.607
+  step 0 linear_pcafull: auroc=0.645
+  step 1 baseline5: auroc=0.681
