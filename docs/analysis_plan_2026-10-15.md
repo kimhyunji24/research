@@ -41,3 +41,17 @@ baseline을 더 강하게 만드는 방향이므로 프로브에 불리한 쪽�
 ## 이번 단계에서 하는 것과 하지 않는 것
 - 한다: 코드 수정, 합성 데이터 검증, `main_3b`에서 **baseline 1~5단만** 실행(프로브 AUROC는 보지 않는다).
 - 하지 않는다: `main_3b` hidden state 프로브 실행, 0.5B/1.5B reader 추출, 표본 크기 확대 결정.
+
+## 탐색적 확장 (2026-10-15, 주 지표 1회 실행 후, 실행 전에 기록)
+주 지표(3B reader, 50% layer, linear)에서 프로브가 baseline 5단보다 낮았다(`docs/HANDOFF.md`). 이후 항목은 **탐색적**이며 주 결과를 바꾸지 않는다.
+이미 주 지표를 본 뒤에 정한 것이므로 확증 근거로 쓰지 않는다. 같은 n=250 위에서의 분석이고, 확증은 새 episode로만 한다.
+
+- reader: Qwen2.5-0.5B-Instruct, 1.5B-Instruct, 3B-Instruct(저장된 hidden과 재추출 일치 검증용), 7B-Instruct 4-bit(nf4, bf16 compute).
+  0.5B/1.5B/3B/7B의 토크나이저와 chat template 동일은 샘플로 확인했다. 재추출 스크립트가 prompt 토큰 수를 `prompt_tokens`와 대조한다.
+- layer: 상대 깊이 25/50/75/100% (인덱스 0~3). 모델별 layer 수가 달라 같은 상대 깊이를 쓴다.
+- 프로브: linear(nested C), MLP(은닉 64, 고정). PCA는 쓰지 않는다(차원 차이는 reader 간 비교 시 별도 보고).
+- 라운드: step 0, 1, 2. 비교 대상: baseline 5단(같은 CV, 같은 재표집으로 짝지음).
+- 보고: 모든 (reader x layer x 프로브 x 라운드) 조합을 빠짐없이 표로 낸다. 가족 크기(조합 수)를 같이 적고 Holm 보정 p를 병기한다.
+  유의한 조합만 골라 보고하지 않는다.
+- 7B 4-bit은 양자화 교락이 있다(bf16 대비 점검은 12GB VRAM으로 불가). 해석 시 별도로 표시한다.
+- 표본 확대(--resume으로 250 -> 약 1000 episode)는 위 결과를 본 뒤 결정하고, 새 episode는 **확증용 holdout**으로만 쓴다.
