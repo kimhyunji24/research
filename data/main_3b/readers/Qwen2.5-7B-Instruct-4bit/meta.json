@@ -1,0 +1,13 @@
+{
+ "reader": "Qwen/Qwen2.5-7B-Instruct",
+ "load_4bit": true,
+ "layers": [
+  7,
+  14,
+  21,
+  28
+ ],
+ "n": 6490,
+ "token_mismatch": 0,
+ "rollout_run": "data/main_3b/Qwen2.5-3B-Instruct"
+}

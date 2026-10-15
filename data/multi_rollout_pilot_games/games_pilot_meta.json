@@ -1,0 +1,122 @@
+[
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_cool_then_place_in_recep-Apple-None-DiningTable-15/trial_T20190906_192109_267294/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 13,
+  "task_type": "pick_cool_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Egg-None-DiningTable-23/trial_T20190908_083733_678856/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 14,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-KeyChain-None-Drawer-208/trial_T20190909_013535_240007/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 6,
+  "task_type": "pick_and_place_simple"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-RemoteControl-None-ArmChair-207/trial_T20190908_132827_840235/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 10,
+  "task_type": "pick_two_obj_and_place"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_cool_then_place_in_recep-Lettuce-None-DiningTable-27/trial_T20190907_175011_194823/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 22,
+  "task_type": "pick_cool_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-Pillow-None-ArmChair-321/trial_T20190907_121714_804185/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 15,
+  "task_type": "pick_two_obj_and_place"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/look_at_obj_in_light-Book-None-DeskLamp-306/trial_T20190908_035303_350876/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 4,
+  "task_type": "look_at_obj_in_light"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Ladle-None-DiningTable-27/trial_T20190909_100824_609831/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 17,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-Candle-None-Toilet-409/trial_T20190908_014219_052080/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 5,
+  "task_type": "pick_and_place_simple"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_cool_then_place_in_recep-Bread-None-DiningTable-15/trial_T20190908_195749_792875/game.tw-pddl",
+  "greedy_success": true,
+  "greedy_steps": 17,
+  "task_type": "pick_cool_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-ButterKnife-None-CounterTop-12/trial_T20190909_105644_906480/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-SoapBottle-None-Toilet-412/trial_T20190908_112135_164068/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_and_place_simple"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Kettle-None-CounterTop-18/trial_T20190908_025529_009980/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-ToiletPaper-None-Drawer-410/trial_T20190908_162032_928842/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_and_place_simple"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-CD-None-Drawer-319/trial_T20190907_145438_983650/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_two_obj_and_place"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Mug-None-CoffeeMachine-1/trial_T20190909_134634_406636/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-Pen-None-SideTable-326/trial_T20190908_050658_829567/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_two_obj_and_place"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-SoapBar-None-Toilet-422/trial_T20190908_204626_280695/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_clean_then_place_in_recep"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-Pillow-None-Ottoman-208/trial_T20190906_172113_458319/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_and_place_simple"
+ },
+ {
+  "task_id": "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-CreditCard-None-Dresser-311/trial_T20190907_201834_073281/game.tw-pddl",
+  "greedy_success": false,
+  "greedy_steps": 30,
+  "task_type": "pick_two_obj_and_place"
+ }
+]
