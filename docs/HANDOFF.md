@@ -93,3 +93,11 @@ n=250, 실패 194(양성 비율 0.776), 장면 86개. `results/probe_main_3b_pri
 - 확증 분석(`results/confirm_main_3b.log`)은 6개 평가 중 3개가 끝난 시점의 로그다. 완료 여부는 파일 끝을 확인한다.
 - 7B 탐색 프로브(`results/explore_7B-4bit.*`)는 미완료일 수 있다.
 - 재시작 방법은 `docs/RESTART.md`, 새 세션 프롬프트는 `docs/NEXT_SESSION_PROMPT.md`.
+
+## 확증 결과 (2026-10-15, 새 250 episode만 평가, 3B reader, 75% layer, linear vs baseline 5단)
+| step | 프로브 | baseline 5단 | 차이 (95% CI) | 판정 |
+|---|---|---|---|---|
+| 0 | 0.645 | 0.607 | +0.039 (-0.030~+0.100) | 비열등 |
+| 1 | 0.716 | 0.681 | +0.035 (-0.030~+0.096) | 비열등 |
+| 2 | 0.729 | 0.758 | -0.029 (-0.087~+0.029) | 결론 없음 |
+우수 판정 없음. 상세와 한계는 `docs/confirmatory_plan_2026-10-15.md`.
