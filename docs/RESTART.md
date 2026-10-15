@@ -4,7 +4,7 @@
 ```bash
 git clone https://github.com/kimhyunji24/research.git && cd research && git checkout probes-baseline
 ```
-읽을 순서: `docs/NEXT_SESSION_PROMPT.md` -> `docs/HANDOFF.md` -> `docs/freeze_2026-10-15.md` -> `docs/confirmatory_plan_2026-10-15.md`
+읽을 순서: `docs/NEXT_SESSION_PROMPT.md` -> `docs/critical_review_2026-10-15.md` -> `docs/HANDOFF.md` -> `docs/freeze_2026-10-15.md` -> `docs/confirmatory_plan_2026-10-15.md`
 -> `docs/multi_rollout_plan_2026-10-15.md` -> `docs/paper_draft_2026-10-15.md`. 이전 해시는 `docs/commit_map.md`.
 
 ## 2. 환경 (Windows + WSL2, RTX 4070 12GB)
