@@ -9,7 +9,7 @@
 
 ## 설계
 - 정책: `configs/main_3b.yaml`과 같은 프롬프트·후보 점수화. 선택만 탐욕 대신 `softmax(후보 로그확률 합 / T)`에서 샘플링한다.
-  `T = 0.7`(사용자가 T=1.0을 거절했으나 값은 미지정이라 제시했던 예시값을 임시 사용, 확인 필요). 난수는 (sample_seed, episode, step)으로 결정되어 재현 가능하고 resume에서도 같다.
+  `T = 1.0`(모델 분포를 admissible 후보로 재정규화, 사용자 확인 2026-10-15). 난수는 (sample_seed, episode, step)으로 결정되어 재현 가능하고 resume에서도 같다.
 - 게임: `collect/make_game_list.py`로 기존 250 episode의 게임 중에서 고른다. 각 게임을 `repeats`번 돌린다(환경이 순서를 섞으며 각 게임이 정확히 repeats번 나옴을 확인).
 - 라운드: 같은 게임의 모든 rollout은 step 0의 프롬프트가 같다(hidden도 같음). 따라서 **step 0은 평가에서 제외**하고 step 1, 2, 3(두 번째~네 번째 action)을 본다.
 

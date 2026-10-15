@@ -9,7 +9,7 @@ max_new_tokens: 48
 num_episodes: 0                           # game_list x repeats로 덮어쓴다
 max_steps: 30
 temperature: 0.0                          # (generate 정책용, 여기서는 미사용)
-sample_temperature: 0.7                   # softmax(후보 로그확률 합 / T)에서 샘플링. 사용자가 T=1.0을 거절했고 값은 미지정이라 예시로 제시한 0.7을 임시 사용(확인 필요)
+sample_temperature: 1.0                   # softmax(후보 로그확률 합 / T)에서 샘플링. 1.0이면 모델 분포를 admissible 후보로 재정규화(사용자 확인 2026-10-15)
 sample_seed: 0
 repeats: 8
 relative_layers: [0.25, 0.5, 0.75, 1.0]
