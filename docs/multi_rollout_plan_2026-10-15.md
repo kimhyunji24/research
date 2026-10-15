@@ -44,3 +44,11 @@
 ## 구현 상태
 `collect/rollout.py`: `--game_list`, `--repeats`, `--sample_temperature`, `--sample_seed` 추가(구문 확인만, **GPU 점유로 아직 실행 못 함**).
 `collect/make_game_list.py`, `configs/multi_rollout.yaml` 추가. 게임 내 쌍 AUROC 분석 코드는 데이터가 나온 뒤 작성한다.
+
+## 본 규모 확정 (2026-10-15, 파일럿 후, 수집 전)
+- 파일럿 결과: 성공 66/160, 갈리는 게임 8/20(40%, 기준 충족). 탐욕 성공 게임의 샘플링 성공률 0.80, 탐욕 실패 게임 0.025.
+- 게임: 파일럿 20게임 + 새 80게임. 새 80게임은 `main_3b` 500 episode 중 파일럿 게임을 뺀 풀에서 탐욕 성공 40 + 실패 40을 `seed=1`로 무작위 추출
+  (`results/games_main.json`, `games_main_meta.json`). 탐욕 결과로 층화한 사후 선택이다.
+- 반복: 게임당 8회, T=1.0, `sample_seed=1`(파일럿은 0). 출력 `data/multi_rollout_main`(새 640 episode).
+  분석에서는 파일럿 `data/multi_rollout_pilot`(160 episode)과 합친다(같은 설정, 겹치는 게임 없음).
+- 본 규모 예상: 갈리는 게임 약 40개. 분석 코드(게임 내 쌍 AUROC)는 수집 중에 작성하고, 결과를 보기 전에 위 "주 분석" 절차를 그대로 적용한다.

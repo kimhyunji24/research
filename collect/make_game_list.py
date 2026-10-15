@@ -13,11 +13,15 @@ ap.add_argument("--n", type=int, required=True)
 ap.add_argument("--seed", type=int, default=0)
 ap.add_argument("--stratify", action="store_true")
 ap.add_argument("--max_episode", type=int, default=250)
+ap.add_argument("--exclude", help="제외할 게임 목록 json(예: 파일럿 게임)")
 ap.add_argument("--out", required=True)
 a = ap.parse_args()
 
 E = [json.loads(l) for l in open(os.path.join(a.from_run, "episodes.jsonl"))]
 E = [e for e in E if e["episode"] < a.max_episode]
+if a.exclude:
+    ex = set(json.load(open(a.exclude)))
+    E = [e for e in E if e["task_id"] not in ex]
 rng = np.random.default_rng(a.seed)
 if a.stratify:
     pos = [e for e in E if e["success"]]; neg = [e for e in E if not e["success"]]
