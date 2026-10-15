@@ -1,0 +1,24 @@
+episodes<250: 250, steps=6490
+readers: ['3B', '0.5B', '1.5B', '7B-4bit']
+A step 0 layer 1 done
+A step 0 layer 2 done
+A step 1 layer 1 done
+A step 1 layer 2 done
+A step 2 layer 1 done
+A step 2 layer 2 done
+B step 0 n=250 fail=194 probe=0.666 b5=0.701
+B step 1 n=250 fail=194 probe=0.721 b5=0.732
+B step 2 n=250 fail=194 probe=0.795 b5=0.823
+B step 3 n=250 fail=194 probe=0.813 b5=0.818
+B step 4 n=241 fail=194 probe=0.772 b5=0.777
+B step 5 n=235 fail=194 probe=0.830 b5=0.820
+B step 6 n=231 fail=194 probe=0.840 b5=0.847
+B step 7 n=229 fail=194 probe=0.833 b5=0.866
+B step 8 n=229 fail=194 probe=0.860 b5=0.859
+B step 9 n=227 fail=194 probe=0.770 b5=0.884
+B step 10 n=224 fail=194 probe=0.824 b5=0.826
+C step 1 done
+C step 2 done
+C step 3 done
+C step 5 done
+saved results/extra_main_3b_{A,B,C}_*.csv
