@@ -23,6 +23,8 @@ ap.add_argument("--pca", type=int, nargs="*", default=[0], help="0=PCA 없음(�
 ap.add_argument("--kinds", nargs="+", default=["linear"], choices=["linear", "mlp"])
 ap.add_argument("--rungs", type=int, nargs="+", default=[1, 2, 3, 4, 5])
 ap.add_argument("--baselines_only", action="store_true")
+ap.add_argument("--eval_from_episode", type=int,
+                help="모든 episode로 교차적합하되 평가는 episode 번호가 이 값 이상인 행만으로 한다(확증 분석)")
 ap.add_argument("--n_perm", type=int, default=100)
 ap.add_argument("--n_boot", type=int, default=1000)
 ap.add_argument("--n_repeats", type=int, default=2)
@@ -48,8 +50,11 @@ rows, scores = [], {}
 for r in a.rounds:
     m = (df["step"] == r).to_numpy()
     if m.sum() == 0: continue
-    boot = cluster_boot_idx(df.loc[m, "scene"].to_numpy(), a.n_boot, a.seed)
-    common = dict(n_splits=5, n_repeats=a.n_repeats, boot=boot, seed=a.seed, n_jobs=a.n_jobs)
+    sc = df.loc[m, "scene"].to_numpy()
+    if a.eval_from_episode is not None: sc = sc[(df.loc[m, "episode"].to_numpy() >= a.eval_from_episode)]
+    boot = cluster_boot_idx(sc, a.n_boot, a.seed)
+    common = dict(n_splits=5, n_repeats=a.n_repeats, boot=boot, seed=a.seed, n_jobs=a.n_jobs,
+                  eval_from_episode=a.eval_from_episode)
 
     def run(method, X, make, Cs, n_perm):
         res = round_eval(df, X, r, make, Cs=Cs, n_perm=n_perm, **common)

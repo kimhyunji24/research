@@ -155,35 +155,41 @@ def paired_diff(y, s_a, s_b, idx_list):
     return est, *np.percentile(d, [2.5, 97.5])
 
 
-def _one_perm(X, y, groups, make, Cs, n_splits, n_repeats, seed):
+def _one_perm(X, y, groups, make, Cs, n_splits, n_repeats, seed, ev=None):
     yp = np.random.default_rng(seed).permutation(y)
     s, _, _ = crossfit(X, yp, groups, make, Cs, n_splits, n_repeats, seed=seed)
-    return roc_auc_score(yp, s)
+    return roc_auc_score(yp, s) if ev is None else roc_auc_score(yp[ev], s[ev])
 
 
 def round_eval(df, X, r, make, Cs=C_GRID, n_splits=5, n_repeats=2, n_perm=100, boot=None, seed=0,
-               group_col="scene", n_jobs=-1):
+               group_col="scene", n_jobs=-1, eval_from_episode=None):
     """라운드 r(0-based step)의 AUROC/AUPRC, CI, 순열 대조군. X는 df 행과 정렬된 (len(df), d) 배열 또는 표.
-    반환 dict. '_y', '_s', '_groups'는 짝지은 비교용이다."""
+    eval_from_episode가 있으면 모든 행으로 교차적합하되 평가(AUROC, CI, 순열 p)는 episode >= 그 값인 행만으로 한다.
+    boot는 평가 행 기준 인덱스여야 한다. 반환 dict. '_y', '_s', '_groups'는 평가 행의 짝지은 비교용이다."""
     m = (df["step"] == r).to_numpy()
     idx = np.where(m)[0]
     y, g = df.loc[m, "y"].to_numpy(), df.loc[m, group_col].to_numpy()
+    ev = None if eval_from_episode is None else (df.loc[m, "episode"].to_numpy() >= eval_from_episode)
     if y.sum() < n_splits or (1 - y).sum() < n_splits: return None
+    if ev is not None and len(np.unique(y[ev])) < 2: return None
     Xr = _take(X, idx)
+    ye, ge = (y, g) if ev is None else (y[ev], g[ev])
     try:
         s, chosen, evr = crossfit(Xr, y, g, make, Cs, n_splits, n_repeats, seed=seed)
     except ValueError as e:  # 예: PCA k가 fold 학습 표본 수 이상
-        return dict(step=r, n=len(y), n_fail=int(y.sum()), base_rate=float(y.mean()), auroc=np.nan, note=str(e)[:80])
-    boot = boot or cluster_boot_idx(g, 1000, seed)
-    lo, hi = ci(y, s, boot[0]); elo, ehi = ci(y, s, boot[1])
-    res = dict(step=r, n=len(y), n_fail=int(y.sum()), base_rate=round(float(y.mean()), 3), auroc=roc_auc_score(y, s),
-               ci_lo=lo, ci_hi=hi, ci_ep_lo=elo, ci_ep_hi=ehi, auprc=average_precision_score(y, s),
+        return dict(step=r, n=len(ye), n_fail=int(ye.sum()), base_rate=float(ye.mean()), auroc=np.nan, note=str(e)[:80])
+    se = s if ev is None else s[ev]
+    boot = boot or cluster_boot_idx(ge, 1000, seed)
+    lo, hi = ci(ye, se, boot[0]); elo, ehi = ci(ye, se, boot[1])
+    res = dict(step=r, n=len(ye), n_fail=int(ye.sum()), base_rate=round(float(ye.mean()), 3), n_train_rows=len(y),
+               auroc=roc_auc_score(ye, se), ci_lo=lo, ci_hi=hi, ci_ep_lo=elo, ci_ep_hi=ehi,
+               auprc=average_precision_score(ye, se),
                C_median=float(np.median(chosen)) if chosen else np.nan,
                pca_evr=float(np.mean(evr)) if evr else np.nan)
     if n_perm:
-        null = np.array(Parallel(n_jobs=n_jobs)(delayed(_one_perm)(Xr, y, g, make, Cs, n_splits, n_repeats, seed + 1 + i)
+        null = np.array(Parallel(n_jobs=n_jobs)(delayed(_one_perm)(Xr, y, g, make, Cs, n_splits, n_repeats, seed + 1 + i, ev)
                                                 for i in range(n_perm)))
         res.update(null_mean=float(null.mean()), null_lo=float(np.percentile(null, 2.5)),
                    null_hi=float(np.percentile(null, 97.5)), p_perm=float((1 + (null >= res["auroc"]).sum()) / (1 + n_perm)))
-    res.update(_y=y, _s=s, _groups=g)
+    res.update(_y=ye, _s=se, _groups=ge)
     return res
