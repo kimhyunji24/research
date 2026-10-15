@@ -31,10 +31,11 @@ def scene_of(task_id):
     return task_id.replace("\\", "/").split("/")[-3].split("-")[-1]
 
 
-def load_run(path):
+def load_run(path, hidden_path=None):
+    """hidden_path: 다른 reader가 뽑은 hidden.npy(collect/extract_reader.py). 행 순서는 steps의 hid_idx와 같다."""
     eps = pd.read_json(os.path.join(path, "episodes.jsonl"), lines=True, dtype={"task_id": str})
     steps = pd.read_json(os.path.join(path, "steps.jsonl"), lines=True, dtype={"task_id": str})
-    hid = np.load(os.path.join(path, "hidden.npy"), mmap_mode="r")  # (N, L, H), float16
+    hid = np.load(hidden_path or os.path.join(path, "hidden.npy"), mmap_mode="r")  # (N, L, H), float16
     steps = steps.merge(eps[["episode", "task_type", "success"]], on="episode")
     steps["y"] = (~steps["success"]).astype(int)
     steps = steps.sort_values(["episode", "step"]).reset_index(drop=True)

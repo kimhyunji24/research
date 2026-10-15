@@ -16,6 +16,8 @@ from lib import (baseline_columns, baseline_frame, cluster_boot_idx, load_run, m
 ap = argparse.ArgumentParser()
 ap.add_argument("path")
 ap.add_argument("--layer", type=int, default=1, help="relative_layers 인덱스 (1=50%)")
+ap.add_argument("--layers", type=int, nargs="+", help="여러 layer를 한 번에(탐색적). 지정하면 --layer는 무시")
+ap.add_argument("--hidden", help="다른 reader의 hidden.npy 경로(collect/extract_reader.py 출력)")
 ap.add_argument("--rounds", type=int, nargs="+", default=[0, 1, 2], help="0-based step")
 ap.add_argument("--pca", type=int, nargs="*", default=[0], help="0=PCA 없음(전체 차원). 스윕 예: 0 8 32 64 128")
 ap.add_argument("--kinds", nargs="+", default=["linear"], choices=["linear", "mlp"])
@@ -29,7 +31,8 @@ ap.add_argument("--n_jobs", type=int, default=-1)
 ap.add_argument("--out", default=None)
 a = ap.parse_args()
 
-df, hid = load_run(a.path)
+df, hid = load_run(a.path, a.hidden)
+layers = a.layers if a.layers else [a.layer]
 print(f"episodes={df['episode'].nunique()} steps={len(df)} scenes={df['scene'].nunique()} "
       f"success={(df.groupby('episode')['y'].first() == 0).sum()} prompt_saved={'text' in df.columns}")
 if "obj_parsed" in df.columns and "text" in df.columns:
@@ -37,9 +40,9 @@ if "obj_parsed" in df.columns and "text" in df.columns:
 rungs = [r for r in a.rungs if r < 5 or "text" in df.columns]
 if len(rungs) < len(a.rungs): print("prompt가 없어 5단은 건너뛴다")
 
-H = None
+Hs = {}
 if not a.baselines_only:
-    H = np.asarray(hid[df["hid_idx"].to_numpy(), a.layer]).astype("float32")
+    Hs = {l: np.asarray(hid[df["hid_idx"].to_numpy(), l]).astype("float32") for l in layers}
 
 rows, scores = [], {}
 for r in a.rounds:
@@ -60,10 +63,12 @@ for r in a.rounds:
         run(f"baseline{rung}", Xb, lambda C, rung=rung, cols=cols: make_baseline(rung, cols + (["text"] if rung >= 5 else []), C),
             C_GRID, a.n_perm)
     if not a.baselines_only:
-        for kind in a.kinds:
-            for k in a.pca:
-                run(f"{kind}_pca{k or 'full'}", H, lambda C, kind=kind, k=k: make_probe(kind, k or None, C, a.seed),
-                    C_GRID if kind == "linear" else None, a.n_perm if kind == "linear" else min(a.n_perm, 20))
+        for layer in layers:
+            for kind in a.kinds:
+                for k in a.pca:
+                    name = f"{kind}_L{layer}_pca{k or 'full'}" if a.layers else f"{kind}_pca{k or 'full'}"
+                    run(name, Hs[layer], lambda C, kind=kind, k=k: make_probe(kind, k or None, C, a.seed),
+                        C_GRID if kind == "linear" else None, a.n_perm if kind == "linear" else min(a.n_perm, 20))
 
 out = pd.DataFrame(rows)
 cols = ["step", "method", "n", "n_fail", "base_rate", "auroc", "ci_lo", "ci_hi", "ci_ep_lo", "ci_ep_hi", "auprc",
