@@ -17,12 +17,16 @@ ap.add_argument("--readers_dir", help="기본: <path 상위>/readers")
 ap.add_argument("--out", required=True)
 ap.add_argument("--late_max_step", type=int, default=10)
 ap.add_argument("--temporal_steps", type=int, nargs="+", default=[1, 2, 3, 5])
+ap.add_argument("--max_episode", type=int, default=250,
+                help="이 번호 미만의 episode만 사용(수집이 진행 중이어도 reader hidden이 있는 구간으로 제한)")
 ap.add_argument("--n_boot", type=int, default=1000)
 ap.add_argument("--seed", type=int, default=0)
 a = ap.parse_args()
 os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
 
 df, hid3 = load_run(a.path)
+df = df[df["episode"] < a.max_episode].reset_index(drop=True)
+print(f"episodes<{a.max_episode}: {df['episode'].nunique()}, steps={len(df)}", flush=True)
 rdir = a.readers_dir or os.path.join(os.path.dirname(a.path.rstrip("/\\")), "readers")
 paths = {"3B": os.path.join(a.path, "hidden.npy")}
 for name, d in [("0.5B", "Qwen2.5-0.5B-Instruct"), ("1.5B", "Qwen2.5-1.5B-Instruct"), ("7B-4bit", "Qwen2.5-7B-Instruct-4bit")]:
