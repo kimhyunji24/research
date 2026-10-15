@@ -1,0 +1,19 @@
+# 같은 게임을 여러 번 rollout(샘플링). main_3b.yaml과 같은 프롬프트·후보 점수화이고 선택만 샘플링으로 바뀐다.
+# 사용: python collect/rollout.py --config configs/multi_rollout.yaml --game_list data/multi_rollout/games_pilot.json --repeats 8 --out_dir data/multi_rollout_pilot
+model_name: Qwen/Qwen2.5-3B-Instruct
+dtype: bfloat16
+device: cuda
+policy: score
+score_norm: sum
+max_new_tokens: 48
+num_episodes: 0                           # game_list x repeats로 덮어쓴다
+max_steps: 30
+temperature: 0.0                          # (generate 정책용, 여기서는 미사용)
+sample_temperature: 1.0                   # softmax(후보 로그확률 합 / T)에서 샘플링. 1.0이면 모델 분포를 admissible 후보로 재정규화(사용자 확인 2026-10-15)
+sample_seed: 0
+repeats: 8
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/multi_rollout
+seed: 0

@@ -1,0 +1,19 @@
+  4000/6490 93s
+  4500/6490 104s
+  5000/6490 115s
+  5500/6490 126s
+  6000/6490 137s
+saved data/main_3b/readers/Qwen2.5-0.5B-Instruct shape=(6490, 4, 896) token_mismatch=0
+  4000/6490 232s
+  4500/6490 262s
+  5000/6490 290s
+  5500/6490 319s
+  6000/6490 348s
+saved data/main_3b/readers/Qwen2.5-1.5B-Instruct shape=(6490, 4, 1536) token_mismatch=0
+  4000/6490 1101s
+  4500/6490 1243s
+  5000/6490 1379s
+  5500/6490 1521s
+  6000/6490 1660s
+saved data/main_3b/readers/Qwen2.5-7B-Instruct-4bit shape=(6490, 4, 3584) token_mismatch=0
+=== extraction done Thu Oct 15 19:06:26 KST 2026

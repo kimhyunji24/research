@@ -1,0 +1,43 @@
+episodes=250 steps=6490 scenes=86 success=56 prompt_saved=True
+목표 물체 파싱 성공 episode 비율: 0.960
+  step 0 baseline1: auroc=0.500
+  step 0 baseline2: auroc=0.603
+  step 0 baseline3: auroc=0.659
+  step 0 baseline4: auroc=0.673
+  step 0 baseline5: auroc=0.701
+  step 1 baseline1: auroc=0.500
+  step 1 baseline2: auroc=0.603
+  step 1 baseline3: auroc=0.633
+  step 1 baseline4: auroc=0.700
+  step 1 baseline5: auroc=0.732
+  step 2 baseline1: auroc=0.500
+  step 2 baseline2: auroc=0.603
+  step 2 baseline3: auroc=0.671
+  step 2 baseline4: auroc=0.834
+  step 2 baseline5: auroc=0.823
+  step 3 baseline1: auroc=0.500
+  step 3 baseline2: auroc=0.603
+  step 3 baseline3: auroc=0.700
+  step 3 baseline4: auroc=0.814
+  step 3 baseline5: auroc=0.818
+ step    method   n  n_fail  base_rate  auroc  ci_lo  ci_hi  ci_ep_lo  ci_ep_hi  auprc  null_mean  null_lo  null_hi  p_perm  C_median  pca_evr
+    0 baseline1 250     194      0.776  0.500  0.500  0.500     0.500     0.500  0.776      0.500    0.500    0.500    1.00     0.000      NaN
+    0 baseline2 250     194      0.776  0.603  0.522  0.688     0.518     0.684  0.824      0.501    0.392    0.585    0.03     0.000      NaN
+    0 baseline3 250     194      0.776  0.659  0.590  0.737     0.585     0.733  0.873      0.500    0.388    0.597    0.02     0.010      NaN
+    0 baseline4 250     194      0.776  0.673  0.607  0.742     0.596     0.745  0.884      0.498    0.398    0.594    0.02     0.010      NaN
+    0 baseline5 250     194      0.776  0.701  0.631  0.772     0.626     0.771  0.890      0.506    0.407    0.606    0.01     0.055      NaN
+    1 baseline1 250     194      0.776  0.500  0.500  0.500     0.500     0.500  0.776      0.500    0.500    0.500    1.00     0.000      NaN
+    1 baseline2 250     194      0.776  0.603  0.522  0.688     0.518     0.684  0.824      0.501    0.392    0.585    0.03     0.000      NaN
+    1 baseline3 250     194      0.776  0.633  0.555  0.709     0.551     0.707  0.850      0.500    0.384    0.587    0.02     0.010      NaN
+    1 baseline4 250     194      0.776  0.700  0.611  0.787     0.622     0.775  0.886      0.502    0.384    0.582    0.01     0.100      NaN
+    1 baseline5 250     194      0.776  0.732  0.651  0.810     0.659     0.801  0.890      0.503    0.408    0.607    0.01     0.100      NaN
+    2 baseline1 250     194      0.776  0.500  0.500  0.500     0.500     0.500  0.776      0.500    0.500    0.500    1.00     0.000      NaN
+    2 baseline2 250     194      0.776  0.603  0.522  0.688     0.518     0.684  0.824      0.501    0.392    0.585    0.03     0.000      NaN
+    2 baseline3 250     194      0.776  0.671  0.593  0.748     0.586     0.747  0.869      0.505    0.375    0.594    0.02     0.550      NaN
+    2 baseline4 250     194      0.776  0.834  0.768  0.892     0.770     0.892  0.939      0.502    0.412    0.607    0.01     0.100      NaN
+    2 baseline5 250     194      0.776  0.823  0.754  0.883     0.757     0.883  0.931      0.506    0.392    0.621    0.01     0.100      NaN
+    3 baseline1 250     194      0.776  0.500  0.500  0.500     0.500     0.500  0.776      0.500    0.500    0.500    1.00     0.000      NaN
+    3 baseline2 250     194      0.776  0.603  0.522  0.688     0.518     0.684  0.824      0.501    0.392    0.585    0.03     0.000      NaN
+    3 baseline3 250     194      0.776  0.700  0.623  0.776     0.623     0.772  0.876      0.503    0.376    0.598    0.02     0.100      NaN
+    3 baseline4 250     194      0.776  0.814  0.750  0.874     0.746     0.877  0.924      0.503    0.394    0.613    0.01     0.010      NaN
+    3 baseline5 250     194      0.776  0.818  0.749  0.878     0.747     0.880  0.920      0.507    0.393    0.618    0.01     0.010      NaN

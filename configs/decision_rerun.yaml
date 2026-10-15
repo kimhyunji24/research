@@ -1,0 +1,16 @@
+# decision.yaml 재수집용: 3B, 100 episode, 출력은 새 폴더(원본 data/decision은 이 PC에 없어 덮어쓸 일 없음)
+# decision.yaml과 다른 점: model_name(3B 고정), out_dir
+model_name: Qwen/Qwen2.5-3B-Instruct
+dtype: bfloat16
+device: cuda
+policy: score
+score_norm: sum
+max_new_tokens: 48
+num_episodes: 100
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/decision_rerun
+seed: 0

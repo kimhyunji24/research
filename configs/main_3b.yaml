@@ -1,0 +1,16 @@
+# 본 수집(주 실험의 궤적 생성): 3B actor, train 게임 풀에서 250 episode.
+# decision.yaml과 같은 설정이고 model_name/num_episodes/out_dir만 다르다. 동결 기록: docs/freeze_2026-10-15.md
+model_name: Qwen/Qwen2.5-3B-Instruct
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택 (constrained action selection)
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 250
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/main_3b
+seed: 0

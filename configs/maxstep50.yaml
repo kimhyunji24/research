@@ -1,0 +1,15 @@
+# max step 50 확인용: decision.yaml과 동일하되 max_steps=50, 3B, 20 episode, 출력은 새 폴더
+model_name: Qwen/Qwen2.5-3B-Instruct
+dtype: bfloat16
+device: cuda
+policy: score
+score_norm: sum
+max_new_tokens: 48
+num_episodes: 20
+max_steps: 50
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/maxstep50
+seed: 0
