@@ -3,7 +3,7 @@
 각 step에서 action 생성 직전 마지막 입력 토큰의 hidden state(25/50/75/final layer)를 저장한다.
 사용: python collect/rollout.py --config configs/pilot.yaml [--model Qwen/Qwen2.5-1.5B-Instruct]
 """
-import argparse, copy, difflib, json, os, re, time
+import argparse, collections, copy, difflib, json, os, re, time
 import numpy as np
 import torch, yaml
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -115,16 +115,29 @@ def main():
     ap.add_argument("--out_dir", help="config의 out_dir을 덮어씀")
     ap.add_argument("--resume", action="store_true", help="out 폴더의 완료된 episode 뒤에서 이어서 수집")
     ap.add_argument("--overwrite", action="store_true", help="out 폴더에 결과가 있어도 지우고 새로 시작")
+    ap.add_argument("--game_list", help="게임 경로(task_id) 목록 json. 지정하면 이 게임들만 --repeats번씩 돌린다")
+    ap.add_argument("--repeats", type=int, help="game_list의 게임당 rollout 횟수")
+    ap.add_argument("--sample_temperature", type=float,
+                    help=">0이면 탐욕 대신 softmax(score/T)에서 후보를 샘플링한다(seed, episode, step으로 결정적)")
+    ap.add_argument("--sample_seed", type=int)
     a = ap.parse_args()
     cfg = yaml.safe_load(open(a.config))
     if a.model: cfg["model_name"] = a.model
     if a.num_episodes: cfg["num_episodes"] = a.num_episodes
     if a.out_dir: cfg["out_dir"] = a.out_dir
+    for k in ("game_list", "repeats", "sample_temperature", "sample_seed"):
+        if getattr(a, k) is not None: cfg[k] = getattr(a, k)
     torch.manual_seed(cfg["seed"])
 
     from alfworld.agents.environment import get_environment
     env_cfg = yaml.safe_load(os.path.expandvars(open(cfg["alfworld_config"]).read()))
-    env = get_environment(env_cfg["env"]["type"])(env_cfg, train_eval=cfg["split"]).init_env(batch_size=1)
+    env_obj = get_environment(env_cfg["env"]["type"])(env_cfg, train_eval=cfg["split"])
+    if cfg.get("game_list"):  # 같은 게임을 여러 번: 목록을 repeats번 반복해 환경에 넘긴다(환경이 섞어서 내보내며 각 게임이 정확히 repeats번 나온다)
+        games = json.load(open(cfg["game_list"]))
+        env_obj.game_files = [g for g in games for _ in range(int(cfg.get("repeats", 1)))]
+        env_obj.num_games = len(env_obj.game_files)
+        cfg["num_episodes"] = len(env_obj.game_files)
+    env = env_obj.init_env(batch_size=1)
 
     tok = AutoTokenizer.from_pretrained(cfg["model_name"])
     model = AutoModelForCausalLM.from_pretrained(
@@ -163,6 +176,7 @@ def main():
         if infos0["extra.gamefile"][0] != eps_done[e]["task_id"]:
             raise SystemExit(f"resume 불가: episode {e}의 게임 순서가 이전 실행과 다르다(환경 순서가 결정적이지 않음).")
 
+    game_count = collections.Counter(e["task_id"] for e in eps_done)  # 같은 게임의 몇 번째 rollout인지
     for ep in range(done, cfg["num_episodes"]):
         hid_start = len(hid)
         obs, infos = env.reset()
@@ -178,8 +192,13 @@ def main():
                 cands = [c for c in adm if c not in SKIP_ACTIONS] or list(adm)
                 vec, score, total, ntok, n_prompt = score_candidates(model, tok, prompt, cands, layers,
                                                                      cfg["device"], cfg.get("score_norm", "sum"))
-                best = int(score.argmax())
-                p = np.exp(score - score.max()); p /= p.sum()
+                T = float(cfg.get("sample_temperature") or 0)
+                if T > 0:  # 샘플링: 재현 가능하도록 (seed, episode, step)으로 난수열을 만든다. resume해도 같다.
+                    z = score / T; z = z - z.max(); p = np.exp(z); p /= p.sum()
+                    best = int(np.random.default_rng([int(cfg.get("sample_seed", 0)), ep, step]).choice(len(p), p=p))
+                else:
+                    best = int(score.argmax())
+                    p = np.exp(score - score.max()); p /= p.sum()
                 action, valid, raw = cands[best], True, ""
                 # prompt와 후보별 점수를 저장해 다른 크기 모델로 teacher-forced 재추출과 score_norm 분석을 가능하게 한다.
                 # hidden은 prompt 마지막 토큰(위치 prompt_tokens-1)에서 뽑은 것이다.
@@ -216,7 +235,9 @@ def main():
         ttype = gamefile.split("/")[-3].split("-")[0]  # 예: pick_two_obj_and_place
         with open(os.path.join(out, "episodes.jsonl"), "a") as f:
             f.write(json.dumps(dict(episode=ep, task_id=gamefile, task_type=ttype, success=bool(won),
-                                    steps=len(trace))) + "\n")
+                                    steps=len(trace), rollout_idx=game_count[gamefile],
+                                    sample_temperature=float(cfg.get("sample_temperature") or 0))) + "\n")
+        game_count[gamefile] += 1
         print(f"[{tag}] ep {ep+1}/{cfg['num_episodes']} won={won} steps={len(trace)} total_wins={wins}", flush=True)
 
     np.save(os.path.join(out, "hidden.npy"), np.stack(hid).astype(np.float16))
