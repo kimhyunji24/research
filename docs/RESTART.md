@@ -20,7 +20,15 @@ uv pip install transformers==5.19.0 accelerate scikit-learn numpy pandas pyyaml 
 export ALFWORLD_DATA=/root/alfworld_data && alfworld-download     # 약 2.3GB
 ```
 
-## 3. 데이터 복구 (git에 없음. 백업이 없으면 아래로 다시 만든다)
+## 3. 데이터 복구
+
+**먼저 백업에서 받는다**(브랜치 `data-backup`, Git LFS, 약 730MB, 2026-10-15 업로드):
+```bash
+git lfs install
+git clone --branch data-backup --single-branch https://github.com/kimhyunji24/research.git ../research_data
+cp -r ../research_data/data ./data     # 코드 저장소의 data/로 복사
+```
+`MANIFEST.txt`에 파일 목록과 크기가 있다. 백업이 없거나 깨졌을 때만 아래로 다시 만든다.
 | 데이터 | 명령 | 시간(RTX 4070) |
 |---|---|---|
 | `data/main_3b` (500 episode, 확증 포함) | `python collect/rollout.py --config configs/main_3b.yaml --num_episodes 500` | 약 95분 |
