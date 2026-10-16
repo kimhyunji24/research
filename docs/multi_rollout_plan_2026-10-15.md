@@ -69,3 +69,63 @@
 - 오라클은 평가 rollout 자신의 결과를 쓰지 않는다(누설 방지). 같은 게임 다른 rollout의 성공률(leave-one-out)은 게임 안에서 자기 라벨과 반대로 움직여 쓰지 않는다.
 - 주 분석(게임 내 쌍 AUROC, step 1~3, 3B reader 75% layer linear vs baseline 4·5단)은 바꾸지 않는다. 위 장치는 보조 지표다.
 - 파일럿 dry run은 baseline 2단과 오라클만 계산했다(프로브는 계산하지 않음). 오라클의 게임 합친 AUROC는 0.90이었다(층화 표본).
+
+## 변경 이력
+- 2026-10-16 (본 규모 데이터를 보기 전): 출력 폴더를 `data/multi_rollout_main` -> `data/multi_rollout_main_r2`로 바꾸고 640 episode를 처음부터 수집한다.
+  이유: 컴퓨터 초기화 후 `data-backup`에서 복구한 24/640 중단분을 덮어쓰지 않기 위해서다. 게임 목록(`games_main.json`, 백업본과 동일 확인),
+  `--repeats 8`, `--sample_seed 1`, T=1.0, 코드(`collect/rollout.py`, 마지막 변경 `4b31038`)는 그대로다.
+  샘플링이 (sample_seed, episode, step)으로 결정되므로 새 수집의 episode 0~23이 백업 24개와 같은지 비교해 재현성을 확인한다(이전에 확인한 적 없음).
+  분석에는 `data/multi_rollout_main_r2`(640)와 파일럿(160)을 쓰고, 백업 24개는 재현성 비교에만 쓴다.
+  환경: 새 WSL2 Ubuntu-22.04, torch 2.11.0+cu128, transformers 5.19.0, alfworld 0.4.2 (RESTART.md 2절과 같은 버전).
+  `results/run_multi_main.sh`의 `cp /mnt/c/research/...` 줄은 그 경로가 없어 쓰지 않고, git의 코드로 같은 명령을 실행한다.
+- 2026-10-16: 첫 실행은 episode 0개 상태에서 중단했다(약 10분간 GPU 유휴, `cudaLaunchKernel`에서 정지). 이후 WSL 가상 디스크(ext4)의
+  체크섬 오류와 파일 손상(복사한 `hidden.npy` 2개 내용 불일치, git index 손상)을 확인했다. 산출물이 없으므로 결과에는 영향이 없다.
+  수집은 디스크 문제를 해결한 뒤 같은 설정으로 다시 시작한다.
+- 2026-10-16: 배포판을 다시 설치한 두 번째 실행도 episode 0개에서 `CUDA error: device kernel image is invalid`로 끝났고 ext4 손상이 재발했다.
+  `wsl --update`(WSL 2.7.12 -> 3.0.3, 커널 6.18.33 -> 6.18.54.1) 후 배포판을 새로 설치하자 문제가 재발하지 않았다. 원인은 확정하지 못했다(메모리 진단은 하지 않음).
+  세 번째 실행 전 점검: 복구 데이터 50개 파일 바이트 일치, `git fsck` 정상, 설치 패키지 15,407개 RECORD 해시 일치, ext4 경고 0.
+- 2026-10-17 (수집 완료, 분석 전): `data/multi_rollout_main_r2` 640 episode(80게임 x 8회, 약 88분). 성공 256/640.
+  정합성: 게임 80개가 각각 8회, steps 14,422행 = hidden 14,422행 (4, 2048) float16, NaN 0, shard 640개, 수집 중 ext4 경고 0.
+  **재현성**: episode 0~23이 `data-backup`의 중단분 24개와 게임·성공·step 수·action 열·hidden shard까지 완전히 같다(최대 차이 0).
+  다른 WSL 설치(같은 버전 고정 패키지)에서 샘플링 rollout이 재현됨을 처음 확인했다.
+  백업: Windows `Desktop\research_data_new`(sha256 목록 포함, 검증 통과). `data-backup` 브랜치에는 아직 올리지 않았다.
+- 2026-10-17: 주 분석을 위 "주 분석" 절차 그대로 1회 실행했다(명령은 아래). 출력 `results/within_game*`.
+  `python probes/within_game.py data/multi_rollout_pilot/Qwen2.5-3B-Instruct data/multi_rollout_main_r2/Qwen2.5-3B-Instruct --layer 2 --steps 1 2 3 --game_meta data/multi_rollout_pilot_games/games_pilot_meta.json data/multi_rollout_main_games/games_main_meta.json --out results/within_game`
+
+## 보조 분석과 해석 규칙 (2026-10-17, 주 분석 결과를 열기 전에 기록)
+주 분석 실행 시작 뒤, 결과 파일을 열기 전에 판정 규칙의 전제를 점검했다. 점검에는 점수·AUROC를 쓰지 않았고 라벨은 평가 쌍을 고르는 데만 썼다.
+주 분석과 그 판정은 바꾸지 않고 그대로 보고한다. 아래는 그 판정이 무엇을 뜻하는지 정하기 위한 보조 분석과 해석 규칙이다.
+
+### 점검 결과 (결과 열람 전)
+| 항목 | 값 |
+|---|---|
+| 갈리는 게임 / 장면 | 39 / 28 (전체 100게임, 64장면). step마다 (실패, 성공) 평가 쌍 470개 |
+| 프롬프트가 같은 평가 쌍 | step 1/2/3: 331 (70.4%) / 312 (66.4%) / 246 (52.3%) |
+| 그 쌍의 프로브 입력(hidden layer 2) | 889쌍 모두 정확히 같다 -> 프로브 점수 동점(쌍 AUROC 기여 0.5) |
+| 그 쌍의 baseline 4·5단 특징 | 889쌍 모두 `repeat` 또는 `p_chosen`이 다르다(현재 step에서 샘플링된 action의 값) |
+| 생존 | 성공 episode 최소 4 step -> step 1~3에서 전원 생존 |
+| 합친 `hidden.npy` | shard 640개를 이어붙인 것과 비트 단위로 같다 |
+
+### 이 점검이 판정 규칙에 주는 문제
+1. **동점 희석**: 프로브의 쌍 AUROC 상한은 0.5 x 동점 비율 + (1 - 동점 비율) = step 1/2/3에서 0.648 / 0.668 / 0.739다.
+   마진 0.05는 갈라진 쌍 기준으로 0.169 / 0.149 / 0.105에 해당해 비열등 판정이 느슨하다. "모두 0.5 근처"는 "아직 갈라지지 않음"일 수 있다.
+2. **시점 비대칭**: baseline 3단 이상의 `repeat`(현재 action 포함), `p_chosen`은 프로브 시점(프롬프트 마지막 토큰) 이후 값이다.
+   게임 간 평가에서는 프로브에 불리한 보수적 선택이었지만, 게임 내 평가에서는 rollout이 갈라지는 지점이 바로 이 샘플링된 action이다.
+   baseline이 이기면 이 정보 때문일 수 있다. (`n_cand`는 프롬프트의 admissible 목록에서 정해지므로 시점 문제가 없다.)
+3. **정의 부족**: "≈"(비열등과 동등의 구분), "0.5 근처"의 수치 기준, 비교 6개(baseline 4·5단 x step 3개)의 다중 비교 규칙이 없었다.
+4. **마진 근거**: 0.05는 게임 간 탐색 결과를 본 뒤 정한 값이고 게임 내 지표와 척도가 다르다.
+
+### 보조 분석 (주 분석과 같은 교차적합 절차, seed 0, 게임 bootstrap 1,000회, 게임 내 순열 1,000회)
+- **보조 1 (동점 제외)**: step s의 평가 쌍 중 두 rollout의 step s 프롬프트가 다른 쌍만으로 쌍 가중 AUROC(프로브, baseline 4·5단)와
+  프로브 - baseline 차이의 CI를 낸다. 점수는 주 분석과 같은 교차적합 점수를 쓴다. step별 동점 비율을 함께 보고한다.
+- **보조 2 (시점 맞춘 baseline)**: baseline 4t·5t = 4·5단에서 현재 step의 `repeat`, `p_chosen`을 직전 step의 값으로 바꾼 것
+  (`n_cand`는 그대로). 같은 교차적합으로 다시 학습해 전체 쌍과 동점 제외 쌍에서 프로브와 비교한다.
+
+### 해석 규칙 (주 분석과 보조 분석에 함께 적용)
+- **우수**: 프로브 - baseline 차이의 95% CI 하한 > 0. 6개 비교(baseline 4·5단 x step 3개)에 Holm 보정을 하고,
+  p는 게임 bootstrap 분포의 양측 p(2 x min(P(d<=0), P(d>=0)))를 쓴다. "baseline보다 낫다"는 4단과 5단을 모두 이길 때만 쓴다.
+- **동등(≈)**: 차이의 95% CI가 (-0.05, +0.05) 안에 모두 들어갈 때만 쓴다. 하한만 -0.05를 넘는 것은 "비열등(약함)"으로 따로 적는다.
+- **0.5 근처(예측 안 됨)**: 쌍 AUROC의 CI가 0.5를 포함하고 게임 내 순열 p > 0.05. 주 분석에서 이 판정이 나오면
+  "갈라지지 않은 쌍이 많아서"와 구분하기 위해 보조 1을 함께 본다.
+- 마진 0.05는 사후에 정했고 척도가 다르다는 한계를 결과 표 옆에 적는다. 게임 39개 수준의 cluster percentile bootstrap은 CI가 좁게 나올 수 있다(확인 필요).
+- 보조 분석은 주 결과를 대체하지 않는다. 논문에는 주 결과(사전 등록)를 먼저, 보조 결과를 그 다음에 쓴다.
