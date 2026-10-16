@@ -1,0 +1,20 @@
+# 시간 한도 100 재수집: main_3b의 탐욕 실패 399게임을 같은 정책으로 최대 100 step까지 다시 돌린다.
+# main_3b.yaml과 같은 정책·프롬프트·모델이고 max_steps(30 -> 100)와 환경 상한(alfworld_h100.yaml)만 다르다.
+# 계획: docs/horizon100_plan_2026-10-17.md
+# 사용: python collect/rollout.py --config configs/horizon100.yaml --game_list data/horizon100_games/games.json --repeats 1
+model_name: Qwen/Qwen2.5-3B-Instruct
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택 (constrained action selection)
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 0                           # game_list x repeats로 덮어쓴다
+max_steps: 100
+temperature: 0.0
+sample_temperature: 0.0                   # 0이면 탐욕(argmax). main_3b와 같다
+repeats: 1
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_h100.yaml
+split: train
+out_dir: data/horizon100
+seed: 0
