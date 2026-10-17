@@ -18,6 +18,8 @@
 ### 3.1 Environment and agent
 We used ALFWorld (TextWorld version, `alfworld` 0.4.2) with the 3,553 games of the training split and all six task types.
 An episode ended when the task was completed or after 30 actions; episodes that did not complete the task were labeled as failures (label 1).
+Because ALFWorld has no failing terminal state, a failure is a timeout. To check the 30-action limit, we re-ran all 399 greedy failures with a limit of 100 actions under a pre-registered rule:
+11 of 399 succeeded between actions 31 and 100 (2.8%, Wilson 95% CI 1.6–4.9%), so the upper bound was below the pre-registered 5% threshold and we kept the 30-action label (sensitivity analyses in Section 4.7).
 The agent (actor) was Qwen2.5-3B-Instruct in bfloat16. At each step the prompt contained a fixed system message (rules and one worked example episode),
 the task sentence, the last six observation–action pairs, the current observation, the actions that had recently produced no effect, and the list of admissible actions.
 
@@ -93,6 +95,7 @@ hold-out, training on all 500 episodes and evaluating only episodes 250–499. T
 non-inferior if it exceeds −0.05, inferior if the upper bound is below 0, otherwise inconclusive. The margin of 0.05 was chosen after the exploratory analysis.
 The attempt-level analysis (75% depth, linear, vs. rungs 4 and 5, steps 1–3) and its interpretation table were fixed before the sampled rollouts were collected.
 All changes to the frozen procedures are logged with dates in the repository.
+Interim counts of the 100-action re-run were seen twice before its decision (at most 3 late successes among the first 116 games); the decision rule had been committed beforehand and was not changed.
 
 ### 3.7 Compute
 One NVIDIA RTX 4070 (12 GB) under WSL2 (Ubuntu 22.04), Python 3.11, PyTorch 2.11 (CUDA 12.8), Transformers 5.19.0.
@@ -151,18 +154,47 @@ The rung-5 baseline was lower on the hold-out than on the first 250 episodes (0.
 Figures (to be produced): Fig. 2 baseline ladder by step with 95% CI bands; Fig. 3 probe − rung 5 differences with 95% CIs, marking pre-registered, exploratory and confirmatory estimates;
 Fig. 4 best-depth AUROC by reader size (7B marked as 4-bit).
 ### 4.2 Attempt level
-[TODO-RESULT]
+**Primary result.** Within games, the probe's pairwise AUROC was 0.520 (95% CI 0.453–0.583) at step 1, 0.585 (0.522–0.654) at step 2 and 0.619 (0.552–0.687) at step 3 (Table 3).
+Rungs 4 and 5 reached 0.517 and 0.547, 0.611 and 0.626, and 0.565 and 0.612. From step 2 on, all three methods separated failed from successful attempts of the same game above chance
+(within-game permutation p ≤ 0.018), whereas at step 1 only rung 5 did (p = 0.016). None of the six probe–baseline differences met the superiority criterion and none was inferior;
+the largest difference was +0.054 (−0.017 to +0.136) against rung 4 at step 3. The result fits no row of the interpretation table cleanly: the probe was not better than the baselines,
+and no comparison met the equivalence definition (95% CI within ±0.05).
+
+**Secondary analyses.** Restricting the evaluation to pairs whose prompts differed (139, 158 and 224 pairs at steps 1–3) raised every method (probe 0.568, 0.753 and 0.750; rung 5 0.633, 0.816 and 0.754),
+but none of the six differences was resolved (intervals of about ±0.1–0.2). With the time-aligned rungs 4t and 5t the probe was not better at any step; at step 1 it was lower than both
+(−0.045, −0.098 to −0.006; −0.038, −0.084 to −0.004), although not after Holm adjustment (p = 0.18). Neither tied pairs nor the timing asymmetry therefore explains the absence of a probe advantage.
+In all 889 tied pairs the probe and the time-aligned rungs gave identical scores, confirming that they use information from the same point in time.
+
+**Calibration of the intervals.** On label-shuffled data (20 seeds), game-level percentile bootstrap intervals contained the null value 80–94% of the time rather than 95%,
+and the "equivalent" verdict appeared in 54–65% of null runs. Borderline verdicts above should be read with this in mind.
+
+| Table 3. Within-game pairwise AUROC (T = 1 sampling; 39 games with both outcomes, 470 pairs per step). | step 1 | step 2 | step 3 |
+|---|---|---|---|
+| Probe (3B, 75% depth, linear) | 0.520 (0.453, 0.583) | 0.585 (0.522, 0.654) | 0.619 (0.552, 0.687) |
+| Rung 4 | 0.517 (0.452, 0.582) | 0.611 (0.541, 0.687) | 0.565 (0.492, 0.644) |
+| Rung 5 | 0.547 (0.478, 0.618) | 0.626 (0.563, 0.699) | 0.612 (0.546, 0.682) |
+| Probe − rung 4 (95% CI) | +0.003 (−0.058, +0.063) | −0.026 (−0.078, +0.019) | +0.054 (−0.017, +0.136) |
+| Probe − rung 5 (95% CI) | −0.027 (−0.088, +0.025) | −0.040 (−0.088, +0.002) | +0.007 (−0.038, +0.051) |
+| Tied pairs (identical prompts) | 70.4% | 66.4% | 52.3% |
+
+CIs from a game-level bootstrap (1,000 resamples). Rung 2 and the difficulty oracle are constant within a game and scored exactly 0.500 (implementation check).
 ### 4.3 How much the game determines the outcome
-[TODO-RESULT: η², oracle.]
-### 4.4 Independent replication of the attempt-level result
-[TODO: pre-registered replication on new games (sample size from power simulation). Report discovery and replication separately; do not pool.]
-### 4.5 Generalization to a second environment and model family
-[TODO: one more environment (ScienceWorld / WebShop / BabyAI-text) and one more family (Llama-3.2 / Gemma).]
-### 4.6 Comparison with prior failure-prediction and uncertainty methods
+In the sampled data, the game explained η² = 0.695 (95% CI 0.613–0.765) of the outcome variance; because games were stratified by their greedy outcome, this is not a population value.
+On rows pooled across games, the difficulty oracle alone reached an AUROC of 0.877. Adding the probe to the oracle changed the pooled AUROC by −0.002 (−0.026 to +0.025), +0.022 (−0.005 to +0.048)
+and +0.042 (+0.017 to +0.073) at steps 1–3; adding rung 5 changed it by +0.004 (−0.018 to +0.027), +0.034 (+0.007 to +0.060) and +0.029 (+0.003 to +0.058). These gains are uncorrected secondary measures.
+Most of what any method predicts across games is therefore already predicted by knowing the game.
+### 4.4 Other actors and a second prompt
+[TODO-RESULT: Qwen3-4B (and Llama-3.2-3B if access is granted) with the same procedures (docs/model_main_plan_2026-10-17.md);
+prompt robustness with the original ReAct exemplars (docs/prompt_robustness_plan_2026-10-17.md). Report each model and prompt separately.]
+### 4.5 Comparison with prior failure-prediction and uncertainty methods
 [TODO: token log-probability/entropy, verbalized confidence, LLM judge; chosen from docs/literature_check_2026-10-15.md.]
-### 4.7 Early termination
+### 4.6 Early termination
 [TODO: steps saved vs. successes lost per stopping policy, including later rounds.]
-### 4.8 Robustness checks (summary; details in Appendix)
+### 4.7 Robustness checks (summary; details in Appendix)
+**Label horizon.** With the 100-action label, the pre-registered comparison stayed inferior at steps 0 and 2 and became inconclusive at step 1 (upper bound +0.005);
+the confirmatory comparison again showed no superior round (step 0 changed from non-inferior to inconclusive). Re-running the original analyses with the original labels in the current
+software environment reproduced every reported value exactly, so these changes reflect the relabeling of 4 (first 250) and 11 (all 500) episodes only.
+
 [TODO: divergence-aligned analysis, stronger probes (C grid, PCA, layer combination, MLP search), stronger text baseline, time-aligned baselines, CV-seed variance, scene-level permutation, Holm-adjusted exploratory table, 3B free-generation comparison.]
 
 ## 5 Discussion
@@ -170,14 +202,14 @@ Fig. 4 best-depth AUROC by reader size (7B marked as 4-bit).
 
 ## 6 Limitations
 - **Agent setting.** Actions were chosen by scoring admissible candidates, not by free generation, so the agent is a constrained selector. We did not compare with a free-generation agent.
-- **Scope.** One environment (ALFWorld), one model family (Qwen2.5), one prompt and one actor size (3B). We make no claim beyond this setting.
+- **Scope.** One environment (ALFWorld). The main results use one actor (Qwen2.5-3B) and one prompt; other actors and a second prompt are reported separately (Section 4.4). We make no claim beyond these settings.
 - **External monitoring.** Readers other than 3B read trajectories produced by another model. The 7B reader was 4-bit quantized, which is confounded with size.
 - **Sample size.** With 250 episodes per evaluation set (about 50 successes), intervals for an AUROC difference were about ±0.06–0.10; small differences and reader-size effects cannot be resolved.
 - **Post hoc choices.** The 75% depth and the non-inferiority margin of 0.05 were chosen after the exploratory analysis; the margin was also defined for between-game AUROC and is on a different scale at the attempt level.
 - **Policy shift.** Attempt-level results come from a sampling policy (*T* = 1), not the greedy policy used at the task level, and from games selected by their greedy outcome.
 - **Early rounds.** Pre-registered rounds cover only the first three actions; later rounds are conditioned on survival and were analyzed only exploratorily.
-- **Truncation.** Episodes were cut at 30 actions. Among 15 episodes unsolved at 30 actions, none succeeded by 50 (95% CI 0–20%), which does not rule out an effect of truncation.
-- **Prompt tuning.** The prompt was adjusted while inspecting episodes from a different split (valid_unseen) before data collection.
+- **Truncation.** Episodes were cut at 30 actions, so labels mean "not solved within 30 actions". Re-running the 399 greedy failures to 100 actions, 2.8% (95% CI 1.6–4.9%) succeeded late; conclusions did not change with the 100-action label (Section 4.7). Attempt-level labels were not re-checked at 100 actions.
+- **Prompt tuning.** The main prompt was written by us and adjusted while inspecting episodes from a different split (valid_unseen) before data collection; an external prompt (ReAct exemplars) is tested in Section 4.4.
 
 ## 7 Conclusion
 [TODO-RESULT: 3–4 sentences, no numbers.]

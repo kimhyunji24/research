@@ -1,0 +1,51 @@
+episodes=250 steps=5788 scenes=86 success=94 prompt_saved=True
+목표 물체 파싱 성공 episode 비율: 0.960
+  step 0 baseline1: auroc=0.500
+  step 0 baseline2: auroc=0.639
+  step 0 baseline3: auroc=0.677
+  step 0 baseline4: auroc=0.676
+  step 0 baseline5: auroc=0.709
+  step 0 linear_pcafull: auroc=0.660
+  step 1 baseline1: auroc=0.500
+  step 1 baseline2: auroc=0.639
+  step 1 baseline3: auroc=0.660
+  step 1 baseline4: auroc=0.651
+  step 1 baseline5: auroc=0.686
+  step 1 linear_pcafull: auroc=0.687
+  step 2 baseline1: auroc=0.500
+  step 2 baseline2: auroc=0.639
+  step 2 baseline3: auroc=0.642
+  step 2 baseline4: auroc=0.704
+  step 2 baseline5: auroc=0.717
+  step 2 linear_pcafull: auroc=0.680
+ step         method   n  n_fail  base_rate  auroc  ci_lo  ci_hi  ci_ep_lo  ci_ep_hi  auprc  null_mean  null_lo  null_hi  p_perm  C_median  pca_evr
+    0      baseline1 250     156      0.624  0.500  0.500  0.500     0.500     0.500  0.624      0.500    0.500    0.500    1.00     0.000      NaN
+    0      baseline2 250     156      0.624  0.639  0.570  0.714     0.578     0.707  0.754      0.489    0.403    0.565    0.01     0.010      NaN
+    0      baseline3 250     156      0.624  0.677  0.615  0.743     0.610     0.747  0.775      0.492    0.379    0.594    0.01     0.010      NaN
+    0      baseline4 250     156      0.624  0.676  0.619  0.739     0.609     0.746  0.773      0.492    0.398    0.581    0.01     0.010      NaN
+    0      baseline5 250     156      0.624  0.709  0.651  0.771     0.644     0.774  0.805      0.494    0.387    0.591    0.01     0.505      NaN
+    0 linear_pcafull 250     156      0.624  0.660  0.590  0.730     0.591     0.732  0.765      0.501    0.425    0.585    0.01     0.000      NaN
+    1      baseline1 250     156      0.624  0.500  0.500  0.500     0.500     0.500  0.624      0.500    0.500    0.500    1.00     0.000      NaN
+    1      baseline2 250     156      0.624  0.639  0.570  0.714     0.578     0.707  0.754      0.489    0.403    0.565    0.01     0.010      NaN
+    1      baseline3 250     156      0.624  0.660  0.597  0.722     0.592     0.728  0.751      0.492    0.382    0.585    0.01     0.010      NaN
+    1      baseline4 250     156      0.624  0.651  0.589  0.714     0.587     0.718  0.759      0.489    0.392    0.580    0.01     0.010      NaN
+    1      baseline5 250     156      0.624  0.686  0.626  0.744     0.622     0.751  0.795      0.491    0.399    0.589    0.01     0.550      NaN
+    1 linear_pcafull 250     156      0.624  0.687  0.619  0.754     0.615     0.760  0.752      0.499    0.401    0.595    0.01     0.006      NaN
+    2      baseline1 250     156      0.624  0.500  0.500  0.500     0.500     0.500  0.624      0.500    0.500    0.500    1.00     0.000      NaN
+    2      baseline2 250     156      0.624  0.639  0.570  0.714     0.578     0.707  0.754      0.489    0.403    0.565    0.01     0.010      NaN
+    2      baseline3 250     156      0.624  0.642  0.574  0.710     0.576     0.712  0.730      0.492    0.396    0.585    0.01     0.010      NaN
+    2      baseline4 250     156      0.624  0.704  0.638  0.772     0.641     0.766  0.797      0.490    0.415    0.600    0.01     0.100      NaN
+    2      baseline5 250     156      0.624  0.717  0.655  0.782     0.651     0.782  0.814      0.491    0.390    0.596    0.01     1.000      NaN
+    2 linear_pcafull 250     156      0.624  0.680  0.612  0.762     0.612     0.753  0.756      0.498    0.412    0.599    0.01     0.001      NaN
+
+프로브 - baseline 짝지은 AUROC 차이 (장면 단위 cluster bootstrap 95% CI)
+ step         method        vs  auroc_diff  ci_lo  ci_hi
+    0 linear_pcafull baseline5      -0.049 -0.103  0.005
+    1 linear_pcafull baseline5       0.001 -0.076  0.071
+    2 linear_pcafull baseline5      -0.037 -0.096  0.033
+
+프로브 - baseline, bootstrap 양측 p와 Holm(3 step)
+ step         method        vs  auroc_diff   ci_lo  ci_hi  p_boot  p_holm  superior_holm
+    0 linear_pcafull baseline5     -0.0489 -0.1033 0.0055   0.084   0.252          False
+    1 linear_pcafull baseline5      0.0013 -0.0758 0.0709   0.998   0.998          False
+    2 linear_pcafull baseline5     -0.0370 -0.0963 0.0332   0.288   0.576          False

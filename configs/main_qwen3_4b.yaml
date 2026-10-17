@@ -1,0 +1,20 @@
+# 모델 확장 본 수집(Qwen/Qwen3-4B), 과제 단위 탐욕 250. 파일럿 설정 configs/pilot_qwen3_4b.yaml과 출력 폴더만 다름. 계획: docs/model_main_plan_2026-10-17.md
+# 사용: python collect/rollout.py --config configs/main_qwen3_4b.yaml --game_list results/games_main3b_first250.json --repeats 1
+model_name: Qwen/Qwen3-4B
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택 (constrained action selection)
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 250
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/main_qwen3_4b
+seed: 0
+revision: 1cfa9a7208912126459214e8b04321603b3df60c                  # HF commit 고정
+turn_end: "<|im_end|>"
+cand_batch: 8                             # 후보를 8개씩 계산(KV cache 메모리). 같은 모델 안에서는 고정
+chat_template_kwargs: {enable_thinking: false}
