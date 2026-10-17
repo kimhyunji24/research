@@ -1,0 +1,68 @@
+runs=1 episodes=400 games=50 rows=8584
+  step 1 probe: 동점 쌍 113개 중 점수가 다른 쌍 0개
+  step 1 baseline4t: 동점 쌍 113개 중 점수가 다른 쌍 0개
+  step 1 baseline5t: 동점 쌍 113개 중 점수가 다른 쌍 0개
+  step 2 probe: 동점 쌍 105개 중 점수가 다른 쌍 0개
+  step 2 baseline4t: 동점 쌍 105개 중 점수가 다른 쌍 0개
+  step 2 baseline5t: 동점 쌍 105개 중 점수가 다른 쌍 0개
+  step 3 probe: 동점 쌍 105개 중 점수가 다른 쌍 0개
+  step 3 baseline4t: 동점 쌍 105개 중 점수가 다른 쌍 0개
+  step 3 baseline5t: 동점 쌍 105개 중 점수가 다른 쌍 0개
+ step   pairs     method  n_games  n_pairs  tie_frac  pair_auroc  ci_lo  ci_hi  null_mean  p_perm
+    1     all  baseline4       10      120     0.942       0.479  0.399  0.517      0.500   0.926
+    1     all  baseline5       10      120     0.942       0.471  0.385  0.508      0.500   0.962
+    1     all baseline4t       10      120     0.942       0.471  0.391  0.500      0.500   1.000
+    1     all baseline5t       10      120     0.942       0.471  0.391  0.500      0.500   1.000
+    1     all      probe       10      120     0.942       0.471  0.391  0.500      0.500   1.000
+    1 nontied  baseline4       10        7     0.942       0.000  0.000  0.000      0.881   1.000
+    1 nontied  baseline5       10        7     0.942       0.000  0.000  0.000      0.881   1.000
+    1 nontied baseline4t       10        7     0.942       0.000  0.000  0.000      0.881   1.000
+    1 nontied baseline5t       10        7     0.942       0.000  0.000  0.000      0.881   1.000
+    1 nontied      probe       10        7     0.942       0.000  0.000  0.000      0.881   1.000
+    2     all  baseline4       10      120     0.875       0.471  0.399  0.512      0.501   0.948
+    2     all  baseline5       10      120     0.875       0.471  0.399  0.512      0.501   0.948
+    2     all baseline4t       10      120     0.875       0.479  0.406  0.519      0.499   0.913
+    2     all baseline5t       10      120     0.875       0.479  0.406  0.519      0.499   0.913
+    2     all      probe       10      120     0.875       0.471  0.399  0.512      0.501   0.948
+    2 nontied  baseline4       10       15     0.875       0.267  0.000  1.000      0.530   0.817
+    2 nontied  baseline5       10       15     0.875       0.267  0.000  1.000      0.530   0.817
+    2 nontied baseline4t       10       15     0.875       0.333  0.000  1.000      0.532   0.691
+    2 nontied baseline5t       10       15     0.875       0.333  0.000  1.000      0.532   0.691
+    2 nontied      probe       10       15     0.875       0.267  0.000  1.000      0.530   0.817
+    3     all  baseline4       10      120     0.875       0.521  0.444  0.616      0.501   0.313
+    3     all  baseline5       10      120     0.875       0.521  0.444  0.616      0.501   0.313
+    3     all baseline4t       10      120     0.875       0.529  0.492  0.601      0.502   0.351
+    3     all baseline5t       10      120     0.875       0.529  0.492  0.601      0.502   0.351
+    3     all      probe       10      120     0.875       0.479  0.408  0.517      0.498   0.905
+    3 nontied  baseline4       10       15     0.875       0.933  0.000  1.000      0.482   0.051
+    3 nontied  baseline5       10       15     0.875       0.933  0.000  1.000      0.482   0.051
+    3 nontied baseline4t       10       15     0.875       0.733  0.429  1.000      0.514   0.346
+    3 nontied baseline5t       10       15     0.875       0.733  0.429  1.000      0.514   0.346
+    3 nontied      probe       10       15     0.875       0.333  0.000  1.000      0.517   0.677
+
+프로브 - baseline (게임 bootstrap 95% CI, Holm은 family 안 6개)
+             family  step          b   diff  ci_lo  ci_hi  p_boot  p_holm verdict
+     supp1_orig_all     1  baseline4 -0.008 -0.020  0.000   0.214     1.0      동등
+     supp1_orig_all     1  baseline5  0.000 -0.011  0.013   1.000     1.0      동등
+    supp2_timed_all     1 baseline4t  0.000  0.000  0.000   1.000     1.0      동등
+    supp2_timed_all     1 baseline5t  0.000  0.000  0.000   1.000     1.0      동등
+ supp1_orig_nontied     1  baseline4  0.000  0.000  0.000   1.000     1.0      동등
+ supp1_orig_nontied     1  baseline5  0.000  0.000  0.000   1.000     1.0      동등
+supp2_timed_nontied     1 baseline4t  0.000  0.000  0.000   1.000     1.0      동등
+supp2_timed_nontied     1 baseline5t  0.000  0.000  0.000   1.000     1.0      동등
+     supp1_orig_all     2  baseline4  0.000  0.000  0.000   1.000     1.0      동등
+     supp1_orig_all     2  baseline5  0.000  0.000  0.000   1.000     1.0      동등
+    supp2_timed_all     2 baseline4t -0.008 -0.024  0.000   0.684     1.0      동등
+    supp2_timed_all     2 baseline5t -0.008 -0.024  0.000   0.684     1.0      동등
+ supp1_orig_nontied     2  baseline4  0.000  0.000  0.000   1.000     1.0      동등
+ supp1_orig_nontied     2  baseline5  0.000  0.000  0.000   1.000     1.0      동등
+supp2_timed_nontied     2 baseline4t -0.067 -0.143  0.000   0.640     1.0   결론 없음
+supp2_timed_nontied     2 baseline5t -0.067 -0.143  0.000   0.640     1.0   결론 없음
+     supp1_orig_all     3  baseline4 -0.042 -0.196  0.062   0.590     1.0   결론 없음
+     supp1_orig_all     3  baseline5 -0.042 -0.196  0.062   0.590     1.0   결론 없음
+    supp2_timed_all     3 baseline4t -0.050 -0.188  0.022   0.724     1.0   결론 없음
+    supp2_timed_all     3 baseline5t -0.050 -0.188  0.022   0.724     1.0   결론 없음
+ supp1_orig_nontied     3  baseline4 -0.600 -1.000  1.000   0.199     1.0   결론 없음
+ supp1_orig_nontied     3  baseline5 -0.600 -1.000  1.000   0.199     1.0   결론 없음
+supp2_timed_nontied     3 baseline4t -0.400 -1.000  0.143   0.694     1.0   결론 없음
+supp2_timed_nontied     3 baseline5t -0.400 -1.000  0.143   0.694     1.0   결론 없음
