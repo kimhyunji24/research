@@ -57,7 +57,7 @@ def parse_action(text, admissible):
     return (adm[close[0]] if close else cand), False
 
 
-def make_prompt(tok, task, trace, obs, admissible):
+def make_prompt(tok, task, trace, obs, admissible, tmpl_kwargs=None):
     # trace: (obs, action, ok) ; ok=False면 환경이 "Nothing happens"로 응답한 action
     admissible = [a for a in admissible if a != "help"]
     lines = [f"Task: {task}"]
@@ -68,23 +68,38 @@ def make_prompt(tok, task, trace, obs, admissible):
     if failed: lines.append(f"Actions that did nothing recently (do not repeat): {', '.join(failed)}")
     lines.append(f"Admissible actions: {', '.join(admissible)}")
     msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "\n".join(lines)}]
-    return tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+    # tmpl_kwargs: 모델별 chat template 인자(예: Qwen3 enable_thinking=False, Llama 3 date_string 고정). 기본은 없음.
+    return tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, **(tmpl_kwargs or {}))
 
 
 SKIP_ACTIONS = {"help", "inventory", "look"}  # 후보에서 제외(정보 확인용 명령은 과제 진행에 쓰이지 않음)
 
 
 @torch.no_grad()
-def score_candidates(model, tok, prompt, candidates, layers, device, norm):
-    """prompt를 1회 prefill해 hidden state를 뽑고, KV cache를 복제해 각 후보 'Action: <a><|im_end|>'의
-    로그확률을 한 번에 계산한다. 반환: (hidden (L,H), 후보별 점수, 후보별 sum logprob,
+def score_candidates(model, tok, prompt, candidates, layers, device, norm, turn_end="<|im_end|>", cand_batch=0):
+    """prompt를 1회 prefill해 hidden state를 뽑고, KV cache를 복제해 각 후보 'Action: <a><turn_end>'의
+    로그확률을 계산한다. turn_end는 모델의 assistant 턴 종료 토큰(Qwen <|im_end|>, Llama 3 <|eot_id|>).
+    cand_batch > 0이면 후보를 그 크기로 나눠 계산한다(KV cache가 큰 모델의 메모리용, 0이면 한 번에). 반환: (hidden (L,H), 후보별 점수, 후보별 sum logprob,
     후보별 토큰 수, prompt 토큰 수)"""
     ids = tok(prompt, return_tensors="pt").to(device)
     pre = model(**ids, use_cache=True, output_hidden_states=True, logits_to_keep=1)
     vec = np.stack([pre.hidden_states[l][0, -1].float().cpu().numpy() for l in layers])
     first_lp = torch.log_softmax(pre.logits[0, -1].float(), dim=-1)          # 첫 후보 token의 분포
 
-    enc = [tok(f"Action: {c}<|im_end|>", add_special_tokens=False)["input_ids"] for c in candidates]
+    enc_all = [tok(f"Action: {c}{turn_end}", add_special_tokens=False)["input_ids"] for c in candidates]
+    P = ids["input_ids"].shape[1]
+    step = cand_batch if cand_batch and cand_batch > 0 else len(enc_all)
+    totals, ntoks = [], []
+    for s0 in range(0, len(enc_all), step):
+        t, n = _score_chunk(model, tok, pre, first_lp, enc_all[s0:s0 + step], P, device)
+        totals.append(t); ntoks.append(n)
+    total, ntok = torch.cat(totals), torch.cat(ntoks)
+    score = total / ntok if norm == "mean" else total
+    return vec, score.cpu().numpy(), total.cpu().numpy(), ntok.cpu().numpy(), P
+
+
+@torch.no_grad()
+def _score_chunk(model, tok, pre, first_lp, enc, P, device):
     B, L = len(enc), max(len(e) for e in enc)
     pad = tok.pad_token_id if tok.pad_token_id is not None else 0
     cid = torch.full((B, L), pad, dtype=torch.long, device=device)
@@ -92,7 +107,6 @@ def score_candidates(model, tok, prompt, candidates, layers, device, norm):
     for i, e in enumerate(enc):
         cid[i, :len(e)] = torch.tensor(e, device=device); cmask[i, :len(e)] = 1
     cache = copy.deepcopy(pre.past_key_values); cache.batch_repeat_interleave(B)
-    P = ids["input_ids"].shape[1]
     attn = torch.cat([torch.ones((B, P), dtype=torch.long, device=device), cmask], dim=1)
     lg = model(input_ids=cid, attention_mask=attn, past_key_values=cache, use_cache=True).logits.float()
     lp = torch.log_softmax(lg, dim=-1)                                       # (B, L, V)
@@ -101,10 +115,7 @@ def score_candidates(model, tok, prompt, candidates, layers, device, norm):
     if L > 1:
         tok_lp[:, 1:] = lp[:, :-1].gather(-1, cid[:, 1:, None]).squeeze(-1)
     tok_lp = tok_lp * cmask
-    total = tok_lp.sum(1)
-    ntok = cmask.sum(1)
-    score = total / ntok if norm == "mean" else total
-    return vec, score.cpu().numpy(), total.cpu().numpy(), ntok.cpu().numpy(), P
+    return tok_lp.sum(1), cmask.sum(1)
 
 
 def main():
@@ -139,9 +150,17 @@ def main():
         cfg["num_episodes"] = len(env_obj.game_files)
     env = env_obj.init_env(batch_size=1)
 
-    tok = AutoTokenizer.from_pretrained(cfg["model_name"])
+    rev = cfg.get("revision")  # HF commit 해시로 고정(없으면 기본 revision)
+    tok = AutoTokenizer.from_pretrained(cfg["model_name"], revision=rev)
     model = AutoModelForCausalLM.from_pretrained(
-        cfg["model_name"], torch_dtype=getattr(torch, cfg["dtype"])).to(cfg["device"]).eval()
+        cfg["model_name"], revision=rev, torch_dtype=getattr(torch, cfg["dtype"])).to(cfg["device"]).eval()
+    tmpl_kwargs = cfg.get("chat_template_kwargs") or {}
+    turn_end = cfg.get("turn_end", "<|im_end|>")
+    cand_batch = int(cfg.get("cand_batch") or 0)
+    # turn_end가 이 모델의 assistant 턴 끝과 같은지 chat template으로 확인한다.
+    probe = tok.apply_chat_template([{"role": "user", "content": "x"}, {"role": "assistant", "content": "Action: y"}],
+                                    tokenize=False, **tmpl_kwargs)
+    assert f"Action: y{turn_end}" in probe, f"turn_end {turn_end!r}가 chat template의 assistant 턴 끝과 다르다: {probe[-80:]!r}"
     layers = layer_indices(model.config.num_hidden_layers, cfg["relative_layers"])
 
     tag = cfg["model_name"].split("/")[-1]
@@ -186,12 +205,13 @@ def main():
         trace, won = [], False
         for step in range(cfg["max_steps"]):
             adm = infos["admissible_commands"][0]
-            prompt = make_prompt(tok, task, trace, text, adm)
+            prompt = make_prompt(tok, task, trace, text, adm, tmpl_kwargs)
             extra = {}
             if cfg.get("policy", "score") == "score":
                 cands = [c for c in adm if c not in SKIP_ACTIONS] or list(adm)
                 vec, score, total, ntok, n_prompt = score_candidates(model, tok, prompt, cands, layers,
-                                                                     cfg["device"], cfg.get("score_norm", "sum"))
+                                                                     cfg["device"], cfg.get("score_norm", "sum"),
+                                                                     turn_end, cand_batch)
                 T = float(cfg.get("sample_temperature") or 0)
                 if T > 0:  # 샘플링: 재현 가능하도록 (seed, episode, step)으로 난수열을 만든다. resume해도 같다.
                     z = score / T; z = z - z.max(); p = np.exp(z); p /= p.sum()
