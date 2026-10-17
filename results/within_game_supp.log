@@ -1,0 +1,68 @@
+runs=2 episodes=800 games=100 rows=18079
+  step 1 probe: 동점 쌍 331개 중 점수가 다른 쌍 0개
+  step 1 baseline4t: 동점 쌍 331개 중 점수가 다른 쌍 0개
+  step 1 baseline5t: 동점 쌍 331개 중 점수가 다른 쌍 0개
+  step 2 probe: 동점 쌍 312개 중 점수가 다른 쌍 0개
+  step 2 baseline4t: 동점 쌍 312개 중 점수가 다른 쌍 0개
+  step 2 baseline5t: 동점 쌍 312개 중 점수가 다른 쌍 0개
+  step 3 probe: 동점 쌍 246개 중 점수가 다른 쌍 0개
+  step 3 baseline4t: 동점 쌍 246개 중 점수가 다른 쌍 0개
+  step 3 baseline5t: 동점 쌍 246개 중 점수가 다른 쌍 0개
+ step   pairs     method  n_games  n_pairs  tie_frac  pair_auroc  ci_lo  ci_hi  null_mean  p_perm
+    1     all  baseline4       39      470     0.704       0.517  0.454  0.583      0.500   0.212
+    1     all  baseline5       39      470     0.704       0.547  0.481  0.614      0.500   0.025
+    1     all baseline4t       39      470     0.704       0.565  0.504  0.630      0.501   0.004
+    1     all baseline5t       39      470     0.704       0.559  0.496  0.624      0.501   0.005
+    1     all      probe       39      470     0.704       0.520  0.455  0.589      0.500   0.187
+    1 nontied  baseline4       39      139     0.704       0.532  0.303  0.754      0.499   0.368
+    1 nontied  baseline5       39      139     0.704       0.633  0.399  0.815      0.502   0.082
+    1 nontied baseline4t       39      139     0.704       0.719  0.515  0.900      0.503   0.009
+    1 nontied baseline5t       39      139     0.704       0.698  0.486  0.881      0.503   0.018
+    1 nontied      probe       39      139     0.704       0.568  0.337  0.767      0.503   0.248
+    2     all  baseline4       39      470     0.664       0.611  0.532  0.677      0.501   0.001
+    2     all  baseline5       39      470     0.664       0.626  0.553  0.690      0.500   0.001
+    2     all baseline4t       39      470     0.664       0.591  0.524  0.658      0.501   0.001
+    2     all baseline5t       39      470     0.664       0.602  0.531  0.668      0.501   0.001
+    2     all      probe       39      470     0.664       0.585  0.523  0.651      0.502   0.001
+    2 nontied  baseline4       39      158     0.664       0.785  0.593  0.938      0.503   0.001
+    2 nontied  baseline5       39      158     0.664       0.816  0.658  0.937      0.502   0.001
+    2 nontied baseline4t       39      158     0.664       0.772  0.592  0.905      0.501   0.001
+    2 nontied baseline5t       39      158     0.664       0.804  0.627  0.937      0.504   0.001
+    2 nontied      probe       39      158     0.664       0.753  0.571  0.898      0.507   0.001
+    3     all  baseline4       39      470     0.523       0.565  0.491  0.643      0.499   0.020
+    3     all  baseline5       39      470     0.523       0.612  0.545  0.683      0.500   0.001
+    3     all baseline4t       39      470     0.523       0.587  0.515  0.661      0.499   0.002
+    3     all baseline5t       39      470     0.523       0.611  0.542  0.681      0.499   0.001
+    3     all      probe       39      470     0.523       0.619  0.547  0.694      0.499   0.001
+    3 nontied  baseline4       39      224     0.523       0.656  0.507  0.796      0.497   0.008
+    3 nontied  baseline5       39      224     0.523       0.754  0.632  0.863      0.498   0.001
+    3 nontied baseline4t       39      224     0.523       0.683  0.535  0.816      0.498   0.004
+    3 nontied baseline5t       39      224     0.523       0.732  0.595  0.848      0.497   0.001
+    3 nontied      probe       39      224     0.523       0.750  0.612  0.869      0.497   0.001
+
+프로브 - baseline (게임 bootstrap 95% CI, Holm은 family 안 6개)
+             family  step          b   diff  ci_lo  ci_hi  p_boot  p_holm verdict
+     supp1_orig_all     1  baseline4  0.003 -0.056  0.068   0.912   1.000   결론 없음
+     supp1_orig_all     1  baseline5 -0.027 -0.083  0.031   0.372   1.000   결론 없음
+    supp2_timed_all     1 baseline4t -0.045 -0.098 -0.006   0.030   0.180      열등
+    supp2_timed_all     1 baseline5t -0.038 -0.084 -0.004   0.032   0.180      열등
+ supp1_orig_nontied     1  baseline4  0.036 -0.170  0.230   0.728   1.000   결론 없음
+ supp1_orig_nontied     1  baseline5 -0.065 -0.256  0.132   0.566   1.000   결론 없음
+supp2_timed_nontied     1 baseline4t -0.151 -0.340 -0.022   0.030   0.180      열등
+supp2_timed_nontied     1 baseline5t -0.129 -0.298 -0.012   0.032   0.180      열등
+     supp1_orig_all     2  baseline4 -0.026 -0.073  0.019   0.326   1.000   결론 없음
+     supp1_orig_all     2  baseline5 -0.040 -0.088  0.003   0.068   0.408   결론 없음
+    supp2_timed_all     2 baseline4t -0.006 -0.042  0.020   0.850   1.000      동등
+    supp2_timed_all     2 baseline5t -0.017 -0.051  0.004   0.322   1.000   결론 없음
+ supp1_orig_nontied     2  baseline4 -0.032 -0.143  0.054   0.646   1.000   결론 없음
+ supp1_orig_nontied     2  baseline5 -0.063 -0.173  0.008   0.174   1.000   결론 없음
+supp2_timed_nontied     2 baseline4t -0.019 -0.124  0.067   0.850   1.000   결론 없음
+supp2_timed_nontied     2 baseline5t -0.051 -0.159  0.015   0.322   1.000   결론 없음
+     supp1_orig_all     3  baseline4  0.054 -0.014  0.135   0.130   0.650 비열등(약함)
+     supp1_orig_all     3  baseline5  0.007 -0.039  0.049   0.746   1.000      동등
+    supp2_timed_all     3 baseline4t  0.032 -0.019  0.085   0.254   1.000 비열등(약함)
+    supp2_timed_all     3 baseline5t  0.009 -0.051  0.066   0.788   1.000   결론 없음
+ supp1_orig_nontied     3  baseline4  0.094 -0.052  0.248   0.216   1.000   결론 없음
+ supp1_orig_nontied     3  baseline5 -0.004 -0.098  0.080   0.968   1.000   결론 없음
+supp2_timed_nontied     3 baseline4t  0.067 -0.040  0.187   0.254   1.000 비열등(약함)
+supp2_timed_nontied     3 baseline5t  0.018 -0.112  0.144   0.788   1.000   결론 없음
