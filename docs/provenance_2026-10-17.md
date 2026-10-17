@@ -42,3 +42,33 @@
 | `stop_facts.py`, `cost_facts.py` | 탐색 구간의 실패 길이, cap 규칙 손실·절감, step당 토큰 | Notion 10-16~17 7절 |
 | `make_h100_list.py` | 시간 한도 100 게임 목록 | `horizon100_plan` |
 | `h100_check.py` | 시간 한도 100 사전 기록 점검 1, 2 | `horizon100_plan` |
+
+## 2026-10-17 오후 재구성 (리셋 후, PC A·PC B)
+| 항목 | PC A (원래 PC) | PC B (PC_07) |
+|---|---|---|
+| GPU / 드라이버 | RTX 4070 12GB / 591.59 | RTX 4070 12GB / 591.59 |
+| WSL / 커널 | 3.0.3.0 / 6.18.54.1 (system.vhd 교체 후 설치, RESTART.md 2절) | 3.0.3 / 6.18.54.1 |
+| 배포판 | Ubuntu 22.04.5, `[user] default=root` | Ubuntu 22.04.5, `[boot] systemd=true` + `[user] default=root` |
+| Python / 패키지 | 3.11.17 (uv 0.13.1), freeze 103개 10-17과 동일 | 3.11.17, freeze 103개 동일 |
+| 모델 | Qwen2.5-3B `aa8e7253`(HF main과 같음, 오프라인 로드) | 같음 |
+| ALFWorld 데이터 | train 이어붙인 sha256 `d47d94c6…` 일치 | 일치 |
+| 점검 | data 50/50 바이트, git fsck, RECORD 15,407/15,407, 3GB 해시, ext4 0, CUDA | 같음(전체 패키지 RECORD 1건 불일치는 PyPI 원본 wheel의 문제) |
+
+| 데이터 | 만든 곳·방법 | 확인 수단 |
+|---|---|---|
+| `data/multi_rollout_main_r2` (10-17 재수집) | PC A, 위 환경, 코드 `a3fd9bb` | `results/sha256_multi_rollout_main_r2.txt` 643/643 일치(10-16 수집과 비트 단위 동일) |
+| `data/horizon100` | PC B, 코드 `a3fd9bb`, 14:51~18:12 | `results/sha256_horizon100.txt` 404개, 사전 기록 점검 1~3(PC A·PC B 모두 통과) |
+| `data/pilot_models/{Qwen3-4B,Qwen3-1.7B}` | PC A, 코드 `a1ead7f`, `configs/pilot_*.yaml`(revision 고정) | 저장소 밖, 결과는 `docs/model_pilot_plan_2026-10-17.md` |
+
+- 10-15 결과(`results/probe_main_3b_primary*`, `confirm_main_3b*`)는 10-17 환경에서 같은 코드로 다시 돌렸을 때 AUROC·CI·순열 p·C가 완전히 같았다
+  (`results/repro_y30_*`, 결과 대체 없음). 따라서 10-15 계산 환경을 몰라도 이 결과들은 10-17 환경으로 재현된다.
+- 10-17 오후 수치를 만든 코드(모두 저장소 루트에서 실행):
+| 코드 | 만든 수치·용도 | 기록된 곳 |
+|---|---|---|
+| `probes/sens_y100.py` | 시간 한도 100 민감도 분석(y100), 같은 환경 재현 점검(`--label y30`) | `horizon100_plan` 결과 절 |
+| `scripts/2026-10-17/h100_check3.py` | 시간 한도 100 사전 기록 점검 3(정합성, 성공 여부 출력 안 함) | 같은 곳 |
+| `scripts/2026-10-17/h100_judge.py` | 늦은 성공 비율 L, Wilson CI, 구간·task type별, maxstep50 대조 | 같은 곳 |
+| `scripts/2026-10-17/cmp_repro.py` | 원래 vs y30 재현 vs y100 비교(환경 효과와 라벨 효과 분리) | 같은 곳 |
+| `scripts/2026-10-17/patch_rollout.py` | `collect/rollout.py` 모델별 설정 추가(일회성 패치, `a1ead7f`에 반영됨) | `model_pilot_plan` |
+| `scripts/2026-10-17/regress_cmp2.py` | 수정 코드 회귀 점검(main_3b 처음 5게임, 124 step 일치) | 같은 곳 |
+| `scripts/2026-10-17/judge_pilot.py` | 모델 파일럿 포함 기준 1~4 판정 | 같은 곳 |

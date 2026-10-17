@@ -91,6 +91,11 @@
   백업: Windows `Desktop\research_data_new`(sha256 목록 포함, 검증 통과). `data-backup` 브랜치에는 아직 올리지 않았다.
 - 2026-10-17: 주 분석을 위 "주 분석" 절차 그대로 1회 실행했다(명령은 아래). 출력 `results/within_game*`.
   `python probes/within_game.py data/multi_rollout_pilot/Qwen2.5-3B-Instruct data/multi_rollout_main_r2/Qwen2.5-3B-Instruct --layer 2 --steps 1 2 3 --game_meta data/multi_rollout_pilot_games/games_pilot_meta.json data/multi_rollout_main_games/games_main_meta.json --out results/within_game`
+- 2026-10-17 (PC 리셋 후, 분석 재실행 없음): `data/multi_rollout_main_r2`를 같은 명령·코드(`a3fd9bb`, `collect/rollout.py` 마지막 변경 `4b31038`)·
+  패키지(`results/env_freeze_2026-10-17.txt` 103개 동일)·모델 revision `aa8e7253`(`HF_HUB_OFFLINE=1`)으로 새 WSL 설치(3.0.3, Ubuntu 22.04.5, PC A)에서 다시 수집했다(14:57~16:32, 약 94분).
+  `sha256sum -c results/sha256_multi_rollout_main_r2.txt` 643/643 통과, episode 0~23이 `data-backup` 24개와 비트 단위로 같고, 성공 256/640,
+  steps 14,422행 = hidden 14,422행, NaN 0, 수집 중 ext4 경고 0. commit된 주 분석 결과(`results/within_game*`)는 이 데이터와 같은 입력에서 계산된 것이므로 다시 실행하지 않는다.
+  백업: PC A 바탕화면 `research_data_new`와 사용자 USB(`research_backup_2026-10-17`), 둘 다 sha256 643개 검증.
 
 ## 보조 분석과 해석 규칙 (2026-10-17, 주 분석 결과를 열기 전에 기록)
 주 분석 실행 시작 뒤, 결과 파일을 열기 전에 판정 규칙의 전제를 점검했다. 점검에는 점수·AUROC를 쓰지 않았고 라벨은 평가 쌍을 고르는 데만 썼다.
