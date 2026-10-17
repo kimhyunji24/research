@@ -60,3 +60,5 @@
 
 ## 변경 이력
 - 2026-10-17: 최초 기록(ReAct 프롬프트 데이터 수집 전, 파일럿 없음). 형식 A 사용자 확정. 원 예시 사본과 라이선스를 `prompts/react/`에 둠.
+- 2026-10-18 01:3x: ReAct 수집 완료(10-17 22:49 ~ 10-18 01:32, exit 0, 코드 `077997a`). 점검 통과: 250 episode, steps 6,039행 = hidden 6,039행 (4, 2048), NaN·inf 0, ext4 경고 0, 메모리 부족 0. sha256 목록 `results/sha256_react_qwen25_3b.txt`(253개), USB 백업 253/253 일치. 성공률 등 결과는 열람하지 않음.
+- 2026-10-18 02시대: 위 '분석' 절대로 baseline 텍스트 변환(`probes/baselines.py`의 ReAct 분기) 구현, 결과 보기 전. 점검(`scripts/2026-10-18/test_baselines_react.py`): v2(main_3b)·Qwen3-4B 데이터에서 text·task·obs·진행도 특징이 패치 전과 같음, ReAct에서 예시 텍스트 섞임 0, 과제 문장 파싱 100%.
