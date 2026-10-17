@@ -1,0 +1,57 @@
+runs=2 episodes=800 games=100 rows=18079
+eta^2(게임이 설명하는 결과 분산 비율) = 0.695 (게임 bootstrap 95% CI 0.613~0.765)
+  step 1 baseline2: pair_auroc=0.500 games=39
+  step 1 baseline4: pair_auroc=0.517 games=39
+  step 1 baseline5: pair_auroc=0.547 games=39
+  step 1 probe: pair_auroc=0.520 games=39
+  step 1 oracle: pair_auroc=0.500 games=39
+  step 2 baseline2: pair_auroc=0.500 games=39
+  step 2 baseline4: pair_auroc=0.611 games=39
+  step 2 baseline5: pair_auroc=0.626 games=39
+  step 2 probe: pair_auroc=0.585 games=39
+  step 2 oracle: pair_auroc=0.500 games=39
+  step 3 baseline2: pair_auroc=0.500 games=39
+  step 3 baseline4: pair_auroc=0.565 games=39
+  step 3 baseline5: pair_auroc=0.612 games=39
+  step 3 probe: pair_auroc=0.619 games=39
+  step 3 oracle: pair_auroc=0.500 games=39
+ step    method  n_rows  n_games_mixed  n_pairs  pair_auroc  game_avg_auroc  ci_lo  ci_hi  null_mean  p_perm
+    1 baseline2     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+    1 baseline4     800             39      470       0.517           0.527  0.452  0.582      0.500   0.222
+    1 baseline5     800             39      470       0.547           0.559  0.478  0.618      0.501   0.016
+    1     probe     800             39      470       0.520           0.507  0.453  0.583      0.499   0.174
+    1    oracle     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+    2 baseline2     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+    2 baseline4     800             39      470       0.611           0.622  0.541  0.687      0.500   0.001
+    2 baseline5     800             39      470       0.626           0.632  0.563  0.699      0.501   0.001
+    2     probe     800             39      470       0.585           0.587  0.522  0.654      0.500   0.001
+    2    oracle     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+    3 baseline2     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+    3 baseline4     800             39      470       0.565           0.564  0.492  0.644      0.501   0.018
+    3 baseline5     800             39      470       0.612           0.616  0.546  0.682      0.498   0.001
+    3     probe     800             39      470       0.619           0.614  0.552  0.687      0.498   0.001
+    3    oracle     800             39      470       0.500           0.500  0.500  0.500      0.500   1.000
+
+프로브 - baseline (쌍 가중 AUROC, 게임 bootstrap 95% CI)
+ step     a         b   diff  ci_lo  ci_hi
+    1 probe baseline4  0.003 -0.058  0.063
+    1 probe baseline5 -0.027 -0.088  0.025
+    2 probe baseline4 -0.026 -0.078  0.019
+    2 probe baseline5 -0.040 -0.088  0.002
+    3 probe baseline4  0.054 -0.017  0.136
+    3 probe baseline5  0.007 -0.038  0.051
+
+게임 합친 평가: 난이도 오라클 대비 증가분 (게임 bootstrap 95% CI)
+ step    method  auroc_alone  auroc_oracle  auroc_oracle_plus  gain_over_oracle  gain_lo  gain_hi
+    1 baseline2        0.614         0.877              0.864            -0.013   -0.036    0.010
+    1 baseline4        0.685         0.877              0.889             0.012   -0.013    0.038
+    1 baseline5        0.669         0.877              0.881             0.004   -0.018    0.027
+    1     probe        0.703         0.877              0.875            -0.002   -0.026    0.025
+    2 baseline2        0.614         0.877              0.864            -0.013   -0.034    0.010
+    2 baseline4        0.745         0.877              0.910             0.033    0.007    0.060
+    2 baseline5        0.739         0.877              0.911             0.034    0.007    0.060
+    2     probe        0.764         0.877              0.899             0.022   -0.005    0.048
+    3 baseline2        0.614         0.877              0.864            -0.013   -0.035    0.010
+    3 baseline4        0.774         0.877              0.904             0.027    0.001    0.055
+    3 baseline5        0.771         0.877              0.906             0.029    0.003    0.058
+    3     probe        0.820         0.877              0.919             0.042    0.017    0.073
