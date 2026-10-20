@@ -1,4 +1,7 @@
-# [Title: write last — no colon, name ALFWorld/Qwen2.5 and the two evaluation levels]
+# Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts
+<!-- Title draft 2026-10-20 (no colon; names ALFWorld, the Qwen actors and the two evaluation levels). Alternatives:
+     (a) Probing Small Qwen Agents in ALFWorld Finds No Failure Signal Beyond Visible Task Information Between or Within Games
+     (b) Do Hidden States Reveal Agent Failure Beyond the Task? A Controlled Test in ALFWorld  [has a question mark; check venue style] -->
 
 <!-- Draft started 2026-10-17. Target (changed 2026-10-17): main conference or journal paper; venue TBD. Extra experiments needed: plan section 7. Plan: docs/paper_revision_plan_2026-10-17.md.
      Writing order (per plan): Method -> Results -> Discussion -> Conclusion -> Introduction -> Abstract -> Title.
@@ -7,7 +10,16 @@
      All numbers from results/*.csv (task_qwen3_4b*, task_react_qwen25_3b*, success_react_vs_v2*, react_transfer_qwen25_3b*, early_stop_3b*, pilot_action_patterns.txt) and docs/model_pilot_plan_2026-10-17.md. -->
 
 ## Abstract
-[TODO-RESULT: one paragraph, written last. What was done + main results with 95% CIs. No abbreviations, no citations.]
+Linear probes on the hidden states of language-model agents have been proposed as cheap monitors that predict failure early, but their gains have been measured against baselines that do not see the task.
+We tested whether such probes predict failure beyond the information visible in the prompt for a 3-billion-parameter Qwen2.5 agent in the ALFWorld household text environment.
+We evaluated between games on 500 greedy episodes and within games on 100 games run eight times each, compared the probe with a ladder of baselines built from the task type, the prompt text and progress features,
+split all data by room layout, and fixed the primary analysis before running it once.
+In the pre-registered comparison the probe was below the full baseline at the first three actions by 0.13 to 0.18 in area under the receiver operating characteristic curve (all 95% confidence intervals below zero),
+and on 250 held-out games no action was superior (differences from −0.029 to +0.039, all intervals including zero).
+The game explained 69.5% of the outcome variance (95% confidence interval 61.3–76.5%). Within games, the probe and the baselines all separated failed from successful attempts above chance from the third action,
+but the probe was superior in none of six comparisons. A four-billion-parameter Qwen3 agent and an external prompt gave the same result, with no superior action in either.
+Used to stop failing episodes, the probe was not shown to save more actions than a fixed limit (difference −0.032, 95% confidence interval −0.183 to +0.119).
+In this setting, hidden states did not add to visible information; claims of hidden-state failure signals in agents should be tested against baselines that see the task and within tasks.
 
 ## 1 Introduction
 <!-- 2026-10-20 draft from a separate writing session (citations checked against arXiv HTML for [1]-[10], [12], [13]); merged here with: [11] lowered to "cited by [10]" (original not read),
