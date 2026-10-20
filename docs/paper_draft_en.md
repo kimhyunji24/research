@@ -412,7 +412,28 @@ Choosing the threshold on the evaluated data slightly favors scores with many di
 the confirmatory comparison again showed no superior round (step 0 changed from non-inferior to inconclusive). Re-running the original analyses with the original labels in the current
 software environment reproduced every reported value exactly, so these changes reflect the relabeling of 4 (first 250) and 11 (all 500) episodes only.
 
-[TODO: divergence-aligned analysis, stronger probes (C grid, PCA, layer combination, MLP search), stronger text baseline, time-aligned baselines, CV-seed variance, scene-level permutation, Holm-adjusted exploratory table, 3B free-generation comparison.]
+**Stronger probes.** To check that the probe did not lose because it was too weak, we compared the reference probe and five stronger variants with rung 5 on the first 250 episodes (exploratory; plan `docs/probe_strength_plan_2026-10-20.md`, fixed before the run, with hyperparameters selected inside each training fold):
+a wider regularization grid (*C* = 10⁻⁶ to 10³), PCA with *k* ∈ {8, 32, 64, 128}, all four depths concatenated (8,192 dimensions), a small MLP grid (32 or 128 hidden units, α = 10⁻³ or 10⁻¹), and rung 5 with the 75% hidden state added as extra features.
+None of the 18 comparisons was superior to rung 5 (Table 7). The largest difference was +0.013 (−0.072 to +0.101; wider grid, step 1); the concatenated probe was below rung 5 at step 2 (−0.077, −0.159 to −0.003; Holm-adjusted p = 0.79).
+Adding the hidden state to rung 5 did not improve it (−0.034, −0.023, −0.024; all intervals include zero). The reference probe reproduced its earlier values exactly. These results suggest that the conclusion does not depend on the probe's capacity within this range.
+
+**Later rounds and temporal features.** Beyond the pre-registered first three actions, we compared the 75% linear probe with rung 5 at steps 0–10 on episodes still running (exploratory; 224–250 episodes per step).
+The differences ranged from −0.114 to +0.009; none was superior, and one (step 9, −0.114, −0.219 to −0.023) was inferior before correction for the 11 steps.
+Probes on the running mean of hidden states over earlier steps, alone or together with the current state, were not better than rung 5 at steps 1, 2, 3 or 5 (differences −0.046 to +0.011, all intervals include zero).
+
+**Already reported elsewhere.** Time-aligned baselines and the restriction to non-tied pairs are in Section 4.2, interval calibration on shuffled labels in Section 4.2, and the reproduction of all original analyses in the current environment above.
+We did not run a divergence-aligned analysis, cross-validation seed variance beyond two repeats, a scene-level permutation test, or a comparison with a free-generation agent.
+
+| Table 7 (exploratory). Stronger probes − rung 5 (AUROC difference, 95% CI), first 250 episodes | step 0 | step 1 | step 2 |
+|---|---|---|---|
+| Reference (75% depth, linear, *C* ≤ 1) | −0.034 (−0.102, 0.037) | −0.011 (−0.082, 0.061) | −0.029 (−0.091, 0.027) |
+| Wider *C* grid | −0.036 (−0.105, 0.036) | +0.013 (−0.072, 0.101) | −0.034 (−0.099, 0.026) |
+| PCA (*k* 8–128) | −0.019 (−0.084, 0.041) | −0.037 (−0.103, 0.032) | −0.029 (−0.091, 0.026) |
+| Four depths concatenated | −0.052 (−0.121, 0.008) | −0.055 (−0.127, 0.023) | −0.077 (−0.159, −0.003) |
+| MLP (grid of 4) | −0.036 (−0.104, 0.023) | −0.025 (−0.105, 0.058) | −0.052 (−0.122, 0.017) |
+| Rung 5 + hidden state | −0.034 (−0.101, 0.037) | −0.023 (−0.096, 0.047) | −0.024 (−0.086, 0.032) |
+
+Rung 5 AUROC 0.701, 0.732, 0.823. *n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. Sources: `results/probe_strength_3b*.csv`, `results/extra_main_3b_B_late_rounds.csv`, `results/extra_main_3b_C_temporal.csv`.
 
 ## 5 Discussion
 <!-- 2026-10-20 draft. Prior-work numbers come from docs/literature_review_2026-10-17.md (arXiv HTML read); check each against the PDF before submission. -->
