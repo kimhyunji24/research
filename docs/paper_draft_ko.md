@@ -4,8 +4,8 @@
 
 
 <!-- 2026-10-17 작성 시작, 2026-10-20 모든 절 초안 완성. 목표: 학회 본 논문 또는 저널, 투고처 미정. 계획: docs/paper_revision_plan_2026-10-17.md.
-     영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문.
-     수치는 results/*.csv와 각 절에 적은 계획 문서에서 가져왔다. 그림 2–4: figures/fig{2,3,4}_*.pdf(scripts/2026-10-20/make_figures.py가 results/*.csv로 그림, 그림 1은 아직 본문에서 참조하지 않음).
+     영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 표 제목은 영문, 그림은 국문판(그림 안 글자 국문, 2026-10-20부터).
+     수치는 results/*.csv와 각 절에 적은 계획 문서에서 가져왔다. 그림 2–4: figures/fig{2,3,4}_*_ko.pdf(그림 안 글자는 국문, `--lang ko`; scripts/2026-10-20/make_figures.py가 results/*.csv로 그림, 그림 1은 아직 본문에서 참조하지 않음).
      선행연구 수치는 2026-10-20 PDF로 대조함(docs/citation_check_2026-10-20.md). 투고 전: 2026년 프리프린트의 심사 판본 확인, 참고문헌 양식 정리. -->
 
 ## 초록
@@ -276,15 +276,15 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 
 *n* = 250 episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250.
 
-![Fig. 2](../figures/fig2_baseline_ladder.png)
+![Fig. 2](../figures/fig2_baseline_ladder_ko.png)
 
 *Fig. 2. 처음 250 episode에서 baseline 사다리(step 0–3)와 사전 등록 프로브(step 0–2)의 실패 예측 AUROC(step마다 n = 250, 실패 194). 5단과 프로브를 강조하고 scene 단위 군집 bootstrap(1,000회) 95% CI를 음영으로 표시했다. 1–4단의 CI는 가독성을 위해 생략했다. 1단은 설계상 0.5이고 2단은 step에 따라 변하지 않는다. 두 음영이 겹치는지는 차이의 검정이 아니며, 짝지은 차이는 Fig. 3에 있다. 출처: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv`.*
 
-![Fig. 3](../figures/fig3_probe_minus_baseline.png)
+![Fig. 3](../figures/fig3_probe_minus_baseline_ko.png)
 
 *Fig. 3. 사전 등록·사전 지정·확증 프로브 대 baseline 비교 전부(18개, 우수 0개). 점은 AUROC 차이, 막대는 95% CI. 과제 수준: 프로브 − 5단, scene 단위 군집 bootstrap(1,000회), 라벨에 설정과 n(episode, 실패). 시도 수준: 게임 내 쌍 AUROC 차이, 게임 단위 bootstrap(1,000회). 라벨을 섞은 데이터에서 이 구간은 귀무값을 80–94%만 포함해(4.2절) 실제보다 좁다. 점선: 비열등 한계 −0.05, 확증 hold-out에만 적용하며 탐색 분석 뒤에 정했다. 탐색 추정치는 넣지 않았다(Fig. 4). 출처: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv`.*
 
-![Fig. 4](../figures/fig4_reader_depth.png)
+![Fig. 4](../figures/fig4_reader_depth_ko.png)
 
 *Fig. 4. 탐색: 처음 250 episode에서 선형 프로브의 모든 reader × 깊이 조합의 프로브 − 5단 AUROC 차이(48칸, 선택 없음). 0을 중심으로 한 발산 색(빨강: 프로브가 5단보다 낮음). †는 95% CI(scene 단위 군집 bootstrap)가 0을 포함하지 않는 칸이며 모두 0 아래다(48칸 중 31칸). CI가 0 위에 있는 칸은 없고 가장 큰 차이는 +0.001이다. 7B reader는 4비트 가중치를 써서 크기와 양자화가 섞여 있다. MLP 칸과 CI: 부록 표 A6, `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv`.*
 ### 4.2 시도 수준
