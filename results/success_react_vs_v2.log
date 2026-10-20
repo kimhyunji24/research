@@ -1,0 +1,18 @@
+start 2026-10-20 15:14:13 HEAD 0bc057026d1a1c08a9d8cf6bb9c4261508b30439
+note: 2nd attempt; 1st aborted at game-set assertion before any outcome was computed (results/success_react_vs_v2_aborted.log)
+cmd: python scripts/2026-10-20/success_react_vs_v2.py results/success_react_vs_v2
+prompt   n  success  rate  ci_lo  ci_hi
+    v2 250       56 0.224 0.1767 0.2796
+ react 250       89 0.356 0.2992 0.4171
+
+ diff_react_minus_v2  ci_lo  ci_hi  both_success  v2_only  react_only  both_fail  p_mcnemar_exact
+               0.132   0.06  0.204            28       28          61        133           0.0006
+
+                     task_type  n  v2  react
+          look_at_obj_in_light 23  10      9
+         pick_and_place_simple 48  17     30
+pick_clean_then_place_in_recep 59  13     20
+ pick_cool_then_place_in_recep 25   8      6
+ pick_heat_then_place_in_recep 36   4     11
+        pick_two_obj_and_place 59   4     13
+end 2026-10-20 15:14:14 exit=0

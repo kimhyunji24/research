@@ -1,0 +1,8 @@
+start 2026-10-20 15:08:36 HEAD 0bc057026d1a1c08a9d8cf6bb9c4261508b30439
+cmd: python scripts/2026-10-20/success_react_vs_v2.py results/success_react_vs_v2
+Traceback (most recent call last):
+  File "/root/research/scripts/2026-10-20/success_react_vs_v2.py", line 19, in <module>
+    assert set(r["task_id"]) == set(v["task_id"]) == set(games), "game sets differ, stop"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: game sets differ, stop
+end 2026-10-20 15:08:40 exit=0
