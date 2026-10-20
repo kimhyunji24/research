@@ -1,0 +1,66 @@
+start 2026-10-20 20:42:54 HEAD 728a47756f742da2db4b5942bdd57f6bcf44287f dirty=1
+cmd: python scripts/2026-10-20/probe_strength.py --out results/probe_strength_3b.csv --n_jobs 10
+  step 0 base: auroc=0.666 (2s)
+  step 0 wideC: auroc=0.664 (2s)
+  step 0 pca: auroc=0.682 (2s)
+  step 0 concat: auroc=0.649 (3s)
+  step 0 mlp: auroc=0.665 (2s)
+  step 0 r5+hid: auroc=0.666 (2s)
+  step 0 baseline5: auroc=0.701 (1s)
+  step 1 base: auroc=0.721 (1s)
+  step 1 wideC: auroc=0.745 (2s)
+  step 1 pca: auroc=0.695 (2s)
+  step 1 concat: auroc=0.677 (3s)
+  step 1 mlp: auroc=0.708 (2s)
+  step 1 r5+hid: auroc=0.709 (2s)
+  step 1 baseline5: auroc=0.732 (1s)
+  step 2 base: auroc=0.795 (1s)
+  step 2 wideC: auroc=0.789 (2s)
+  step 2 pca: auroc=0.794 (2s)
+  step 2 concat: auroc=0.747 (2s)
+  step 2 mlp: auroc=0.771 (2s)
+  step 2 r5+hid: auroc=0.799 (2s)
+  step 2 baseline5: auroc=0.823 (1s)
+ step    method   n  n_fail  auroc  ci_lo  ci_hi                                                                                                                                                                                                          chosen
+    0      base 250     194  0.666  0.585  0.749                                                                                                                                                               {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 0.1}
+    0     wideC 250     194  0.664  0.583  0.747                                                                                                                                                  {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 0.1};{'C': 1e-06}
+    0       pca 250     194  0.682  0.602  0.757 {'k': 128, 'C': 0.001};{'k': 128, 'C': 0.1};{'k': 32, 'C': 0.01};{'k': 32, 'C': 0.1};{'k': 64, 'C': 0.0001};{'k': 64, 'C': 0.01};{'k': 8, 'C': 0.001};{'k': 8, 'C': 0.01};{'k': 8, 'C': 0.1};{'k': 8, 'C': 1.0}
+    0    concat 250     194  0.649  0.571  0.728                                                                                                                                                                           {'C': 0.0001};{'C': 0.001};{'C': 0.1}
+    0       mlp 250     194  0.665  0.574  0.750                                                                                                                           {'h': 128, 'a': 0.001};{'h': 128, 'a': 0.1};{'h': 32, 'a': 0.001};{'h': 32, 'a': 0.1}
+    0    r5+hid 250     194  0.666  0.586  0.749                                                                                                                                                               {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 0.1}
+    0 baseline5 250     194  0.701  0.631  0.772                                                                                                                                                    {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 0.1};{'C': 1.0}
+    1      base 250     194  0.721  0.637  0.796                                                                                                                                                               {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 1.0}
+    1     wideC 250     194  0.745  0.662  0.818                                                                                                                                                 {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 10.0};{'C': 100.0}
+    1       pca 250     194  0.695  0.614  0.776                                                                                                       {'k': 128, 'C': 0.001};{'k': 128, 'C': 0.01};{'k': 128, 'C': 1.0};{'k': 8, 'C': 0.001};{'k': 8, 'C': 0.1}
+    1    concat 250     194  0.677  0.597  0.751                                                                                                                                                               {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 1.0}
+    1       mlp 250     194  0.708  0.627  0.783                                                                                                                                                {'h': 128, 'a': 0.001};{'h': 32, 'a': 0.001};{'h': 32, 'a': 0.1}
+    1    r5+hid 250     194  0.709  0.622  0.786                                                                                                                                                    {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 0.1};{'C': 1.0}
+    1 baseline5 250     194  0.732  0.651  0.810                                                                                                                                                                  {'C': 0.001};{'C': 0.01};{'C': 0.1};{'C': 1.0}
+    2      base 250     194  0.795  0.712  0.862                                                                                                                                                               {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 1.0}
+    2     wideC 250     194  0.789  0.702  0.864                                                                                                                                    {'C': 0.0001};{'C': 0.001};{'C': 0.01};{'C': 1.0};{'C': 100.0};{'C': 1000.0}
+    2       pca 250     194  0.794  0.710  0.862                                           {'k': 128, 'C': 0.01};{'k': 128, 'C': 1.0};{'k': 32, 'C': 0.001};{'k': 64, 'C': 0.001};{'k': 8, 'C': 0.001};{'k': 8, 'C': 0.01};{'k': 8, 'C': 0.1};{'k': 8, 'C': 1.0}
+    2    concat 250     194  0.747  0.644  0.830                                                                                                                                                                 {'C': 0.0001};{'C': 0.01};{'C': 0.1};{'C': 1.0}
+    2       mlp 250     194  0.771  0.692  0.843                                                                                                                           {'h': 128, 'a': 0.001};{'h': 128, 'a': 0.1};{'h': 32, 'a': 0.001};{'h': 32, 'a': 0.1}
+    2    r5+hid 250     194  0.799  0.715  0.866                                                                                                                                                                             {'C': 0.001};{'C': 0.01};{'C': 1.0}
+    2 baseline5 250     194  0.823  0.754  0.883                                                                                                                                                                               {'C': 0.01};{'C': 0.1};{'C': 1.0}
+
+ step method        vs   diff  ci_lo  ci_hi  p_boot  p_holm      verdict
+    0   base baseline5 -0.034 -0.102  0.037   0.320   1.000 inconclusive
+    0  wideC baseline5 -0.036 -0.105  0.036   0.300   1.000 inconclusive
+    0    pca baseline5 -0.019 -0.084  0.041   0.538   1.000 inconclusive
+    0 concat baseline5 -0.052 -0.121  0.008   0.104   1.000 inconclusive
+    0    mlp baseline5 -0.036 -0.104  0.023   0.288   1.000 inconclusive
+    0 r5+hid baseline5 -0.034 -0.101  0.037   0.324   1.000 inconclusive
+    1   base baseline5 -0.011 -0.082  0.061   0.690   1.000 inconclusive
+    1  wideC baseline5  0.013 -0.072  0.101   0.848   1.000 inconclusive
+    1    pca baseline5 -0.037 -0.103  0.032   0.266   1.000 inconclusive
+    1 concat baseline5 -0.055 -0.127  0.023   0.156   1.000 inconclusive
+    1    mlp baseline5 -0.025 -0.105  0.058   0.540   1.000 inconclusive
+    1 r5+hid baseline5 -0.023 -0.096  0.047   0.486   1.000 inconclusive
+    2   base baseline5 -0.029 -0.091  0.027   0.318   1.000 inconclusive
+    2  wideC baseline5 -0.034 -0.099  0.026   0.258   1.000 inconclusive
+    2    pca baseline5 -0.029 -0.091  0.026   0.308   1.000 inconclusive
+    2 concat baseline5 -0.077 -0.159 -0.003   0.044   0.792     inferior
+    2    mlp baseline5 -0.052 -0.122  0.017   0.116   1.000 inconclusive
+    2 r5+hid baseline5 -0.024 -0.086  0.032   0.374   1.000 inconclusive
+end 2026-10-20 20:44:10 exit=0

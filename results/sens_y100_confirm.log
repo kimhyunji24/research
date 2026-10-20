@@ -1,0 +1,22 @@
+[y100] episodes=500 y30 successes=101 relabeled late successes=11 (eval>=250: 7)
+episodes=500 steps=13209 scenes=103 success=112 prompt_saved=True
+목표 물체 파싱 성공 episode 비율: 0.968
+  step 0 baseline5: auroc=0.675
+  step 0 linear_pcafull: auroc=0.674
+  step 1 baseline5: auroc=0.734
+  step 1 linear_pcafull: auroc=0.747
+  step 2 baseline5: auroc=0.768
+  step 2 linear_pcafull: auroc=0.720
+ step         method   n  n_fail  base_rate  auroc  ci_lo  ci_hi  ci_ep_lo  ci_ep_hi  auprc  null_mean  null_lo  null_hi  p_perm  C_median  pca_evr
+    0      baseline5 250     198      0.792  0.675  0.591  0.753     0.602     0.747  0.885      0.508    0.418    0.606    0.01     0.100      NaN
+    0 linear_pcafull 250     198      0.792  0.674  0.592  0.751     0.592     0.761  0.860      0.507    0.428    0.599    0.01     0.001      NaN
+    1      baseline5 250     198      0.792  0.734  0.654  0.810     0.662     0.809  0.911      0.504    0.404    0.597    0.01     1.000      NaN
+    1 linear_pcafull 250     198      0.792  0.747  0.662  0.822     0.672     0.821  0.911      0.510    0.416    0.594    0.01     0.001      NaN
+    2      baseline5 250     198      0.792  0.768  0.703  0.836     0.692     0.839  0.920      0.506    0.412    0.603    0.01     0.100      NaN
+    2 linear_pcafull 250     198      0.792  0.720  0.634  0.802     0.625     0.799  0.892      0.498    0.408    0.584    0.01     0.001      NaN
+
+프로브 - baseline 짝지은 AUROC 차이 (장면 단위 cluster bootstrap 95% CI)
+ step         method        vs  auroc_diff  ci_lo  ci_hi
+    0 linear_pcafull baseline5      -0.002 -0.058  0.051
+    1 linear_pcafull baseline5       0.013 -0.031  0.051
+    2 linear_pcafull baseline5      -0.047 -0.111  0.016

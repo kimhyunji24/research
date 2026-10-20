@@ -1,0 +1,19 @@
+# 모델 확장 파일럿(microsoft/Phi-3.5-mini-instruct, 대체 2순위): main_3b.yaml과 같은 정책, 모델별 설정만 다름. 계획: docs/model_pilot_plan_2026-10-17.md
+# 사용: python collect/rollout.py --config configs/pilot_phi35_mini.yaml --game_list results/games_pilot_models_first20.json --repeats 1
+model_name: microsoft/Phi-3.5-mini-instruct
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택 (constrained action selection)
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 250
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/pilot_models
+seed: 0
+revision: 2fe192450127e6a83f7441aef6e3ca586c338b77                  # HF commit 고정
+turn_end: "<|end|>"                       # chat template의 assistant 턴 끝(토크나이저로 확인)
+cand_batch: 4                             # KV head 32개(GQA 없음): 8이면 약 13GB로 12GB 초과 예상 -> 4 (2026-10-20 사용자 결정, 실행 전)

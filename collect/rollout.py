@@ -57,7 +57,7 @@ def parse_action(text, admissible):
     return (adm[close[0]] if close else cand), False
 
 
-def make_prompt(tok, task, trace, obs, admissible):
+def make_prompt(tok, task, trace, obs, admissible, tmpl_kwargs=None):
     # trace: (obs, action, ok) ; ok=False면 환경이 "Nothing happens"로 응답한 action
     admissible = [a for a in admissible if a != "help"]
     lines = [f"Task: {task}"]
@@ -68,23 +68,68 @@ def make_prompt(tok, task, trace, obs, admissible):
     if failed: lines.append(f"Actions that did nothing recently (do not repeat): {', '.join(failed)}")
     lines.append(f"Admissible actions: {', '.join(admissible)}")
     msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "\n".join(lines)}]
-    return tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+    # tmpl_kwargs: 모델별 chat template 인자(예: Qwen3 enable_thinking=False, Llama 3 date_string 고정). 기본은 없음.
+    return tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True, **(tmpl_kwargs or {}))
+
+
+# ---- ReAct 원 ALFWorld 예시 (Yao 등 2023, prompts/react/alfworld_3prompts.json), 형식 A
+REACT_PREFIXES = {"pick_and_place": "put", "pick_clean_then_place": "clean", "pick_heat_then_place": "heat",
+                  "pick_cool_then_place": "cool", "look_at_obj": "examine", "pick_two_obj": "puttwo"}
+
+
+def react_adapt(text):
+    """원 예시의 최소 수정(계획서 표의 1번): put A in/on B -> move A to B, 그 관찰 문장도 같은 방식으로."""
+    text = re.sub(r"^> put (.+?) in/on (.+)$", r"> move \1 to \2", text, flags=re.M)
+    return re.sub(r"You put the (.+?) in/on the (.+?)\.", r"You move the \1 to the \2.", text)
+
+
+def react_header(examples, gamefile):
+    """원 notebook과 같은 머리말 + 과제 유형별 예시 2개(react_{유형}_1, react_{유형}_0)."""
+    name = gamefile.replace("\\", "/").split("/")[-3]
+    v = next(v for k, v in REACT_PREFIXES.items() if name.startswith(k))
+    return ("Interact with a household to solve a task. Here are two examples.\n"
+            + react_adapt(examples[f"react_{v}_1"]) + react_adapt(examples[f"react_{v}_0"]) + "\nHere is the task.\n")
+
+
+def make_prompt_react(header, first_obs, trace, cur_obs):
+    """원 alfworld_run과 같은 completion 문자열: 머리말 + 첫 관찰 + '\n>' + 매 step ' {action}\n{observation}\n>'.
+    trace[i] = (그 action 직전 관찰, action, ok). action i 다음 관찰은 trace[i+1]의 관찰, 마지막은 cur_obs."""
+    out = header + first_obs + "\n>"
+    for i, (_, a, _) in enumerate(trace):
+        nxt = trace[i + 1][0] if i + 1 < len(trace) else cur_obs
+        out += f" {a}\n{nxt}\n>"
+    return out
 
 
 SKIP_ACTIONS = {"help", "inventory", "look"}  # 후보에서 제외(정보 확인용 명령은 과제 진행에 쓰이지 않음)
 
 
 @torch.no_grad()
-def score_candidates(model, tok, prompt, candidates, layers, device, norm):
-    """prompt를 1회 prefill해 hidden state를 뽑고, KV cache를 복제해 각 후보 'Action: <a><|im_end|>'의
-    로그확률을 한 번에 계산한다. 반환: (hidden (L,H), 후보별 점수, 후보별 sum logprob,
+def score_candidates(model, tok, prompt, candidates, layers, device, norm, turn_end="<|im_end|>", cand_batch=0,
+                     cand_fmt="Action: {c}{turn_end}"):
+    """prompt를 1회 prefill해 hidden state를 뽑고, KV cache를 복제해 각 후보 'Action: <a><turn_end>'의
+    로그확률을 계산한다. turn_end는 모델의 assistant 턴 종료 토큰(Qwen <|im_end|>, Llama 3 <|eot_id|>).
+    cand_batch > 0이면 후보를 그 크기로 나눠 계산한다(KV cache가 큰 모델의 메모리용, 0이면 한 번에). 반환: (hidden (L,H), 후보별 점수, 후보별 sum logprob,
     후보별 토큰 수, prompt 토큰 수)"""
     ids = tok(prompt, return_tensors="pt").to(device)
     pre = model(**ids, use_cache=True, output_hidden_states=True, logits_to_keep=1)
     vec = np.stack([pre.hidden_states[l][0, -1].float().cpu().numpy() for l in layers])
     first_lp = torch.log_softmax(pre.logits[0, -1].float(), dim=-1)          # 첫 후보 token의 분포
 
-    enc = [tok(f"Action: {c}<|im_end|>", add_special_tokens=False)["input_ids"] for c in candidates]
+    enc_all = [tok(cand_fmt.format(c=c, turn_end=turn_end), add_special_tokens=False)["input_ids"] for c in candidates]
+    P = ids["input_ids"].shape[1]
+    step = cand_batch if cand_batch and cand_batch > 0 else len(enc_all)
+    totals, ntoks = [], []
+    for s0 in range(0, len(enc_all), step):
+        t, n = _score_chunk(model, tok, pre, first_lp, enc_all[s0:s0 + step], P, device)
+        totals.append(t); ntoks.append(n)
+    total, ntok = torch.cat(totals), torch.cat(ntoks)
+    score = total / ntok if norm == "mean" else total
+    return vec, score.cpu().numpy(), total.cpu().numpy(), ntok.cpu().numpy(), P
+
+
+@torch.no_grad()
+def _score_chunk(model, tok, pre, first_lp, enc, P, device):
     B, L = len(enc), max(len(e) for e in enc)
     pad = tok.pad_token_id if tok.pad_token_id is not None else 0
     cid = torch.full((B, L), pad, dtype=torch.long, device=device)
@@ -92,7 +137,6 @@ def score_candidates(model, tok, prompt, candidates, layers, device, norm):
     for i, e in enumerate(enc):
         cid[i, :len(e)] = torch.tensor(e, device=device); cmask[i, :len(e)] = 1
     cache = copy.deepcopy(pre.past_key_values); cache.batch_repeat_interleave(B)
-    P = ids["input_ids"].shape[1]
     attn = torch.cat([torch.ones((B, P), dtype=torch.long, device=device), cmask], dim=1)
     lg = model(input_ids=cid, attention_mask=attn, past_key_values=cache, use_cache=True).logits.float()
     lp = torch.log_softmax(lg, dim=-1)                                       # (B, L, V)
@@ -101,10 +145,7 @@ def score_candidates(model, tok, prompt, candidates, layers, device, norm):
     if L > 1:
         tok_lp[:, 1:] = lp[:, :-1].gather(-1, cid[:, 1:, None]).squeeze(-1)
     tok_lp = tok_lp * cmask
-    total = tok_lp.sum(1)
-    ntok = cmask.sum(1)
-    score = total / ntok if norm == "mean" else total
-    return vec, score.cpu().numpy(), total.cpu().numpy(), ntok.cpu().numpy(), P
+    return tok_lp.sum(1), cmask.sum(1)
 
 
 def main():
@@ -139,9 +180,28 @@ def main():
         cfg["num_episodes"] = len(env_obj.game_files)
     env = env_obj.init_env(batch_size=1)
 
-    tok = AutoTokenizer.from_pretrained(cfg["model_name"])
+    rev = cfg.get("revision")  # HF commit 해시로 고정(없으면 기본 revision)
+    tok = AutoTokenizer.from_pretrained(cfg["model_name"], revision=rev)
     model = AutoModelForCausalLM.from_pretrained(
-        cfg["model_name"], torch_dtype=getattr(torch, cfg["dtype"])).to(cfg["device"]).eval()
+        cfg["model_name"], revision=rev, torch_dtype=getattr(torch, cfg["dtype"])).to(cfg["device"]).eval()
+    tmpl_kwargs = cfg.get("chat_template_kwargs") or {}
+    if cfg.get("template_date"):  # 템플릿이 strftime_now로 실행일을 넣는 모델(SmolLM3): 템플릿 변수로 덮어써 날짜를 고정한다(형식 인자는 무시)
+        fixed_date = str(cfg["template_date"])
+        tmpl_kwargs = {**tmpl_kwargs, "strftime_now": lambda fmt: fixed_date}
+    turn_end = cfg.get("turn_end", "<|im_end|>")
+    cand_batch = int(cfg.get("cand_batch") or 0)
+    # turn_end가 이 모델의 assistant 턴 끝과 같은지 chat template으로 확인한다.
+    style = cfg.get("prompt_style", "v2")
+    if style == "v2":
+        probe = tok.apply_chat_template([{"role": "user", "content": "x"}, {"role": "assistant", "content": "Action: y"}],
+                                        tokenize=False, **tmpl_kwargs)
+        assert f"Action: y{turn_end}" in probe, f"turn_end {turn_end!r}가 chat template의 assistant 턴 끝과 다르다: {probe[-80:]!r}"
+        cand_fmt = "Action: {c}{turn_end}"
+    elif style == "react":  # 형식 A: chat template 없음, 후보는 '>' 뒤의 ' {행동}\n'
+        react_examples = json.load(open(cfg.get("react_prompts", "prompts/react/alfworld_3prompts.json")))
+        cand_fmt = " {c}\n"
+    else:
+        raise SystemExit(f"알 수 없는 prompt_style: {style}")
     layers = layer_indices(model.config.num_hidden_layers, cfg["relative_layers"])
 
     tag = cfg["model_name"].split("/")[-1]
@@ -184,14 +244,19 @@ def main():
         task = text.split("Your task is to:")[-1].strip()
         gamefile = infos["extra.gamefile"][0]
         trace, won = [], False
+        if style == "react":
+            header = react_header(react_examples, gamefile)
+            first_obs = "\n".join(text.split("\n\n")[1:])  # 원 notebook과 같이 환영 문구를 뺀 첫 관찰(과제 문장 포함)
         for step in range(cfg["max_steps"]):
             adm = infos["admissible_commands"][0]
-            prompt = make_prompt(tok, task, trace, text, adm)
+            prompt = (make_prompt(tok, task, trace, text, adm, tmpl_kwargs) if style == "v2"
+                      else make_prompt_react(header, first_obs, trace, text))
             extra = {}
             if cfg.get("policy", "score") == "score":
                 cands = [c for c in adm if c not in SKIP_ACTIONS] or list(adm)
                 vec, score, total, ntok, n_prompt = score_candidates(model, tok, prompt, cands, layers,
-                                                                     cfg["device"], cfg.get("score_norm", "sum"))
+                                                                     cfg["device"], cfg.get("score_norm", "sum"),
+                                                                     turn_end, cand_batch, cand_fmt)
                 T = float(cfg.get("sample_temperature") or 0)
                 if T > 0:  # 샘플링: 재현 가능하도록 (seed, episode, step)으로 난수열을 만든다. resume해도 같다.
                     z = score / T; z = z - z.max(); p = np.exp(z); p /= p.sum()

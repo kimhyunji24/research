@@ -91,6 +91,11 @@
   백업: Windows `Desktop\research_data_new`(sha256 목록 포함, 검증 통과). `data-backup` 브랜치에는 아직 올리지 않았다.
 - 2026-10-17: 주 분석을 위 "주 분석" 절차 그대로 1회 실행했다(명령은 아래). 출력 `results/within_game*`.
   `python probes/within_game.py data/multi_rollout_pilot/Qwen2.5-3B-Instruct data/multi_rollout_main_r2/Qwen2.5-3B-Instruct --layer 2 --steps 1 2 3 --game_meta data/multi_rollout_pilot_games/games_pilot_meta.json data/multi_rollout_main_games/games_main_meta.json --out results/within_game`
+- 2026-10-17 (PC 리셋 후, 분석 재실행 없음): `data/multi_rollout_main_r2`를 같은 명령·코드(`a3fd9bb`, `collect/rollout.py` 마지막 변경 `4b31038`)·
+  패키지(`results/env_freeze_2026-10-17.txt` 103개 동일)·모델 revision `aa8e7253`(`HF_HUB_OFFLINE=1`)으로 새 WSL 설치(3.0.3, Ubuntu 22.04.5, PC A)에서 다시 수집했다(14:57~16:32, 약 94분).
+  `sha256sum -c results/sha256_multi_rollout_main_r2.txt` 643/643 통과, episode 0~23이 `data-backup` 24개와 비트 단위로 같고, 성공 256/640,
+  steps 14,422행 = hidden 14,422행, NaN 0, 수집 중 ext4 경고 0. commit된 주 분석 결과(`results/within_game*`)는 이 데이터와 같은 입력에서 계산된 것이므로 다시 실행하지 않는다.
+  백업: PC A 바탕화면 `research_data_new`와 사용자 USB(`research_backup_2026-10-17`), 둘 다 sha256 643개 검증.
 
 ## 보조 분석과 해석 규칙 (2026-10-17, 주 분석 결과를 열기 전에 기록)
 주 분석 실행 시작 뒤, 결과 파일을 열기 전에 판정 규칙의 전제를 점검했다. 점검에는 점수·AUROC를 쓰지 않았고 라벨은 평가 쌍을 고르는 데만 썼다.
@@ -193,3 +198,33 @@ sanity: baseline 2단과 난이도 오라클은 게임 안에서 상수라 세 s
 - 전체 쌍에서 null에서도 "동등"이 54~65% 나온다. 동점 희석 때문에 이 데이터에서 "동등" 판정은 정보가 거의 없다.
 - 판정 규칙은 바꾸지 않는다. 보고할 때 이 표를 함께 싣고, CI 해석에 "포함률이 명목보다 낮다"는 단서를 단다.
   더 보수적인 구간(예: 게임 수 39에 맞춘 t 기반 또는 BCa)은 탐색적으로만 병기할 수 있다(확인 필요).
+
+## 보조 분석 결과 (2026-10-17, 사전 기록 `f8577de` 절차 1회 실행, 결과 `results/within_game_supp*`)
+명령: `python probes/within_game_supp.py data/multi_rollout_pilot/Qwen2.5-3B-Instruct data/multi_rollout_main_r2/Qwen2.5-3B-Instruct --layer 2 --steps 1 2 3 --n_boot 1000 --n_perm 1000 --seed 0 --out results/within_game_supp`
+(코드 `1f27521`, 실행 전 `scripts/2026-10-17/test_supp.py` 통과). 갈리는 게임 39개, step마다 쌍 470개. 주 분석과 같은 T=1.0 샘플링 데이터다.
+
+쌍 AUROC (게임 bootstrap 95% CI)
+| step | 쌍 | 프로브 | 4단 | 5단 | 4t | 5t |
+|---|---|---|---|---|---|---|
+| 1 | 전체 470 | 0.520 (0.455~0.589) | 0.517 | 0.547 | 0.565 | 0.559 |
+| 1 | 동점 제외 139 | 0.568 (0.337~0.767) | 0.532 | 0.633 | 0.719 | 0.698 |
+| 2 | 전체 470 | 0.585 (0.523~0.651) | 0.611 | 0.626 | 0.591 | 0.602 |
+| 2 | 동점 제외 158 | 0.753 (0.571~0.898) | 0.785 | 0.816 | 0.772 | 0.804 |
+| 3 | 전체 470 | 0.619 (0.547~0.694) | 0.565 | 0.612 | 0.587 | 0.611 |
+| 3 | 동점 제외 224 | 0.750 (0.612~0.869) | 0.656 | 0.754 | 0.683 | 0.732 |
+
+프로브 − baseline 판정(해석 규칙 그대로, Holm은 family 안 6개)
+- **우수: 0/24**(모든 family, 모든 step에서 CI 하한 > 0인 비교 없음).
+- 보조 1(동점 제외): 6개 모두 결론 없음. 갈라진 쌍만 보면 모든 방법의 쌍 AUROC가 0.53~0.82로 올라가지만(step 2~3은 0.65 이상), 프로브와 baseline의 차이는 결론이 나지 않는다
+  (쌍 139~224개, CI 반폭 약 0.1~0.2).
+- 보조 2(시점 맞춘 baseline 4t·5t): step 1에서 프로브가 4t·5t보다 낮다(전체 쌍 −0.045 (−0.098, −0.006), −0.038 (−0.084, −0.004); 동점 제외도 CI 상한 < 0).
+  CI 기준으로는 "열등"이지만 Holm 보정 p는 0.18이다. step 2~3은 결론 없음·비열등(약함)·동등(step 2 vs 4t, CI −0.042~+0.020)이 섞여 있다.
+- 시점 비대칭(baseline이 현재 step의 샘플링된 action 정보를 씀)은 baseline의 이점을 설명하지 못했다: 시점을 맞춘 4t·5t도 프로브보다 낮지 않았고, step 1에서는 오히려 높았다.
+- 동점 쌍(step 1/2/3: 331/312/246쌍)에서 프로브·4t·5t의 점수가 다른 쌍은 0개였다(세 방법이 같은 정보 시점임을 확인).
+
+주의
+- "supp1_orig_all"(주 분석과 같은 비교를 이 스크립트로 다시 계산한 행)의 CI가 주 분석 CSV와 끝자리에서 조금 다르다(예: step 3 vs 5단 주 분석 −0.038~+0.051, 여기 −0.039~+0.049).
+  bootstrap 표본 생성 순서가 달라 생긴 몬테카를로 차이로 보이며(확인 필요), 그 때문에 이 행은 "동등"으로 표시됐지만 주 분석 판정(동등 기준을 근소하게 벗어남)을 바꾸지 않는다.
+  null 보정 점검에서 이 데이터의 "동등" 판정은 무신호에서도 54~65% 나와 정보가 거의 없다.
+- null 보정에서 "열등" 거짓 판정률이 5~8%였다(명목 2.5%). step 1의 "열등"(Holm 전)도 이 점을 감안해 약한 근거로 본다.
+- 말할 수 있는 것: 동점을 빼거나 시점을 맞춰도 프로브가 겉보기 baseline보다 낫다는 증거는 없다. 갈라진 쌍에서는 모든 방법이 같은 게임 안의 실패를 우연보다 잘 구분한다.

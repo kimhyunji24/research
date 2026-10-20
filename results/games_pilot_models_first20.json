@@ -1,0 +1,22 @@
+[
+ "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Kettle-None-CounterTop-18/trial_T20190908_025529_009980/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/look_at_obj_in_light-Book-None-DeskLamp-306/trial_T20190908_035303_350876/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/look_at_obj_in_light-AlarmClock-None-DeskLamp-305/trial_T20190908_120957_213796/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_heat_then_place_in_recep-Egg-None-GarbageCan-23/trial_T20190909_120209_973257/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-SoapBar-None-Cart-430/trial_T20190907_075807_163356/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Pan-None-StoveBurner-2/trial_T20190909_041225_296350/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-ToiletPaper-None-Drawer-421/trial_T20190908_184549_278817/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/look_at_obj_in_light-CD-None-DeskLamp-314/trial_T20190907_114338_839817/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-Pillow-None-ArmChair-321/trial_T20190907_121714_804185/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_cool_then_place_in_recep-Bread-None-DiningTable-15/trial_T20190908_195749_792875/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-ButterKnife-None-CounterTop-12/trial_T20190909_105644_906480/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/look_at_obj_in_light-Pillow-None-DeskLamp-324/trial_T20190908_155642_533831/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_clean_then_place_in_recep-Mug-None-CoffeeMachine-13/trial_T20190907_172113_249829/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_heat_then_place_in_recep-Apple-None-Fridge-20/trial_T20190908_013911_274341/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_heat_then_place_in_recep-Cup-None-Cabinet-12/trial_T20190908_145944_296356/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-RemoteControl-None-Ottoman-208/trial_T20190909_100923_960630/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-CD-None-DiningTable-311/trial_T20190908_071437_984059/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_two_obj_and_place-SprayBottle-None-Dresser-413/trial_T20190906_193324_684519/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_heat_then_place_in_recep-Cup-None-Fridge-12/trial_T20190908_095835_636521/game.tw-pddl",
+ "/root/alfworld_data/json_2.1.1/train/pick_and_place_simple-SoapBottle-None-SideTable-420/trial_T20190908_063550_595984/game.tw-pddl"
+]

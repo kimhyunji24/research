@@ -1,0 +1,21 @@
+# 모델 확장 파일럿(HuggingFaceTB/SmolLM3-3B): main_3b.yaml과 같은 정책, 모델별 설정만 다름. 계획: docs/model_pilot_plan_2026-10-17.md
+# 사용: python collect/rollout.py --config configs/pilot_smollm3_3b.yaml --game_list results/games_pilot_models_first20.json --repeats 1
+model_name: HuggingFaceTB/SmolLM3-3B
+dtype: bfloat16
+device: cuda
+policy: score                             # admissible 후보 로그확률로 선택 (constrained action selection)
+score_norm: sum
+max_new_tokens: 48                        # policy=generate일 때만 사용
+num_episodes: 250
+max_steps: 30
+temperature: 0.0
+relative_layers: [0.25, 0.5, 0.75, 1.0]
+alfworld_config: configs/alfworld_base.yaml
+split: train
+out_dir: data/pilot_models
+seed: 0
+revision: a07cc9a04f16550a088caea529712d1d335b0ac1                  # HF commit 고정
+turn_end: "<|im_end|>"
+cand_batch: 8                             # 후보를 8개씩 계산(KV cache 메모리). 같은 모델 안에서는 고정
+chat_template_kwargs: {enable_thinking: false}   # 시스템 메타데이터 'Reasoning Mode: /no_think' + 빈 <think> 블록
+template_date: "20 October 2026"          # 템플릿의 'Today Date'(strftime_now) 고정. 2026-10-20 사용자 결정(A)
