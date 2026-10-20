@@ -68,6 +68,8 @@ We therefore evaluate hidden-state failure prediction in a small ALFWorld agent 
 5. *Prevent selection after seeing results.* The primary analysis and decision rules were registered and run once, and a setting chosen after exploration was confirmed on 250 new games.
 6. *Fit a small-agent setting.* The probe reads the 3B actor's own hidden state at no additional model call, actions are chosen by candidate scoring, and we vary the actor (Qwen3-4B), the prompt (the original ReAct examples [13]) and, in an exploratory analysis, the size of the reader that reads the actor's trajectory (0.5B–7B).
 
+Our primary hypothesis, registered before any probe was fit, is H1: on the 3B actor's trajectories read by the 3B model, a linear probe predicts failure at the first three actions better than the full five-rung baseline (the 95% CI of the AUROC difference lies above zero).
+
 We did not reuse existing methods unchanged, for three reasons. The protocol of [3] controls neither difficulty nor visible information and splits by task, which leaks scene information in ALFWorld.
 The within-problem evaluation of [10] assumes independent single generations, so it cannot handle shared prefixes in sequential environments. The text monitors of [2] and [1] assume a policy large enough that the monitor's cost is negligible.
 Small models also often produce actions that are not in the admissible list when they generate freely, so we choose actions by the log-probability of each admissible candidate and reuse the prompt's key–value cache, which lets the agent run on a single 12 GB GPU.
