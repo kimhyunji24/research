@@ -185,6 +185,9 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         cfg["model_name"], revision=rev, torch_dtype=getattr(torch, cfg["dtype"])).to(cfg["device"]).eval()
     tmpl_kwargs = cfg.get("chat_template_kwargs") or {}
+    if cfg.get("template_date"):  # 템플릿이 strftime_now로 실행일을 넣는 모델(SmolLM3): 템플릿 변수로 덮어써 날짜를 고정한다(형식 인자는 무시)
+        fixed_date = str(cfg["template_date"])
+        tmpl_kwargs = {**tmpl_kwargs, "strftime_now": lambda fmt: fixed_date}
     turn_end = cfg.get("turn_end", "<|im_end|>")
     cand_batch = int(cfg.get("cand_batch") or 0)
     # turn_end가 이 모델의 assistant 턴 끝과 같은지 chat template으로 확인한다.

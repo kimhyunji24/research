@@ -36,6 +36,7 @@ actor를 최소 2개 추가한다. 이 문서는 **어떤 모델을 본 실험�
 | `chat_template_kwargs` | 없음 | chat template 인자 | Qwen3 `enable_thinking: false`, Llama `date_string: "26 Jul 2024"` |
 | `cand_batch` | 0(후보 한 번에) | 후보를 나눠 점수 계산(KV cache 메모리) | 8 |
 | `revision` | 없음 | HF commit 고정 | 위 표 |
+| `template_date` (10-20 추가) | 없음 | 템플릿이 `strftime_now`로 실행일을 넣는 모델의 날짜 고정(템플릿 변수로 덮어씀) | SmolLM3 `"20 October 2026"` |
 
 - Llama 3 chat template은 날짜를 따로 주지 않으면 시스템 메시지에 실행 날짜를 넣는다. 그러면 실행하는 날마다 prompt가 달라지므로, 템플릿 기본값 "26 Jul 2024"로 고정한다(템플릿 렌더링 확인은 접근 승인 후, 확인 필요).
 - Qwen3의 `enable_thinking: false`는 생성 프롬프트 끝에 빈 `<think>\n\n</think>\n\n` 블록을 넣는다. hidden은 그 뒤의 prompt 마지막 토큰에서 뽑는다.
@@ -69,6 +70,20 @@ PC A(RTX 4070, 드라이버 591.59, WSL 3.0.3), 코드 `a1ead7f`, `HF_HUB_OFFLIN
 | Llama-3.2-3B | 미실행 | - | - | - | - | 접근 승인 대기(탈락 아님). 10-20 정정: 요청은 10-20에 처음 제출 |
 
 - 같은 20게임에서 Qwen2.5-3B(`main_3b` 기록)는 5/20 성공했다(참고, 비교 검정 아님).
+
+### 추가 파일럿 (2026-10-20, 위 기준 그대로, 포함 규칙은 변경 이력 10-20 항목)
+PC A(RTX 4070, 591.59, WSL 3.0.3, VHD는 D:), 코드 `27f61ce` + `template_date` 변경(이 기록과 함께 commit), `HF_HUB_OFFLINE=1`, 같은 20게임(sha256 `b7e2f914…` 확인).
+사전 점검: CUDA 정상. 회귀 점검(Qwen2.5-3B 기본 설정, `main_3b` 처음 5게임, 출력 `data/regress_qwen25_gl_2026-10-20`): episode 5·124 step, 성공·step 수 불일치 0, prompt·action·후보·로그확률·토큰 수·p_chosen 불일치 0, hidden 최대 차이 0.0 → 통과.
+
+| 모델 | 실행 | 기준 1 성공(≥3/20) | 기준 2 실행 가능성 | 기준 3 유효 행동 | 기준 4 hidden | 판정 |
+|---|---|---|---|---|---|---|
+| Llama-3.2-3B | 16:07~16:12 | **1/20** (5%, Wilson 95% CI 1~24%) 탈락 | 20/20 완료, 메모리 부족 0, 10.7초/episode, 최대 할당 8.06GB 통과 | 573/573 | 573행 = step 573, NaN 0, inf 0, 최대 절댓값 21.8 | **제외**(기준 1) |
+| SmolLM3-3B | 16:12~16:16 | **1/20** (5%, Wilson 95% CI 1~24%) 탈락 | 20/20 완료, 메모리 부족 0, 10.4초/episode, 최대 할당 7.41GB 통과 | 580/580 | 580행 = step 580, NaN 0, inf 0, 최대 절댓값 19.8 | **제외**(기준 1) |
+
+- 성공 episode: Llama look_at 1개(3 step), SmolLM3 pick_two_obj 1개(10 step).
+- 20개 표본이라 성공률 추정이 거칠다(CI 1~24%). 기준 1은 포함 여부만 정하며, 모델 간 성공률 차이나 "이 모델이 ALFWorld를 못 한다"를 주장하지 않는다. 이 프롬프트(v2)·후보 점수화·30 step 설정에 대한 결과다.
+- 로그 `~/logs_2026-10-20/`(저장소 밖), 데이터 `data/pilot_models/{Llama-3.2-3B-Instruct,SmolLM3-3B}`(저장소 밖). 탈락 모델로 부록에 보고한다.
+- 규칙상 다음: SmolLM3·Llama가 모두 탈락했으므로 대체 2순위 Phi-3.5-mini를 파일럿한다(10-20 변경 이력). 실행 전 설정(`turn_end`, `cand_batch` 메모리 계산)을 기록한다.
 - 기준 2의 "3B의 3배"는 기준 시간을 문서에 정하지 않았다. 참고값은 회귀 점검의 Qwen2.5-3B 6.9초/episode(5게임, 34.7초)와 초안 3.7절의 8~11초/episode다.
   가장 엄격한 6.9초 기준(3배 = 20.8초)으로도 두 모델 모두 통과한다.
 - 성공 episode의 step 수: Qwen3-4B 3, 4, 7, 10, 15, 19, 27 / Qwen3-1.7B 4.
@@ -94,3 +109,7 @@ PC A(RTX 4070, 드라이버 591.59, WSL 3.0.3), 코드 `a1ead7f`, `HF_HUB_OFFLIN
   58번 줄("우선 1 탈락 시 대체로 채운다") 대신, **기준 1~4를 통과한 모델은 모두 본 실험에 넣고 모델별로 따로 보고한다**(SmolLM3-3B, Llama-3.2-3B 모두 해당).
   이유: Llama 승인 시점이 불확실하고, 대체 모델 결과를 본 뒤 포함 여부를 정하는 여지를 없애기 위해서다. 기준 1~4와 파일럿 절차(게임 20개, 정책, `cand_batch: 8`)는 그대로다.
   Phi-3.5-mini는 SmolLM3가 탈락하고 Llama도 탈락·미승인일 때만 파일럿한다.
+- 2026-10-20 (파일럿 전): Llama 접근 승인 확인(ACCESS OK). Llama 템플릿 렌더링 확인: `date_string: "26 Jul 2024"`로 'Today Date' 고정됨, `<|eot_id|>` 확인(40번 줄의 확인 필요 해소).
+  SmolLM3-3B 템플릿은 시스템 메타데이터에 `strftime_now("%d %B %Y")`로 실행일을 넣고 바꿀 인자가 없다. 사용자 결정(A): 기본 템플릿을 유지하고 날짜만 `"20 October 2026"`(첫 실행일)로 고정한다
+  (`template_date` 키, 템플릿 변수로 `strftime_now`를 덮어씀, 토크나이저로 렌더링 확인). 대안 B(`/system_override`로 메타데이터 제거)는 기본 사용법에서 벗어나 쓰지 않는다.
+  `enable_thinking: false`는 메타데이터에 'Reasoning Mode: /no_think'와 빈 `<think>` 블록을 넣는다. 설정 `configs/pilot_smollm3_3b.yaml`. 코드 변경 뒤 Qwen2.5 회귀 점검을 다시 한다.
