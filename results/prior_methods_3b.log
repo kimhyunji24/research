@@ -1,0 +1,51 @@
+start 2026-10-20 20:09:44 HEAD a11eaf3b60d112bd365f4885979286ed05a9b6a6 dirty=1
+cmd: python scripts/2026-10-20/prior_methods.py --out results/prior_methods_3b.csv --n_perm 100 --n_jobs 24
+  step 0 B_behav: auroc=0.522
+  step 0 B_logp: auroc=0.626
+  step 0 B_behav_task: auroc=0.626
+  step 0 baseline5: auroc=0.701
+  step 0 probe_L75_linear: auroc=0.666
+  step 1 B_behav: auroc=0.554
+  step 1 B_logp: auroc=0.545
+  step 1 B_behav_task: auroc=0.656
+  step 1 baseline5: auroc=0.732
+  step 1 probe_L75_linear: auroc=0.721
+  step 2 B_behav: auroc=0.605
+  step 2 B_logp: auroc=0.606
+  step 2 B_behav_task: auroc=0.689
+  step 2 baseline5: auroc=0.823
+  step 2 probe_L75_linear: auroc=0.795
+ step           method   n  n_fail  auroc  ci_lo  ci_hi  p_perm  C_median
+    0          B_behav 250     194  0.522  0.435  0.611   0.426     0.000
+    0           B_logp 250     194  0.626  0.543  0.705   0.020     0.000
+    0     B_behav_task 250     194  0.626  0.542  0.707   0.040     0.055
+    0        baseline5 250     194  0.701  0.631  0.772   0.010     0.055
+    0 probe_L75_linear 250     194  0.666  0.585  0.749   0.010     0.001
+    1          B_behav 250     194  0.554  0.468  0.641   0.198     0.000
+    1           B_logp 250     194  0.545  0.452  0.635   0.267     0.001
+    1     B_behav_task 250     194  0.656  0.577  0.733   0.020     0.100
+    1        baseline5 250     194  0.732  0.651  0.810   0.010     0.100
+    1 probe_L75_linear 250     194  0.721  0.637  0.796   0.010     0.006
+    2          B_behav 250     194  0.605  0.513  0.683   0.040     0.055
+    2           B_logp 250     194  0.606  0.520  0.690   0.050     0.100
+    2     B_behav_task 250     194  0.689  0.603  0.769   0.020     0.550
+    2        baseline5 250     194  0.823  0.754  0.883   0.010     0.100
+    2 probe_L75_linear 250     194  0.795  0.712  0.862   0.010     0.001
+
+ step                a         b   diff  ci_lo  ci_hi      verdict
+    0 probe_L75_linear   B_behav  0.145  0.032  0.247     superior
+    0 probe_L75_linear    B_logp  0.040 -0.060  0.133 inconclusive
+    0     B_behav_task   B_behav  0.104  0.012  0.198     superior
+    0 probe_L75_linear baseline5 -0.034 -0.102  0.037 inconclusive
+    0          B_behav baseline5 -0.179 -0.270 -0.083     inferior
+    1 probe_L75_linear   B_behav  0.167  0.070  0.247     superior
+    1 probe_L75_linear    B_logp  0.176  0.051  0.297     superior
+    1     B_behav_task   B_behav  0.102  0.021  0.181     superior
+    1 probe_L75_linear baseline5 -0.011 -0.082  0.061 inconclusive
+    1          B_behav baseline5 -0.178 -0.257 -0.088     inferior
+    2 probe_L75_linear   B_behav  0.190  0.107  0.282     superior
+    2 probe_L75_linear    B_logp  0.189  0.074  0.296     superior
+    2     B_behav_task   B_behav  0.084  0.002  0.174     superior
+    2 probe_L75_linear baseline5 -0.029 -0.091  0.027 inconclusive
+    2          B_behav baseline5 -0.218 -0.319 -0.119     inferior
+end 2026-10-20 20:15:10 exit=0

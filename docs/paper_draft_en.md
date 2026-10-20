@@ -359,7 +359,28 @@ This suggests that the direction the probe learns is tied to the prompt format; 
 
 Probe and rung-5 AUROCs: Qwen3-4B 0.660/0.687/0.680 vs. 0.709/0.686/0.717; ReAct prompt 0.659/0.623/0.593 vs. 0.661/0.660/0.721. Scene-level cluster bootstrap, 1,000 resamples.
 ### 4.5 Comparison with prior failure-prediction and uncertainty methods
-[TODO: token log-probability/entropy, verbalized confidence, LLM judge; chosen from docs/literature_check_2026-10-15.md.]
+To relate our results to earlier agent monitors, we approximated two task-blind baselines from the prior work with fields stored at every step (exploratory; plan in `docs/prior_methods_plan_2026-10-20.md`, fixed before the run).
+The behavioral baseline follows the scorer of [3]: the log-probability, mean token log-probability and token count of the chosen action at the current and previous step, the prompt length, and a count of error phrases in the current observation (always zero under candidate scoring).
+The log-probability baseline follows [1]: the entropy of the candidate distribution, the margin between the two best candidates, the probability of the chosen action, the number of candidates, and the mean token log-probability of the chosen action at the current and previous step.
+Because actions are scored rather than generated, these are approximations of the original features, not reproductions. Splits, statistics and the probe (75% depth, linear) were the same as in Section 4.1, on the first 250 episodes.
+
+Against these task-blind baselines the probe was clearly better (Table 6): by +0.145 (0.032 to 0.247), +0.167 (0.070 to 0.247) and +0.190 (0.107 to 0.282) over the behavioral baseline at steps 0–2,
+and by +0.040 (−0.060 to +0.133), +0.176 (0.051 to 0.297) and +0.189 (0.074 to 0.296) over the log-probability baseline. Adding only the task type to the behavioral features raised its AUROC by 0.08–0.10 (all intervals above zero),
+and against the full rung 5 the same probe showed no advantage (−0.034, −0.011, −0.029; all intervals include zero). These exploratory comparisons (15, uncorrected) suggest that a hidden-state advantage over task-blind monitors,
+as reported in earlier work, can disappear once the baseline sees the task. We did not test text monitors fine-tuned on trajectories [2]; the text available to them is covered here by the TF-IDF of rung 5.
+
+| Table 6 (exploratory). Task-level AUROC of prior-style baselines, first 250 episodes | step 0 | step 1 | step 2 |
+|---|---|---|---|
+| Behavioral features (after [3]) | 0.522 | 0.554 | 0.605 |
+| Log-probability features (after [1]) | 0.626 | 0.545 | 0.606 |
+| Behavioral + task type | 0.626 | 0.656 | 0.689 |
+| Rung 5 | 0.701 | 0.732 | 0.823 |
+| Probe (75% depth, linear) | 0.666 | 0.721 | 0.795 |
+| Probe − behavioral (95% CI) | +0.145 (0.032, 0.247) | +0.167 (0.070, 0.247) | +0.190 (0.107, 0.282) |
+| Probe − log-probability (95% CI) | +0.040 (−0.060, 0.133) | +0.176 (0.051, 0.297) | +0.189 (0.074, 0.296) |
+| Probe − rung 5 (95% CI) | −0.034 (−0.102, 0.037) | −0.011 (−0.082, 0.061) | −0.029 (−0.091, 0.027) |
+
+*n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. Source: `results/prior_methods_3b*.csv`.
 ### 4.6 Early termination
 To test the practical motivation directly, we evaluated stopping rules on the 500 greedy Qwen2.5-3B games with a 100-action horizon
 (the 30-action trajectory for the 101 early successes and the 100-action re-run for the other 399; 112 successes within 100 actions; 40,500 steps). The plan was fixed before the late-success results were read.
@@ -404,7 +425,8 @@ Hypothesis H1 (hidden states predict failure better than surface information) wa
 
 **Relation to prior work.** Probes on agent hidden states have been reported to predict failure early and to beat monitors that use only action-level features [3].
 Their baselines contain no task information (the task sentence, task type, observations or progress). In our ladder, task type alone gave an AUROC of 0.603 and the full rung 5 gave 0.701 at the first action,
-and against this full ladder the probe showed no advantage in any setting. We did not reproduce their baselines or environments, so we cannot say that their reported gains would vanish; our results suggest that comparisons against task-blind monitors overstate what hidden states add.
+and against this full ladder the probe showed no advantage in any setting. When we approximated their behavioral features on our data, the same probe beat them by 0.15–0.19, adding only the task type closed part of that gap, and the full rung 5 closed all of it (Section 4.5).
+We did not reproduce their environments, so we cannot say that their reported gains would vanish there; our results suggest that comparisons against task-blind monitors overstate what hidden states add.
 In mathematical reasoning, Bulut [10] found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
 Our agent results agree on the first part, since the game explained most of the outcome, but differ on the second: within games, signals were above chance from step 2 on. A likely reason is that agent trajectories diverge in observable ways, such as visited places and repeated actions,
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
