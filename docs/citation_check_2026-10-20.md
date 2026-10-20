@@ -29,6 +29,11 @@
 | [14] Khan & Khan | Gemma 4 E4B 28층, 대리 라벨 35개, 측정된 추가 추론 비용 0, 1B–1.5B 개선 없음 | 2.2 | HTML + 초록("zero measured inference overhead") | 초록, 방법 절(예시 35개) | ✓ 30·142행(layer 28), 511행(35개), 31행, 36행(1B–1.5B) |
 | [15] Pan 등 | 관찰 가능한 궤적 특징이 내부 신호 baseline과 견줄 만함, 과제 단위 교차검증 | 2.3, 5절 | HTML | 결과 표(내부 신호 baseline 종류 확인) | ✓ 초록 43행 "competitive with internal-signal baselines", 과제 단위 분할은 raw 추출 447행("by task") |
 | [16] Poulis 등 | 진실성 프로브의 기하·일반화가 프롬프트 템플릿·지시문에 따라 달라짐 | 5절 | 초록 | 초록, 템플릿 실험 절 | ✓ 초록 42–52행, 5절 제목 460행 "Model instructions change the geometry" |
+| [17] Marks & Tegmark | 충분한 규모에서 참·거짓 진술 표현의 선형 구조, 데이터셋 사이 전이, 방향의 인과적 관여 | 2.1 | PDF(2026-10-21, 리뷰 제안으로 추가) | 초록 | ✓ 초록(COLM 2024 판, 머리말 "Published as a conference paper at COLM 2024") |
+| [18] Burns 등 | 라벨 없는 활성에서 진술과 부정의 논리적 일관성을 만족하는 방향을 찾아 예·아니오 지식 복원 | 2.1 | PDF(2026-10-21) | 초록 | ✓ 초록. 학회 수록 여부는 PDF에서 확인 못 해 arXiv로 인용 |
+| [19] Ghasemabadi & Niu | 고정 모델(1.7B–20B)의 hidden state·attention 패턴으로 자기 답의 정답 여부 예측, 내부 baseline과 큰 외부 심사 모델보다 나음 | 2.1 | PDF(2026-10-21) | 초록 | ✓ 초록("frozen backbones ranging from 1.7B to 20B", "outperforms strong internal baselines and large external judges") |
+| [20] Dubey | 관찰 가능한 단계 기록(출력 임베딩, 토큰 불확실성, 행동 메타데이터)만으로 정상 실행에서 학습한 모니터로 실패 감지 | 2.3 | PDF(2026-10-21) | 초록 | ✓ 초록("observable step telemetry", "train only on healthy runs") |
+| [21] Advani | TF-IDF 감지기가 LLM 심사 모델보다 거짓 성공을 더 잘 찾음, 과제 분리 AUROC 0.83(tau2-bench)·0.95(AppWorld), 지연 3,300배 낮음 | 5절 | PDF(2026-10-21) | 초록, 서론 기여 | ✓ 초록 37–41행, 서론 88–95행. 워크숍(Failure Modes in Agentic AI) 수록 표기는 arXiv로 대신함 |
 
 ## 우리 계산 (선행연구 수치가 아님)
 - 모니터 비용 13–16%, 약 2.4배: Qwen2.5 공개 파라미터 수와 2N FLOPs 근사(3.7절). 파라미터 수는 Qwen2.5 모델 카드에서 다시 확인한다.

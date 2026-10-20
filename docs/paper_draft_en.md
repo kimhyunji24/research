@@ -101,7 +101,7 @@ Work on reading success or failure from a model's own states began at the level 
 P(IK) transferred partially across tasks but was poorly calibrated out of distribution. Kuhn et al. [5] measured uncertainty as the entropy over meaning clusters of several sampled answers, which predicted accuracy better than lexical baselines, but it required multiple generations per question.
 Kossen et al. [6] removed that cost by training linear probes on the hidden state of a single generation to approximate the semantic entropy; the probes generalized better out of distribution than probes that predict accuracy directly.
 Moreno Cencerrado et al. [7] moved the readout before generation: probes on activations taken after the question is read, in models from 7B to 70B parameters, predicted whether the forthcoming answer would be correct, but generalization faltered on mathematical reasoning questions.
-Lugoloobi et al. [11] trained linear probes on pre-generation activations to predict policy-specific success on math and coding tasks; the linear probe scored above TF-IDF and above question length in 14 of the 15 settings of their main results table, and the authors concluded that models encode a model-specific notion of difficulty distinct from human difficulty. In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
+Lugoloobi et al. [11] trained linear probes on pre-generation activations to predict policy-specific success on math and coding tasks; the linear probe scored above TF-IDF and above question length in 14 of the 15 settings of their main results table, and the authors concluded that models encode a model-specific notion of difficulty distinct from human difficulty. This line of work rests on evidence that truth-related information is linearly accessible in activations. Burns et al. [18] recovered yes–no knowledge from unlabeled activations by finding a direction whose values are logically consistent across a statement and its negation, and Marks and Tegmark [17] reported linear structure in representations of true and false statements at sufficient scale, with probes that transferred across datasets and directions that were causally implicated in outputs. More recently, Ghasemabadi and Niu [19] decoded hidden states and attention patterns of frozen models of 1.7B–20B parameters to predict the correctness of their own answers, and reported that this outperformed internal baselines and large external judges. In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
 Such a target is meaningful for question answering, but it does not separate a hard question from a failing attempt.
 
 ### 2.2 Hidden-state monitors for agents
@@ -122,7 +122,7 @@ It reduced wasted energy by 15–20% for Qwen3-30B-A3B with less than a 5% utili
 Fail-Fast [2] fine-tunes a 0.6B model on text prefixes of SWE-bench Verified trajectories. At a 5% false-positive budget it saved 20.4% of tokens for Qwen3.6-27B, against 12.5% for an AgentStop adaptation and 11.4% for a control that uses the step count alone.
 During training it pairs successful and failed prefixes matched by progress to control for instance difficulty. Its evaluation, however, pools 100 held-out instances × 5 runs, and we found no within-instance analysis.
 EarlyEval [8] applies the same idea to evaluation cost, halting benchmark runs with classifiers over behavioral, textual and reference-solution features (13–26% fewer steps).
-Pan et al. [15] showed that observable macro and micro trajectory features are competitive with internal-signal baselines for web agents, with task-grouped cross-validation.
+Pan et al. [15] showed that observable macro and micro trajectory features are competitive with internal-signal baselines for web agents, with task-grouped cross-validation. Dubey [20] detected agent failures from observable step telemetry (embeddings of step output, token-level uncertainty and action metadata) with monitors trained only on healthy runs.
 These monitors read observable signals (log-probabilities, text and behavior), and all of their evaluations are pooled over tasks. Their monitors are cheap only relative to large policies: the 0.1–0.6% overhead in [2] holds for three open-weight 9–31B policies.
 
 ### 2.4 Task difficulty as a confound
@@ -270,7 +270,7 @@ The rung-5 baseline was lower on the hold-out than on the first 250 episodes (0.
 | Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 | – |
 | Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) | – |
 
-*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). Interval half-widths for single AUROCs were about 0.07–0.09. Step 3 is not a pre-registered round; the probe was not evaluated there. Sources: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv`.
+*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). Interval half-widths for single AUROCs were about 0.07–0.09. Step 3 is not a pre-registered round; the probe was not evaluated there. <!-- Sources: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv` -->
 
 | Table 2 (draft). Confirmatory hold-out (episodes 250–499; 3B reader, 75% depth, linear). | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -283,21 +283,21 @@ The rung-5 baseline was lower on the hold-out than on the first 250 episodes (0.
 
 ![Fig. 2](../figures/fig2_baseline_ladder.png)
 
-*Fig. 2. Failure-prediction AUROC of the baseline ladder (steps 0–3) and the pre-registered probe (steps 0–2) on the first 250 episodes (n = 250, 194 failures per step). Rung 5 and the probe are emphasized, with shaded 95% CIs from a scene-level cluster bootstrap (1,000 resamples); CIs of rungs 1–4 are omitted for legibility. Rung 1 is 0.5 by design and rung 2 does not change with the step. Overlap of the two shaded bands is not a test of their difference; the paired differences are in Fig. 3. Sources: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv`.*
+*Fig. 2. Failure-prediction AUROC of the baseline ladder (steps 0–3) and the pre-registered probe (steps 0–2) on the first 250 episodes (n = 250, 194 failures per step). Rung 5 and the probe are emphasized, with shaded 95% CIs from a scene-level cluster bootstrap (1,000 resamples); CIs of rungs 1–4 are omitted for legibility. Rung 1 is 0.5 by design and rung 2 does not change with the step. Overlap of the two shaded bands is not a test of their difference; the paired differences are in Fig. 3.* <!-- Sources: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv` -->
 
 ![Fig. 3](../figures/fig3_probe_minus_baseline.png)
 
-*Fig. 3. All pre-registered, pre-specified and confirmatory probe-versus-baseline comparisons (18; none superior). Points are AUROC differences with 95% CIs. Task level: probe − rung 5, scene-level cluster bootstrap (1,000 resamples); labels give the setting and n (episodes, failures). Attempt level: within-game pairwise AUROC differences, game-level bootstrap (1,000 resamples); on label-shuffled data these intervals covered the null value only 80–94% of the time (Section 4.2), so they are too narrow. Dashed segment: −0.05 non-inferiority margin, applied only to the confirmatory hold-out and set after the exploratory analysis. Exploratory estimates are not shown (Fig. 4). Sources: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv`.*
+*Fig. 3. All pre-registered, pre-specified and confirmatory probe-versus-baseline comparisons (18; none superior). Points are AUROC differences with 95% CIs. Task level: probe − rung 5, scene-level cluster bootstrap (1,000 resamples); labels give the setting and n (episodes, failures). Attempt level: within-game pairwise AUROC differences, game-level bootstrap (1,000 resamples); on label-shuffled data these intervals covered the null value only 80–94% of the time (Section 4.2), so they are too narrow. Dashed segment: −0.05 non-inferiority margin, applied only to the confirmatory hold-out and set after the exploratory analysis. Exploratory estimates are not shown (Fig. 4).* <!-- Sources: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv` -->
 
 ![Fig. 4](../figures/fig4_reader_depth.png)
 
-*Fig. 4. Exploratory: probe − rung 5 AUROC difference for every reader × depth of the linear probe on the first 250 episodes (48 cells, no selection). Diverging color centered on zero (red: probe below rung 5); † marks cells whose 95% CI (scene-level cluster bootstrap) excludes zero, all of them below zero (31 of 48). No cell's CI lies above zero; the largest difference is +0.001. The 7B reader used 4-bit weights, so size is confounded with quantization. MLP cells and CIs: Appendix Table A6 and `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv`.*
+*Fig. 4. Exploratory: probe − rung 5 AUROC difference for every reader × depth of the linear probe on the first 250 episodes (48 cells, no selection). Diverging color centered on zero (red: probe below rung 5); † marks cells whose 95% CI (scene-level cluster bootstrap) excludes zero, all of them below zero (31 of 48). No cell's CI lies above zero; the largest difference is +0.001. The 7B reader used 4-bit weights, so size is confounded with quantization. MLP cells and CIs: Appendix Table A6.* <!-- Source: `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv` -->
 ### 4.2 Attempt level
 **Primary result.** Within games, the probe's pairwise AUROC was 0.520 (95% CI 0.453–0.583) at step 1, 0.585 (0.522–0.654) at step 2 and 0.619 (0.552–0.687) at step 3 (Table 3, Fig. 3).
 Rungs 4 and 5 reached 0.517 and 0.547, 0.611 and 0.626, and 0.565 and 0.612. From step 2 on, all three methods separated failed from successful attempts of the same game above chance
 (within-game permutation p ≤ 0.018), whereas at step 1 only rung 5 did (p = 0.016). None of the six probe–baseline differences met the superiority criterion and none was inferior;
 the largest difference was +0.054 (−0.017 to +0.136) against rung 4 at step 3. The result fits no row of the interpretation table (Appendix Table A7) cleanly: the probe was not better than the baselines,
-and no comparison met the equivalence definition (95% CI within ±0.05).
+and no comparison met the equivalence definition (95% CI within ±0.05). At this sample size the 95% intervals of the six differences were 0.088–0.154 wide. To meet the equivalence band an interval must be narrower than 0.10 and lie within ±0.05 of zero; three intervals met the width condition but none the position, so the absence of an "equivalent" verdict reflects the sample size (Section 6) as well as the data.
 
 **Secondary analyses.** Restricting the evaluation to pairs whose prompts differed (139, 158 and 224 pairs at steps 1–3) raised every method (probe 0.568, 0.753 and 0.750; rung 5 0.633, 0.816 and 0.754),
 but none of the six differences was resolved (intervals of about ±0.1–0.2). With the time-aligned rungs 4t and 5t the probe was not better at any step; at step 1 it was lower than both
@@ -370,7 +370,7 @@ This suggests that the direction the probe learns is tied to the prompt format; 
 
 Probe and rung-5 AUROCs: Qwen3-4B 0.660/0.687/0.680 vs. 0.709/0.686/0.717; ReAct prompt 0.659/0.623/0.593 vs. 0.661/0.660/0.721. Scene-level cluster bootstrap, 1,000 resamples.
 ### 4.5 Comparison with prior failure-prediction and uncertainty methods
-To relate our results to earlier agent monitors, we approximated two task-blind baselines from the prior work with fields stored at every step (exploratory; plan in `docs/prior_methods_plan_2026-10-20.md`, fixed before the run).
+To relate our results to earlier agent monitors, we approximated two task-blind baselines from the prior work with fields stored at every step (exploratory; plan fixed before the run) <!-- plan: `docs/prior_methods_plan_2026-10-20.md` -->.
 The behavioral baseline follows the scorer of [3]: the log-probability, mean token log-probability and token count of the chosen action at the current and previous step, the prompt length, and a count of error phrases in the current observation (always zero under candidate scoring).
 The log-probability baseline follows [1]: the entropy of the candidate distribution, the margin between the two best candidates, the probability of the chosen action, the number of candidates, and the mean token log-probability of the chosen action at the current and previous step.
 Because actions are scored rather than generated, these are approximations of the original features, not reproductions. Splits, statistics and the probe (75% depth, linear) were the same as in Section 4.1, on the first 250 episodes.
@@ -391,7 +391,7 @@ as reported in earlier work, can disappear once the baseline sees the task. We d
 | Probe − log-probability (95% CI) | +0.040 (−0.060, 0.133) | +0.176 (0.051, 0.297) | +0.189 (0.074, 0.296) |
 | Probe − rung 5 (95% CI) | −0.034 (−0.102, 0.037) | −0.011 (−0.082, 0.061) | −0.029 (−0.091, 0.027) |
 
-*n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. Source: `results/prior_methods_3b*.csv`.
+*n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. <!-- Source: `results/prior_methods_3b*.csv` -->
 ### 4.6 Early termination
 To test the practical motivation directly, we evaluated stopping rules on the 500 greedy Qwen2.5-3B games with a 100-action horizon
 (the 30-action trajectory for the 101 early successes and the 100-action re-run for the other 399; 112 successes within 100 actions; 40,500 steps). The plan was fixed before the late-success results were read.
@@ -423,7 +423,7 @@ Choosing the threshold on the evaluated data slightly favors scores with many di
 the confirmatory comparison again showed no superior round (step 0 changed from non-inferior to inconclusive). Re-running the original analyses with the original labels in the current
 software environment reproduced every reported value exactly, so these changes reflect the relabeling of 4 (first 250) and 11 (all 500) episodes only.
 
-**Stronger probes.** To check that the probe did not lose because it was too weak, we compared the reference probe and five stronger variants with rung 5 on the first 250 episodes (exploratory; plan `docs/probe_strength_plan_2026-10-20.md`, fixed before the run, with hyperparameters selected inside each training fold):
+**Stronger probes.** To check that the probe did not lose because it was too weak, we compared the reference probe and five stronger variants with rung 5 on the first 250 episodes (exploratory; plan fixed before the run, with hyperparameters selected inside each training fold):
 a wider regularization grid (*C* = 10⁻⁶ to 10³), PCA with *k* ∈ {8, 32, 64, 128}, all four depths concatenated (8,192 dimensions), a small MLP grid (32 or 128 hidden units, α = 10⁻³ or 10⁻¹), and rung 5 with the 75% hidden state added as extra features.
 None of the 18 comparisons was superior to rung 5 (Table 7). The largest difference was +0.013 (−0.072 to +0.101; wider grid, step 1); the concatenated probe was below rung 5 at step 2 (−0.077, −0.159 to −0.003; Holm-adjusted p = 0.79).
 Adding the hidden state to rung 5 did not improve it (−0.034, −0.023, −0.024; all intervals include zero). The reference probe reproduced its earlier values exactly. These results suggest that the conclusion does not depend on the probe's capacity within this range.
@@ -444,7 +444,7 @@ We did not run a divergence-aligned analysis, cross-validation seed variance bey
 | MLP (grid of 4) | −0.036 (−0.104, 0.023) | −0.025 (−0.105, 0.058) | −0.052 (−0.122, 0.017) |
 | Rung 5 + hidden state | −0.034 (−0.101, 0.037) | −0.023 (−0.096, 0.047) | −0.024 (−0.086, 0.032) |
 
-Rung 5 AUROC 0.701, 0.732, 0.823. *n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. Sources: `results/probe_strength_3b*.csv`, `results/extra_main_3b_B_late_rounds.csv`, `results/extra_main_3b_C_temporal.csv`.
+Rung 5 AUROC 0.701, 0.732, 0.823. *n* = 250 (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. <!-- Sources: `results/probe_strength_3b*.csv`, `results/extra_main_3b_B_late_rounds.csv`, `results/extra_main_3b_C_temporal.csv` -->
 
 ## 5 Discussion
 <!-- 2026-10-20 draft. Prior-work numbers come from docs/literature_review_2026-10-17.md (arXiv HTML read); check each against the PDF before submission. -->
@@ -462,7 +462,7 @@ We did not reproduce their environments, so we cannot say that their reported ga
 In mathematical reasoning, Bulut [10] found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
 Our agent results agree on the first part, since the game explained most of the outcome, but differ on the second: within games, signals were above chance from step 2 on. A likely reason is that agent trajectories diverge in observable ways, such as visited places and repeated actions,
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
-That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs [9] and that surface signals compete with internal ones for web agents [15] are consistent with our findings.
+That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs [9] and that surface signals compete with internal ones for web agents [15] are consistent with our findings. Independently, lightweight TF-IDF detectors found false claims of task success by LLM agents better than LLM judges (task-disjoint AUROC 0.83 and 0.95 on two benchmarks, at 3,300 times lower latency) [21], which also indicates that observable text is a strong baseline without access to model internals.
 For early stopping, a step-count control already saves a large share of the cost in software-engineering agents [2], matching the strength of the step cap here.
 In contrast, pre-generation probes in math and coding scored above question length and TF-IDF in 14 of 15 settings each [11]. Our text baseline also contains the room description, the observations and the recent history, and our task is interactive; whether these differences explain the opposite outcome we did not test.
 Finally, the weak transfer of our probe from one prompt to another agrees with reports that the geometry and generalization of truth probes depend on prompt templates and instructions [16].
@@ -500,6 +500,10 @@ Early failure was largely a property of the game rather than of the attempt, and
 Using the probe to stop doomed episodes was not shown to save more steps than a fixed step limit.
 Claims that hidden states reveal agent failure should therefore be tested against baselines that see the same task information, with evaluation within tasks.
 
+## Code and data availability
+Code, configurations, the analysis plans frozen before each run (with dates), the result tables behind the reported numbers and the figure scripts are in a public repository (link withheld for review). Collected trajectories and hidden states (3.6 GB) are not in the repository because of their size.
+<!-- To decide when the venue is chosen: the repository link (camera-ready) and how trajectories and hidden states are shared (e.g. a data DOI). -->
+
 ## Appendix (draft)
 
 | Table A1. Model pilots (first 20 games, v2 prompt, candidate scoring, 30 actions) | Successes (Wilson 95% CI) | s / episode | Peak GPU memory | Decision |
@@ -529,7 +533,7 @@ Reference on the same games: Qwen2.5-3B 5/20. All runs completed, all actions we
 | Probe − rung 5 (95% CI) | 0.000 (−0.011, +0.015) | 0.000 (0.000, 0.000) | −0.042 (−0.202, +0.063) |
 | Within-game permutation p, probe | 1.00 | 0.94 | 0.92 |
 
-Game-level bootstrap (1,000 resamples). η² = 0.849 (0.747–0.935); difficulty oracle alone 0.911 on pooled rows. Most pairs were tied (identical prompts), so these values carry little information; by a decision made before the results were read, no conclusion is drawn (Section 4.4). Source: `results/within_game_qwen3_4b*.csv`.
+Game-level bootstrap (1,000 resamples). η² = 0.849 (0.747–0.935); difficulty oracle alone 0.911 on pooled rows. Most pairs were tied (identical prompts), so these values carry little information; by a decision made before the results were read, no conclusion is drawn (Section 4.4). <!-- Source: `results/within_game_qwen3_4b*.csv` -->
 
 | Table A4. The two prompts | v2 (ours) | ReAct exemplars (minimally edited) |
 |---|---|---|
@@ -553,7 +557,7 @@ Game-level bootstrap (1,000 resamples). η² = 0.849 (0.747–0.935); difficulty
 | Free generation, 1.5B, revised prompt (rules and example) | 5 | 0 | 22% |
 | Candidate scoring (final policy), 0.5B / 1.5B / 3B, training games | 20 / 100 / 100 | 0 / 2 / 20 | 100% by construction |
 
-Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games before the prompt was frozen; with so few episodes they only show that inadmissible actions were frequent. Source: project log of 2026-10-08 (raw run logs are not in the repository; to verify).
+Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games before the prompt was frozen; with so few episodes they only show that inadmissible actions were frequent. Source: project log of 2026-10-08; the raw run logs were not kept in the repository or its backups.
 
 | Table A6 (exploratory). Linear-probe AUROC by reader and depth, first 250 episodes, mean over steps 0–2 | 25% | 50% | 75% | 100% | Probe − rung 5, all 24 cells per reader (min, max) |
 |---|---|---|---|---|---|
@@ -562,7 +566,7 @@ Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games bef
 | 3B reader (= actor) | 0.595 | 0.594 | **0.727** | 0.682 | −0.205, +0.004 |
 | 7B reader (4-bit) | 0.608 | 0.643 | 0.704 | **0.717** | −0.191, −0.004 |
 
-Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50% depth is the pre-registered cell (Table 1). Full results with CIs and permutation p-values: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv` and `*_diff.csv` (supplementary).
+Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50% depth is the pre-registered cell (Table 1). Full results with CIs and permutation p-values are in the supplementary material. <!-- Source: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv` and `*_diff.csv` -->
 
 | Table A7. Pre-registered hypothesis, decision rules and interpretation tables (wording from the frozen plans) | Fixed | Observed |
 |---|---|---|
@@ -572,7 +576,7 @@ Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and M
 | **Attempt level.** Probe > rungs 4 and 5 (lower 95% bound > 0) → hidden states carry an in-progress failure signal not explained by difficulty text. Probe ≈ baseline → a signal exists but adds nothing beyond the history. All near 0.5 → success and failure within a game are not predicted by these methods. | Before the sampled rollouts were collected | Fits no row cleanly (Section 4.2) |
 | Supplementary rules for the attempt level: "≈" only if the 95% CI of the difference lies within ±0.05 (a lower bound above −0.05 alone is "non-inferior, weak"); "near 0.5" if the CI includes 0.5 and the within-game permutation p > 0.05; Holm adjustment over the six comparisons. | Before the attempt-level results were opened (2026-10-17) | No comparison superior or equivalent |
 
-Sources: `docs/paper_draft_2026-10-15.md` (Section 2) and `docs/multi_rollout_plan_2026-10-15.md` (interpretation rules, supplementary rules of 2026-10-17). The decision rule is also stated in Section 3.6.
+<!-- Sources: `docs/paper_draft_2026-10-15.md` (Section 2) and `docs/multi_rollout_plan_2026-10-15.md` (interpretation rules, supplementary rules of 2026-10-17). The decision rule is also stated in Section 3.6. -->
 
 ## References
 <!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11], [14] and [16] checked against their arXiv abstracts on 2026-10-20 (main session; [14] states "zero measured inference overhead"). All prior-work numbers re-checked against the arXiv PDFs on 2026-10-20 (docs/citation_check_2026-10-20.md, PDF column); only [11] wording changed.
@@ -593,3 +597,8 @@ Sources: `docs/paper_draft_2026-10-15.md` (Section 2) and `docs/multi_rollout_pl
 [14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
 [15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
 [16] A. Poulis, M. Crovella, E. Terzi. Testing the Limits of Truth Directions in LLMs. arXiv:2604.03754v2, 2026.
+[17] S. Marks, M. Tegmark. The Geometry of Truth: Emergent Linear Structure in Large Language Model Representations of True/False Datasets. COLM 2024 (arXiv:2310.06824).
+[18] C. Burns, H. Ye, D. Klein, J. Steinhardt. Discovering Latent Knowledge in Language Models Without Supervision. arXiv:2212.03827, 2022.
+[19] A. Ghasemabadi, D. Niu. Can LLMs Predict Their Own Failures? Self-Awareness via Internal Circuits. arXiv:2512.20578, 2025.
+[20] S. Dubey. Real-Time Detection and Repair of LLM Agent Failures. arXiv:2608.02464, 2026.
+[21] L. Advani. From Confident Closing to Silent Failure: Characterizing False Success in LLM Agents. arXiv:2606.09863, 2026.

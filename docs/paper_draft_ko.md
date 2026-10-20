@@ -99,7 +99,7 @@ Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합
 P(IK)는 과제 사이에서 부분적으로 전이했지만 분포 밖에서는 보정이 나빴다. Kuhn 등[5]은 샘플한 여러 답을 의미로 묶은 군집의 엔트로피로 불확실성을 정의했고, 이 값이 어휘 기반 baseline보다 정확도를 잘 예측했지만 질문마다 여러 번 생성해야 했다.
 Kossen 등[6]은 단일 생성의 hidden state에 선형 프로브를 학습해 의미 엔트로피를 근사함으로써 이 비용을 없앴고, 이 프로브는 정확도를 직접 예측하는 프로브보다 분포 밖에서 더 잘 일반화했다.
 Moreno Cencerrado 등[7]은 읽는 시점을 생성 전으로 옮겼다. 질문을 읽은 직후의 활성에 프로브를 학습해 7B에서 70B 모델이 곧 낼 답이 맞을지를 예측했으나, 수학 추론 질문에서는 일반화가 약해졌다.
-Lugoloobi 등[11]은 생성 전 활성에 선형 프로브를 학습해 수학·코딩 과제에서 그 모델의 성공을 예측했다. 주 결과 표 15개 설정 중 14개에서 선형 프로브가 TF-IDF보다, 또 14개에서 질문 길이보다 높았고, 저자들은 모델이 사람의 난이도와 다른 모델별 난이도를 담는다고 결론지었다. 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
+Lugoloobi 등[11]은 생성 전 활성에 선형 프로브를 학습해 수학·코딩 과제에서 그 모델의 성공을 예측했다. 주 결과 표 15개 설정 중 14개에서 선형 프로브가 TF-IDF보다, 또 14개에서 질문 길이보다 높았고, 저자들은 모델이 사람의 난이도와 다른 모델별 난이도를 담는다고 결론지었다. 이 계열은 진실과 관련된 정보가 활성에서 선형으로 읽힌다는 근거에 기대고 있다. Burns 등[18]은 진술과 그 부정의 참값이 논리적으로 일관되는 방향을 찾아 라벨 없는 활성에서 예·아니오 지식을 복원했고, Marks와 Tegmark[17]는 충분한 규모에서 참·거짓 진술의 표현에 선형 구조가 있으며 프로브가 데이터셋 사이에서 전이되고 그 방향이 출력에 인과적으로 관여한다고 보고했다. 최근 Ghasemabadi와 Niu[19]는 고정된 1.7B–20B 모델의 hidden state와 attention 패턴을 읽어 자기 답의 정답 여부를 예측했고, 이것이 내부 신호 baseline과 큰 외부 심사 모델보다 낫다고 보고했다. 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
 이런 목표는 질문 응답에서는 의미가 있지만, 어려운 질문과 실패하는 시도를 구분하지 못한다.
 
 ### 2.2 에이전트의 hidden state 모니터
@@ -120,7 +120,7 @@ Qwen3-30B-A3B에서는 낭비된 에너지를 15–20% 줄였고 성능 하락�
 Fail-Fast[2]는 SWE-bench Verified 궤적의 텍스트 prefix로 0.6B 모델을 미세조정했다. 5% 오탐 예산에서 Qwen3.6-27B의 토큰을 20.4% 줄였고, AgentStop 변형은 12.5%, step 수만 쓰는 대조는 11.4%였다.
 학습 때는 진행 정도를 맞춘 성공·실패 prefix를 짝지어 인스턴스 난이도를 통제하지만, 평가는 보류한 100개 인스턴스 × 5회 실행을 합쳐서 하며 인스턴스 내 분석은 찾지 못했다.
 EarlyEval[8]은 같은 아이디어를 평가 비용에 적용해, 행동·텍스트·참조 해답 특징의 분류기로 벤치마크 실행을 중단한다(step 13–26% 감소).
-Pan 등[15]은 웹 에이전트에서 관찰 가능한 거시·미시 궤적 특징이 내부 신호 baseline과 견줄 만하다고 보였고, 과제 단위 교차검증을 썼다.
+Pan 등[15]은 웹 에이전트에서 관찰 가능한 거시·미시 궤적 특징이 내부 신호 baseline과 견줄 만하다고 보였고, 과제 단위 교차검증을 썼다. Dubey[20]는 단계 출력의 임베딩, 토큰 수준 불확실성, 행동 메타데이터 같은 관찰 가능한 단계 기록만으로, 정상 실행으로만 학습한 모니터를 써서 에이전트 실패를 감지했다.
 이 모니터들은 관찰 가능한 신호(로그확률, 텍스트, 행동)를 읽으며, 평가는 모두 과제를 합쳐서 한다. 이들 모니터가 싼 것은 큰 policy에 견줄 때뿐이다. [2]의 0.1–0.6% 비용은 공개 모델 9–31B 세 개에서 성립한다.
 
 ### 2.4 교락 요인으로서의 과제 난이도
@@ -269,7 +269,7 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 | Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 | – |
 | Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) | – |
 
-*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). step 3은 사전 등록 라운드가 아니며 프로브는 평가하지 않았다. 출처: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv`.
+*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). step 3은 사전 등록 라운드가 아니며 프로브는 평가하지 않았다. <!-- 출처: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv` -->
 
 | Table 2 (draft). Confirmatory hold-out (episodes 250–499; 3B reader, 75% depth, linear). | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -282,20 +282,20 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 
 ![Fig. 2](../figures/fig2_baseline_ladder_ko.png)
 
-*Fig. 2. 처음 250 episode에서 baseline 사다리(step 0–3)와 사전 등록 프로브(step 0–2)의 실패 예측 AUROC(step마다 n = 250, 실패 194). 5단과 프로브를 강조하고 scene 단위 군집 bootstrap(1,000회) 95% CI를 음영으로 표시했다. 1–4단의 CI는 가독성을 위해 생략했다. 1단은 설계상 0.5이고 2단은 step에 따라 변하지 않는다. 두 음영이 겹치는지는 차이의 검정이 아니며, 짝지은 차이는 Fig. 3에 있다. 출처: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv`.*
+*Fig. 2. 처음 250 episode에서 baseline 사다리(step 0–3)와 사전 등록 프로브(step 0–2)의 실패 예측 AUROC(step마다 n = 250, 실패 194). 5단과 프로브를 강조하고 scene 단위 군집 bootstrap(1,000회) 95% CI를 음영으로 표시했다. 1–4단의 CI는 가독성을 위해 생략했다. 1단은 설계상 0.5이고 2단은 step에 따라 변하지 않는다. 두 음영이 겹치는지는 차이의 검정이 아니며, 짝지은 차이는 Fig. 3에 있다.* <!-- 출처: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv` -->
 
 ![Fig. 3](../figures/fig3_probe_minus_baseline_ko.png)
 
-*Fig. 3. 사전 등록·사전 지정·확증 프로브 대 baseline 비교 전부(18개, 우수 0개). 점은 AUROC 차이, 막대는 95% CI. 과제 수준: 프로브 − 5단, scene 단위 군집 bootstrap(1,000회), 라벨에 설정과 n(episode, 실패). 시도 수준: 게임 내 쌍 AUROC 차이, 게임 단위 bootstrap(1,000회). 라벨을 섞은 데이터에서 이 구간은 귀무값을 80–94%만 포함해(4.2절) 실제보다 좁다. 점선: 비열등 한계 −0.05, 확증 hold-out에만 적용하며 탐색 분석 뒤에 정했다. 탐색 추정치는 넣지 않았다(Fig. 4). 출처: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv`.*
+*Fig. 3. 사전 등록·사전 지정·확증 프로브 대 baseline 비교 전부(18개, 우수 0개). 점은 AUROC 차이, 막대는 95% CI. 과제 수준: 프로브 − 5단, scene 단위 군집 bootstrap(1,000회), 라벨에 설정과 n(episode, 실패). 시도 수준: 게임 내 쌍 AUROC 차이, 게임 단위 bootstrap(1,000회). 라벨을 섞은 데이터에서 이 구간은 귀무값을 80–94%만 포함해(4.2절) 실제보다 좁다. 점선: 비열등 한계 −0.05, 확증 hold-out에만 적용하며 탐색 분석 뒤에 정했다. 탐색 추정치는 넣지 않았다(Fig. 4).* <!-- 출처: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv` -->
 
 ![Fig. 4](../figures/fig4_reader_depth_ko.png)
 
-*Fig. 4. 탐색: 처음 250 episode에서 선형 프로브의 모든 reader × 깊이 조합의 프로브 − 5단 AUROC 차이(48칸, 선택 없음). 0을 중심으로 한 발산 색(빨강: 프로브가 5단보다 낮음). †는 95% CI(scene 단위 군집 bootstrap)가 0을 포함하지 않는 칸이며 모두 0 아래다(48칸 중 31칸). CI가 0 위에 있는 칸은 없고 가장 큰 차이는 +0.001이다. 7B reader는 4비트 가중치를 써서 크기와 양자화가 섞여 있다. MLP 칸과 CI: 부록 표 A6, `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv`.*
+*Fig. 4. 탐색: 처음 250 episode에서 선형 프로브의 모든 reader × 깊이 조합의 프로브 − 5단 AUROC 차이(48칸, 선택 없음). 0을 중심으로 한 발산 색(빨강: 프로브가 5단보다 낮음). †는 95% CI(scene 단위 군집 bootstrap)가 0을 포함하지 않는 칸이며 모두 0 아래다(48칸 중 31칸). CI가 0 위에 있는 칸은 없고 가장 큰 차이는 +0.001이다. 7B reader는 4비트 가중치를 써서 크기와 양자화가 섞여 있다. MLP 칸과 CI: 부록 표 A6.* <!-- 출처: `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv` -->
 ### 4.2 시도 수준
 **주 결과.** 게임 안에서 프로브의 쌍 AUROC는 step 1에서 0.520(95% CI 0.453–0.583), step 2에서 0.585(0.522–0.654), step 3에서 0.619(0.552–0.687)였다(Table 3, Fig. 3).
 4단과 5단은 각각 0.517과 0.547, 0.611과 0.626, 0.565와 0.612였다. step 2부터는 세 방법 모두 같은 게임의 실패 시도와 성공 시도를 우연보다 잘 구분했고(게임 안 순열 p ≤ 0.018),
 step 1에서는 5단만 그랬다(p = 0.016). 프로브–baseline 차이 6개 중 우수 기준을 충족한 것은 없었고 열등한 것도 없었다. 가장 큰 차이는 step 3의 4단 대비 +0.054(−0.017 ~ +0.136)였다.
-결과는 해석표(부록 표 A7)의 어느 줄에도 깔끔하게 들어가지 않는다. 프로브는 baseline보다 낫지 않았고, 동등 정의(95% CI가 ±0.05 안)를 충족한 비교도 없었다.
+결과는 해석표(부록 표 A7)의 어느 줄에도 깔끔하게 들어가지 않는다. 프로브는 baseline보다 낫지 않았고, 동등 정의(95% CI가 ±0.05 안)를 충족한 비교도 없었다. 이 표본 크기에서 차이 6개의 95% 신뢰구간 폭은 0.088–0.154였다. 동등 기준을 충족하려면 구간 폭이 0.10보다 좁고 구간 전체가 0에서 ±0.05 안에 있어야 하는데, 폭 조건은 셋이 충족했지만 위치까지 충족한 구간은 없었다. 따라서 "동등" 판정이 없는 것은 데이터만큼 표본 크기(6절) 때문이기도 하다.
 
 **보조 분석.** 프롬프트가 다른 쌍만으로 평가하면(step 1–3에서 139, 158, 224쌍) 모든 방법이 높아졌지만(프로브 0.568, 0.753, 0.750; 5단 0.633, 0.816, 0.754),
 차이 6개는 모두 결론이 나지 않았다(구간 약 ±0.1–0.2). 시점을 맞춘 4t·5t단과 비교하면 프로브는 어느 step에서도 낫지 않았고, step 1에서는 둘보다 낮았다
@@ -368,7 +368,7 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 
 프로브와 5단 AUROC: Qwen3-4B 0.660/0.687/0.680 대 0.709/0.686/0.717, ReAct 프롬프트 0.659/0.623/0.593 대 0.661/0.660/0.721. 장면 단위 cluster bootstrap 1,000회.
 ### 4.5 기존 실패 예측·불확실성 방법과의 비교
-우리 결과를 기존 에이전트 모니터와 연결하려고, 선행연구의 과제를 보지 못하는 baseline 두 개를 매 step 저장한 값으로 근사했다(탐색; 계획 `docs/prior_methods_plan_2026-10-20.md`, 실행 전 고정).
+우리 결과를 기존 에이전트 모니터와 연결하려고, 선행연구의 과제를 보지 못하는 baseline 두 개를 매 step 저장한 값으로 근사했다(탐색; 계획은 실행 전 고정) <!-- 계획: `docs/prior_methods_plan_2026-10-20.md` -->.
 행동 baseline은 [3]의 scorer를 따랐다. 현재와 직전 step에서 고른 action의 로그확률, 토큰 평균 로그확률, 토큰 수, 프롬프트 길이, 현재 관찰의 오류 문구 수(후보 점수화에서는 항상 0)이다.
 로그확률 baseline은 [1]을 따랐다. 후보 분포의 엔트로피, 1·2위 후보의 점수 차, 고른 action의 확률, 후보 수, 현재와 직전 step에서 고른 action의 토큰 평균 로그확률이다.
 action을 생성하지 않고 점수화하므로 이 특징들은 원래 특징의 근사이며 재현이 아니다. 분할, 통계, 프로브(75% 깊이, linear)는 4.1절과 같고 앞 250개 episode를 썼다.
@@ -389,7 +389,7 @@ baseline이 과제를 보게 되면 사라질 수 있음을 시사한다. 궤적
 | Probe − log-probability (95% CI) | +0.040 (−0.060, 0.133) | +0.176 (0.051, 0.297) | +0.189 (0.074, 0.296) |
 | Probe − rung 5 (95% CI) | −0.034 (−0.102, 0.037) | −0.011 (−0.082, 0.061) | −0.029 (−0.091, 0.027) |
 
-step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처: `results/prior_methods_3b*.csv`.
+step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. <!-- 출처: `results/prior_methods_3b*.csv` -->
 ### 4.6 조기 중단
 실용 동기를 직접 확인하려고, 100 action 시간 한도에서 탐욕 Qwen2.5-3B 500게임에 중단 규칙을 평가했다
 (일찍 성공한 101게임은 30 action 궤적, 나머지 399게임은 100 action 재실행; 100 action 안 성공 112개; 40,500 step). 계획은 늦은 성공 결과를 읽기 전에 정했다.
@@ -421,7 +421,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 확증 비교도 우수한 라운드가 없었다(step 0은 비열등에서 결론 없음으로 바뀜). 원래 라벨로 원래 분석을 현재 소프트웨어 환경에서 다시 돌리면 보고한 값이 모두 그대로 재현되었으므로,
 이 변화는 라벨이 바뀐 episode 4개(앞 250개)와 11개(전체 500개)만의 효과이다.
 
-**더 강한 프로브.** 프로브가 약해서 진 것이 아닌지 확인하려고, 앞 250개 episode에서 기준 프로브와 더 강한 변형 다섯 개를 5단과 비교했다(탐색; 계획 `docs/probe_strength_plan_2026-10-20.md`, 실행 전 고정, 하이퍼파라미터는 각 학습 fold 안에서 선택).
+**더 강한 프로브.** 프로브가 약해서 진 것이 아닌지 확인하려고, 앞 250개 episode에서 기준 프로브와 더 강한 변형 다섯 개를 5단과 비교했다(탐색; 계획은 실행 전 고정, 하이퍼파라미터는 각 학습 fold 안에서 선택).
 변형은 넓힌 정규화 격자(*C* = 10⁻⁶–10³), *k* ∈ {8, 32, 64, 128}의 PCA, 네 깊이를 이어 붙인 8,192차원, 작은 MLP 격자(은닉 32 또는 128, α = 10⁻³ 또는 10⁻¹), 그리고 5단에 75% hidden state를 특징으로 더한 것이다.
 18개 비교 중 5단보다 우수한 것은 없었다(표 7). 가장 큰 차이는 +0.013(−0.072 ~ +0.101; 넓힌 격자, step 1)이었고, 이어 붙인 프로브는 step 2에서 5단보다 낮았다(−0.077, −0.159 ~ −0.003; Holm 보정 p = 0.79).
 5단에 hidden state를 더해도 나아지지 않았다(−0.034, −0.023, −0.024; 신뢰구간 모두 0 포함). 기준 프로브는 앞선 값을 그대로 재현했다. 이 결과는 이 범위 안에서 결론이 프로브의 용량에 달려 있지 않음을 시사한다.
@@ -442,7 +442,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | MLP (grid of 4) | −0.036 (−0.104, 0.023) | −0.025 (−0.105, 0.058) | −0.052 (−0.122, 0.017) |
 | Rung 5 + hidden state | −0.034 (−0.101, 0.037) | −0.023 (−0.096, 0.047) | −0.024 (−0.086, 0.032) |
 
-5단 AUROC 0.701, 0.732, 0.823. step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처: `results/probe_strength_3b*.csv`, `results/extra_main_3b_B_late_rounds.csv`, `results/extra_main_3b_C_temporal.csv`.
+5단 AUROC 0.701, 0.732, 0.823. step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. <!-- 출처: `results/probe_strength_3b*.csv`, `results/extra_main_3b_B_late_rounds.csv`, `results/extra_main_3b_C_temporal.csv` -->
 
 ## 5 토의
 <!-- 2026-10-20 초안. 선행연구 수치는 docs/literature_review_2026-10-17.md(arXiv HTML 확인)에서 가져왔다. 투고 전 PDF로 하나씩 대조한다. -->
@@ -459,7 +459,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 수학 추론에서 Bulut[10]은 초기 hidden state 프로브의 높은 합친 AUROC(0.849)가 문제 안에서는 우연 수준(0.496)으로 떨어진다는 것을 보이고, 초기 신호는 주로 어려운 문제를 알아본다고 주장했다.
 우리 에이전트 결과는 앞부분(결과의 대부분이 게임으로 정해짐)에서는 일치하지만 뒷부분에서는 다르다. 게임 안에서도 step 2부터 신호가 우연보다 높았다. 에이전트의 궤적은 방문한 장소나 반복한 action처럼 관찰 가능한 방식으로 갈라지고,
 텍스트 baseline과 프로브가 모두 이를 읽을 수 있기 때문으로 보이지만 검정하지는 않았다.
-반복 실행한 에이전트에서 텍스트 유사도가 hidden state 유사도보다 실행 간 행동을 더 잘 예측했다는 보고[9]와, 웹 에이전트에서 겉보기 신호가 내부 신호와 경쟁할 만하다는 보고[15]는 우리 결과와 일관된다.
+반복 실행한 에이전트에서 텍스트 유사도가 hidden state 유사도보다 실행 간 행동을 더 잘 예측했다는 보고[9]와, 웹 에이전트에서 겉보기 신호가 내부 신호와 경쟁할 만하다는 보고[15]는 우리 결과와 일관된다. 이와 독립적으로, 가벼운 TF-IDF 감지기가 LLM 심사 모델보다 에이전트의 거짓 성공 주장을 더 잘 찾았다는 보고도 있다(두 벤치마크에서 과제 분리 AUROC 0.83과 0.95, 지연은 3,300배 낮음)[21]. 이 역시 관찰 가능한 텍스트가 모델 내부에 접근하지 않고도 강한 baseline임을 뒷받침한다.
 조기 중단에서는 소프트웨어 공학 에이전트에서도 step 수만 쓰는 대조가 이미 비용의 상당 부분을 아꼈는데[2], 이는 여기서 step 상한이 강했던 것과 맞는다.
 반대로 수학·코딩에서는 생성 전 프로브가 15개 설정 중 각각 14개에서 질문 길이와 TF-IDF보다 높았다[11]. 우리 텍스트 baseline에는 방 묘사, 관찰, 최근 기록도 들어 있고 과제도 상호작용형이다. 이런 차이가 반대 결과를 설명하는지는 검정하지 않았다.
 끝으로 프롬프트 사이에서 프로브가 잘 옮겨 가지 않은 결과는, 진실성 프로브의 기하와 일반화가 프롬프트 템플릿과 지시문에 따라 달라진다는 보고[16]와 같은 방향이다.
@@ -497,6 +497,10 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 프로브로 실패할 episode를 멈추는 것이 고정 step 상한보다 step을 더 아낀다는 것은 보이지 않았다.
 따라서 hidden state가 에이전트의 실패를 드러낸다는 주장은 같은 과제 정보를 보는 baseline과 비교하고, 과제 안에서 평가해 검증해야 한다.
 
+## 코드와 데이터 공개
+코드, 설정, 각 실행 전에 고정한 분석 계획(날짜 포함), 보고한 수치를 낸 결과 표, 그림 스크립트는 공개 저장소에 있다(심사를 위해 링크 생략). 수집한 궤적과 hidden state(3.6 GB)는 용량 때문에 저장소에 없다.
+<!-- 투고처가 정해지면 정할 것: 저장소 링크(camera-ready)와 궤적·hidden state 공유 방식(예: 데이터 DOI). -->
+
 ## 부록 (초안)
 
 | Table A1. Model pilots (first 20 games, v2 prompt, candidate scoring, 30 actions) | Successes (Wilson 95% CI) | s / episode | Peak GPU memory | Decision |
@@ -526,7 +530,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | Probe − rung 5 (95% CI) | 0.000 (−0.011, +0.015) | 0.000 (0.000, 0.000) | −0.042 (−0.202, +0.063) |
 | Within-game permutation p, probe | 1.00 | 0.94 | 0.92 |
 
-게임 단위 bootstrap(1,000회). η² = 0.849(0.747–0.935), 합친 행에서 난이도 오라클 단독 0.911. 쌍 대부분이 동점(같은 프롬프트)이라 이 값들은 정보가 적으며, 결과를 읽기 전에 정한 대로 결론을 내지 않는다(4.4절). 출처: `results/within_game_qwen3_4b*.csv`.
+게임 단위 bootstrap(1,000회). η² = 0.849(0.747–0.935), 합친 행에서 난이도 오라클 단독 0.911. 쌍 대부분이 동점(같은 프롬프트)이라 이 값들은 정보가 적으며, 결과를 읽기 전에 정한 대로 결론을 내지 않는다(4.4절). <!-- 출처: `results/within_game_qwen3_4b*.csv` -->
 
 | Table A4. The two prompts | v2 (ours) | ReAct exemplars (minimally edited) |
 |---|---|---|
@@ -550,7 +554,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | Free generation, 1.5B, revised prompt (rules and example) | 5 | 0 | 22% |
 | Candidate scoring (final policy), 0.5B / 1.5B / 3B, training games | 20 / 100 / 100 | 0 / 2 / 20 | 100% by construction |
 
-자유 생성 실행은 프롬프트를 동결하기 전에 ALFWorld train 게임에서 Qwen2.5-Instruct 모델로 했다. episode가 매우 적어, 목록에 없는 action이 자주 나왔다는 것만 보여 준다. 출처: 2026-10-08 프로젝트 기록(실행 원 로그는 저장소에 없음, 확인 필요).
+자유 생성 실행은 프롬프트를 동결하기 전에 ALFWorld train 게임에서 Qwen2.5-Instruct 모델로 했다. episode가 매우 적어, 목록에 없는 action이 자주 나왔다는 것만 보여 준다. 출처: 2026-10-08 프로젝트 기록. 실행 원 로그는 저장소와 그 백업 어디에도 남아 있지 않다.
 
 | Table A6 (exploratory). Linear-probe AUROC by reader and depth, first 250 episodes, mean over steps 0–2 | 25% | 50% | 75% | 100% | Probe − rung 5, all 24 cells per reader (min, max) |
 |---|---|---|---|---|---|
@@ -559,7 +563,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | 3B reader (= actor) | 0.595 | 0.594 | **0.727** | 0.682 | −0.205, +0.004 |
 | 7B reader (4-bit) | 0.608 | 0.643 | 0.704 | **0.717** | −0.191, −0.004 |
 
-5단은 step 0–2 평균 0.752였다. 마지막 열은 네 깊이·세 step의 선형·MLP 프로브를 모두 포함한다(reader당 24칸, 모두 96칸). 굵은 글씨는 reader별 최고 깊이이다. 3B reader 50% 깊이가 사전 등록 조건이다(표 1). CI와 순열 p를 포함한 전체 결과: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv`와 `*_diff.csv`(보조 자료).
+5단은 step 0–2 평균 0.752였다. 마지막 열은 네 깊이·세 step의 선형·MLP 프로브를 모두 포함한다(reader당 24칸, 모두 96칸). 굵은 글씨는 reader별 최고 깊이이다. 3B reader 50% 깊이가 사전 등록 조건이다(표 1). CI와 순열 p를 포함한 전체 결과는 보조 자료에 있다. <!-- 출처: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv`, `*_diff.csv` -->
 
 | Table A7. Pre-registered hypothesis, decision rules and interpretation tables (wording from the frozen plans) | Fixed | Observed |
 |---|---|---|
@@ -569,7 +573,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | **Attempt level.** Probe > rungs 4 and 5 (lower 95% bound > 0) → hidden states carry an in-progress failure signal not explained by difficulty text. Probe ≈ baseline → a signal exists but adds nothing beyond the history. All near 0.5 → success and failure within a game are not predicted by these methods. | Before the sampled rollouts were collected | Fits no row cleanly (Section 4.2) |
 | Supplementary rules for the attempt level: "≈" only if the 95% CI of the difference lies within ±0.05 (a lower bound above −0.05 alone is "non-inferior, weak"); "near 0.5" if the CI includes 0.5 and the within-game permutation p > 0.05; Holm adjustment over the six comparisons. | Before the attempt-level results were opened (2026-10-17) | No comparison superior or equivalent |
 
-출처: `docs/paper_draft_2026-10-15.md`(2절), `docs/multi_rollout_plan_2026-10-15.md`(해석 규칙, 2026-10-17 보완 규칙). 판정 규칙은 3.6절에도 적었다.
+<!-- 출처: `docs/paper_draft_2026-10-15.md`(2절), `docs/multi_rollout_plan_2026-10-15.md`(해석 규칙, 2026-10-17 보완 규칙). 판정 규칙은 3.6절에도 적었다. -->
 
 ## 참고문헌
 <!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11], [14], [16]은 2026-10-20 arXiv 초록으로 확인(주 세션; [14]는 "zero measured inference overhead"). 선행연구 수치 전부를 2026-10-20 arXiv PDF로 다시 대조(docs/citation_check_2026-10-20.md PDF 열), 바뀐 것은 [11] 문구뿐.
@@ -590,3 +594,8 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 [14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
 [15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
 [16] A. Poulis, M. Crovella, E. Terzi. Testing the Limits of Truth Directions in LLMs. arXiv:2604.03754v2, 2026.
+[17] S. Marks, M. Tegmark. The Geometry of Truth: Emergent Linear Structure in Large Language Model Representations of True/False Datasets. COLM 2024 (arXiv:2310.06824).
+[18] C. Burns, H. Ye, D. Klein, J. Steinhardt. Discovering Latent Knowledge in Language Models Without Supervision. arXiv:2212.03827, 2022.
+[19] A. Ghasemabadi, D. Niu. Can LLMs Predict Their Own Failures? Self-Awareness via Internal Circuits. arXiv:2512.20578, 2025.
+[20] S. Dubey. Real-Time Detection and Repair of LLM Agent Failures. arXiv:2608.02464, 2026.
+[21] L. Advani. From Confident Closing to Silent Failure: Characterizing False Success in LLM Agents. arXiv:2606.09863, 2026.
