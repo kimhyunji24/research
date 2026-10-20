@@ -463,7 +463,7 @@ $n = 250$ (194 failures) per step; scene-level cluster bootstrap, 1,000 resample
 % Source: results/prior_methods_3b*.csv
 \end{table}
 
-\subsection{Early termination}
+\subsection{Early termination}\label{sec:early}
 To test the practical motivation directly, we evaluated stopping rules on the 500 greedy Qwen2.5-3B games with a 100-action horizon
 (the 30-action trajectory for the 101 early successes and the 100-action re-run for the other 399; 112 successes within 100 actions; 40,500 steps). The plan was fixed before the late-success results were read.
 Before each action a rule stops the episode if its score is at least a threshold; a stopped episode counts as a failure. Cost is the number of executed actions, since the actor's own hidden state is computed anyway.
@@ -535,6 +535,54 @@ Rung 5 AUROC 0.701, 0.732, 0.823. $n = 250$ (194 failures) per step; scene-level
 % Sources: results/probe_strength_3b*.csv, results/extra_main_3b_B_late_rounds.csv, results/extra_main_3b_C_temporal.csv
 \end{table}
 
+\subsection{Additional checks}\label{sec:extra}
+In response to review, we ran six further checks on the first 250 episodes at steps 0--2 (exploratory; plan fixed before the run, each analysis run once; no hold-out data). Intervals are from the scene-level cluster bootstrap (1,000 resamples), and values are means over the three steps unless stated (Table~\ref{tab:extra}). With the full training folds, all four methods reproduced their earlier values exactly.
+
+\paragraph{Training-set size.} We trained the 75\% probe and rung 5 on 25, 50, 75 and 100\% of each outer training fold (about 50 to 200 episodes; five draws below 100\%). The probe minus rung 5 was $-0.002$, $-0.011$, $-0.021$ and $-0.025$, all intervals including zero. The gap did not shrink as the training data grew, which suggests that within this range the probe was not limited by the number of training episodes; we did not test larger training sets. The 50\% probe stayed below rung 5 at every size ($-0.104$ to $-0.158$).
+
+\paragraph{Low false-positive region.} At a 10\% false-positive rate the probe detected 0.268 of failures and rung 5 0.407 (difference $-0.139$, $-0.273$ to $+0.075$). Detection at 5\% false positives, partial AUROC up to 10\% false positives and AUPRC also gave differences whose intervals included zero, in the same direction as AUROC. With 56 successes, a 5\% false-positive rate corresponds to about three successes, so these estimates are unstable. Steps saved against lost successes for the early-termination rules are plotted in Fig.~\ref{fig:early}.
+
+\paragraph{Splitting by game.} Splitting folds by game instead of by floor plan changed the AUROC by $-0.006$ ($-0.037$ to $+0.025$) for the probe and $-0.027$ ($-0.057$ to $+0.001$) for rung 5, so the inflation seen with a scene-only synthetic feature did not appear with the real methods. In the greedy data each game has one episode, so this split is also an episode split.
+
+\paragraph{Interval coverage at the task level.} On label-shuffled data (20 seeds $\times$ 3 steps), task-level intervals contained the null value in 90.0\% (54/60; Wilson 95\% CI 79.9--95.3\%) of runs for the probe, 85.0\% (51/60) for rung 5 and 88.3\% (53/60) for their difference, rather than 95\%. Task-level intervals may therefore also be somewhat too narrow; the 60 runs share the same episodes, so these coverage intervals are themselves approximate.
+
+\paragraph{Action-token position.} Reading the hidden state at the last token of the chosen action, teacher-forced through the actor (the position read in~\cite{ruan2026doomed}), gave an AUROC of 0.746 at 50\% depth and 0.734 at 75\% depth. The 75\% action-token probe minus rung 5 was $-0.019$ ($-0.085$ to $+0.046$), with no step superior, so the conclusion did not change with the reading position. The 50\% depth, weak at the prompt position (0.594), was about as strong as 75\% at the action token, which suggests that the effect of depth depends on the position. The action token comes after the choice and therefore carries later information than the prompt token.
+
+\paragraph{Neural text encoder.} Replacing TF-IDF with sentence-encoder embeddings of the same prompt (bge-base-en-v1.5; 510-token chunks, averaged) gave 0.594 alone and 0.637 together with the rung-4 features, below rung 5 by $-0.115$ ($-0.187$ to $-0.052$). This encoder setup was weaker than TF-IDF, so it does not test whether a stronger text baseline exists, and the probe exceeding it ($+0.090$, 0.039 to 0.142) is not evidence that the probe beats neural text baselines.
+
+\begin{table}[t]
+\centering\small
+\caption{Exploratory: additional checks on the first 250 episodes (mean over steps 0--2; AUROC unless stated).}\label{tab:extra}
+\begin{tabularx}{\linewidth}{@{}LLccc@{}}
+\toprule
+Check & A vs.\ B & A & B & A $-$ B (95\% CI) \\
+\midrule
+Training data 25\% & 75\% probe vs.\ rung 5 & 0.681 & 0.684 & $-0.002$ ($-0.044$, 0.036) \\
+Training data 50\% & 75\% probe vs.\ rung 5 & 0.703 & 0.714 & $-0.011$ ($-0.053$, 0.027) \\
+Training data 75\% & 75\% probe vs.\ rung 5 & 0.712 & 0.733 & $-0.021$ ($-0.062$, 0.020) \\
+Training data 100\% & 75\% probe vs.\ rung 5 & 0.727 & 0.752 & $-0.025$ ($-0.077$, 0.029) \\
+Detection at 5\% false positives & 75\% probe vs.\ rung 5 & 0.149 & 0.215 & $-0.065$ ($-0.261$, 0.087) \\
+Detection at 10\% false positives & 75\% probe vs.\ rung 5 & 0.268 & 0.407 & $-0.139$ ($-0.273$, 0.075) \\
+Partial AUROC (FPR $\le$ 0.1) & 75\% probe vs.\ rung 5 & 0.552 & 0.596 & $-0.044$ ($-0.114$, 0.030) \\
+AUPRC & 75\% probe vs.\ rung 5 & 0.881 & 0.904 & $-0.023$ ($-0.054$, 0.009) \\
+Splitting by game & 75\% probe: game vs.\ scene split & 0.721 & 0.727 & $-0.006$ ($-0.037$, 0.025) \\
+Splitting by game & Rung 5: game vs.\ scene split & 0.725 & 0.752 & $-0.027$ ($-0.057$, 0.001) \\
+Action token & 75\% action token vs.\ rung 5 & 0.734 & 0.752 & $-0.019$ ($-0.085$, 0.046) \\
+Action token & 75\% action token vs.\ 75\% prompt token & 0.734 & 0.727 & $+0.006$ ($-0.050$, 0.055) \\
+Neural text encoder & Rung 4 + embedding vs.\ rung 5 & 0.637 & 0.752 & $-0.115$ ($-0.187$, $-0.052$) \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright\footnotesize
+$n = 250$ (194 failures) per step; scene-level cluster bootstrap, 1,000 resamples. Training data as a share of each outer training fold; detection is the true-positive rate at the given false-positive rate.
+% Sources: results/review_b_*.csv, results/review_b6_action*.csv
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{figA_early_stop_curves.pdf}
+\caption{Exploratory view of the early-termination results (Section~\ref{sec:early}): steps saved against lost successes for each rule, Qwen2.5-3B, 500 games, 100-action horizon. Left: all thresholds; right: losses up to 10\%. Dots: thresholds chosen on other folds for a 5\% target loss. The probe is the 75\% depth probe with the step index. Curves sweep the threshold on the evaluated data.}\label{fig:early}
+\end{figure}
+
 \section{Discussion}
 \paragraph{What the results show.} Across four task-level evaluations (pre-registered, confirmatory, a second Qwen model and a second prompt), a linear probe on the actor's hidden states was never better than a baseline built from information visible in the prompt; in the pre-registered cell it was worse.
 The early-termination analysis gave the same picture in practical terms: the probe did not save more steps than a fixed step cap at the same loss of successes, and in secondary analyses it did not reach the surface baseline.
@@ -545,7 +593,7 @@ Hypothesis H1 (hidden states predict failure better than surface information) wa
 \paragraph{Relation to prior work.} Probes on agent hidden states have been reported to predict failure early and to beat monitors that use only action-level features~\cite{ruan2026doomed}.
 Their baselines contain no task information (the task sentence, task type, observations or progress). In our ladder, task type alone gave an AUROC of 0.603 and the full rung 5 gave 0.701 at the first action,
 and against this full ladder the probe showed no advantage in any setting. When we approximated their behavioral features on our data, the same probe beat them by 0.15--0.19, adding only the task type closed part of that gap, and the full rung 5 closed all of it (Section~\ref{sec:prior}).
-We did not reproduce their environments, so we cannot say that their reported gains would vanish there; our results suggest that comparisons against task-blind monitors may overstate what hidden states add, although our probe also reads a different position (the last prompt token rather than the last action token).
+We did not reproduce their environments, so we cannot say that their reported gains would vanish there; our results suggest that comparisons against task-blind monitors may overstate what hidden states add, although our probe reads a different position (the last prompt token rather than the last action token); reading the action token instead gave the same conclusion in an exploratory check (Section~\ref{sec:extra}).
 In mathematical reasoning, Bulut~\cite{bulut2026problem} found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
 Our agent results agree on the first part, since the game explained most of the outcome, but differ on the second: within games, signals were above chance from step 2 on. A likely reason is that agent trajectories diverge in observable ways, such as visited places and repeated actions,
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
@@ -556,15 +604,15 @@ Finally, the weak transfer of our probe from one prompt to another agrees with r
 
 \paragraph{Why hidden states may not help here.} We see three explanations, none tested directly. First, at the steps we evaluated the outcome is largely fixed by the game, and the prompt already states the task and the room, so the information the probe could use is also in the text.
 Second, the probe may learn directions that encode the prompt's form rather than a general failure state: a probe trained under one prompt was near chance under another (exploratory; the two prompts also differ in the token at which hidden states are taken).
-Third, with about 250 training episodes per round and 2,048 dimensions, a regularized linear probe may be too weak to extract a subtle signal; however, 96 exploratory combinations of readers, depths and probe types, including a nonlinear probe, did not exceed the baseline either.
+Third, with about 250 training episodes per round and 2,048 dimensions, a regularized linear probe may be too weak to extract a subtle signal; however, 96 exploratory combinations of readers, depths and probe types, including a nonlinear probe, did not exceed the baseline either, and the gap to rung 5 did not shrink as the training data grew from about 50 to 200 episodes (Section~\ref{sec:extra}).
 
-\paragraph{A complementary reading.} Read at 75\% depth from a single token and trained on about 250 episodes per round without hand-made features, the probe came within 0.011--0.034 AUROC of the engineered rung-5 baseline on the first 250 episodes, and on the hold-out it was ahead at steps 0 and 1, though not significantly. Much of the failure-relevant information is therefore linearly present in the representation; whether more training data would close or reverse the gap we did not test.
+\paragraph{A complementary reading.} Read at 75\% depth from a single token and trained on about 250 episodes per round without hand-made features, the probe came within 0.011--0.034 AUROC of the engineered rung-5 baseline on the first 250 episodes, and on the hold-out it was ahead at steps 0 and 1, though not significantly. Much of the failure-relevant information is therefore linearly present in the representation; the gap did not shrink between about 50 and 200 training episodes (Section~\ref{sec:extra}), and larger training sets were not tested.
 
 \paragraph{Practical implication.} For small agents that run their own monitor, the hidden state costs nothing extra, so even a modest gain would be useful. We did not find one: at up to 10\% lost successes, a step cap saved about as many steps as the probe, and a surface baseline at least as many.
 A monitor that reads the agent's text, or a simple cap, is a cheaper starting point and does not require access to the model's internals; claims of a hidden-state advantage should be tested against baselines that see the same task information.
 
-\paragraph{Methodological points.} Several design choices can change conclusions in similar studies. Splitting by game instead of by floor plan inflated a scene-only synthetic feature to an AUROC of 0.97; we did not measure the difference with the real probe and baselines.
-Within-game evaluation was diluted by rollouts that had not yet diverged: 52--70\% of pairs had identical prompts, which caps any prompt-based predictor. Game-level percentile bootstrap intervals were too narrow on shuffled labels (coverage 80--94\% instead of 95\%).
+\paragraph{Methodological points.} Several design choices can change conclusions in similar studies. Splitting by game instead of by floor plan inflated a scene-only synthetic feature to an AUROC of 0.97; with the real probe and rung 5 the change was small ($-0.006$ and $-0.027$; Section~\ref{sec:extra}).
+Within-game evaluation was diluted by rollouts that had not yet diverged: 52--70\% of pairs had identical prompts, which caps any prompt-based predictor. Game-level percentile bootstrap intervals were too narrow on shuffled labels (coverage 80--94\% instead of 95\%), and task-level intervals were closer to but still below nominal (85--90\%; Section~\ref{sec:extra}).
 Whether attempts diverge at all depends on the policy: Qwen3-4B sampled at $T = 1$ diverged in only 10 of 50 games, which left its attempt-level question unanswerable. Extending to other model families was limited by prompt--model fit: three non-Qwen models solved 1 of 20 pilot games each under our prompt.
 
 \paragraph{Unexpected results.} The external ReAct-format prompt raised the success rate of the same actor (89 vs.\ 56 of 250 games), although our prompt had been tuned for this model. Because several factors changed together, we do not know which one mattered; whatever the cause, the probe again did not beat the surface baseline under the stronger prompt.
@@ -579,8 +627,8 @@ Whether attempts diverge at all depends on the policy: Qwen3-4B sampled at $T = 
 \item \textbf{External monitoring.} Readers other than 3B read trajectories produced by another model. The 7B reader was 4-bit quantized, which is confounded with size. Readers also differ in hidden size (896, 1,536, 2,048 and 3,584 dimensions), which changes the ratio of dimensions to training episodes.
 \item \textbf{Sample size.} With 250 episodes per evaluation set (about 50 successes), intervals for an AUROC difference were about $\pm$0.06--0.10; small differences and reader-size effects cannot be resolved.
 \item \textbf{Post hoc choices.} The 75\% depth and the non-inferiority margin of 0.05 were chosen after the exploratory analysis; the margin was also defined for between-game AUROC and is on a different scale at the attempt level.
-\item \textbf{Comparison design.} TF-IDF with logistic regression is a weak text baseline; neural text encoders reading the same prompt were not tested. The probe reads the last prompt token, not the generated action token used in~\cite{ruan2026doomed}. From step 7 on, the progress features of rung 4, and of rungs 4t and 5t in the early-termination analysis, use actions older than the six steps shown in the prompt.
-\item \textbf{Metrics and statistics.} AUROC does not target the low false-positive region that matters for stopping, and we did not report true-positive rates at low false-positive rates. The attainable AUROC from early states was not estimated. Interval coverage was checked only at the attempt level, and the variance across cross-validation seeds is not in the intervals. The 18 pre-registered, pre-specified and confirmatory comparisons share games and baselines and are not independent.
+\item \textbf{Comparison design.} TF-IDF with logistic regression is a weak text baseline, and the one neural text encoder we tried (bge-base-en-v1.5 embeddings of the same prompt) was weaker still (Section~\ref{sec:extra}), so whether a stronger text baseline would widen the gap remains open. The main probe reads the last prompt token, not the action token used in~\cite{ruan2026doomed}; that reading the action token gives the same conclusion was checked only in an exploratory analysis of the first 250 episodes. From step 7 on, the progress features of rung 4, and of rungs 4t and 5t in the early-termination analysis, use actions older than the six steps shown in the prompt.
+\item \textbf{Metrics and statistics.} AUROC does not target the low false-positive region that matters for stopping; detection rates at 5\% and 10\% false positives agreed with AUROC in an exploratory check but rest on 56 successes. The attainable AUROC from early states was not estimated. On shuffled labels, task-level intervals covered the null value in 85--90\% of runs rather than 95\% (Section~\ref{sec:extra}), so they, like the attempt-level intervals, may be too narrow, and the variance across cross-validation seeds is not in the intervals. The 18 pre-registered, pre-specified and confirmatory comparisons share games and baselines and are not independent.
 \item \textbf{Registration.} Plans were registered as dated commits in the project repository rather than with an external registry; deviations and early exposures are listed in Appendix Table~\ref{tab:a8}.
 \item \textbf{Policy shift.} Attempt-level results come from a sampling policy ($T = 1$), not the greedy policy used at the task level, and from games selected by their greedy outcome.
 \item \textbf{Early rounds.} Pre-registered rounds cover only the first three actions; later rounds are conditioned on survival and were analyzed only exploratorily.
