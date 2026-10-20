@@ -1,5 +1,7 @@
-# Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts
-<!-- Title draft 2026-10-20 (no colon; names ALFWorld, the Qwen actors and the two evaluation levels). Alternatives:
+# Failure Prediction in Small Qwen Language-Model Agents: Hidden-State Probes Do Not Beat Visible Information
+<!-- Title 2026-10-20, chosen by the author (same in paper/main_en.tex); paired with the Korean noun-ending title. Claims "do not beat" only, not equivalence.
+     Superseded: "Failure Prediction in Small Qwen Language-Model Agents: Comparing Hidden-State Probing with Observable Information". Earlier claim-style title:
+     Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts. Other alternatives:
      (a) Probing Small Qwen Agents in ALFWorld Finds No Failure Signal Beyond Visible Task Information Between or Within Games
      (b) Do Hidden States Reveal Agent Failure Beyond the Task? A Controlled Test in ALFWorld  [has a question mark; check venue style] -->
 

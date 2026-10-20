@@ -1,0 +1,3 @@
+# Both manuscripts need XeLaTeX (Korean text in main_ko.tex; Unicode in both).
+$pdf_mode = 5;
+$bibtex_use = 2;

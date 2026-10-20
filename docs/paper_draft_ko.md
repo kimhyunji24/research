@@ -1,5 +1,7 @@
-#  소형 Qwen 언어모델 에이전트의 실패 예측:  Hidden State 프로빙과 관찰 가능 정보의 효용성 비교
-<!-- 제목 초안 2026-10-20(콜론 없음, ALFWorld·Qwen actor·두 평가 수준을 이름으로). 영문 제목: Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts.
+# 소형 Qwen 언어모델 에이전트의 실패 예측: 겉보기 정보를 넘지 못한 hidden state 프로브
+<!-- 제목 2026-10-20 저자 결정(명사 종결형, 결론은 "넘지 못함"까지만 주장하고 동등성은 주장하지 않음; paper/main_ko.tex와 같게).
+     영문 제목: Failure Prediction in Small Qwen Language-Model Agents: Hidden-State Probes Do Not Beat Visible Information.
+     이전 제목: 소형 Qwen 언어모델 에이전트의 실패 예측: Hidden State 프로빙과 관찰 가능 정보의 효용성 비교(영문 Comparing Hidden-State Probing with Observable Information). 그 전 영문 제목: Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts.
      대안: (가) ALFWorld의 소형 Qwen 에이전트 프로브 분석에서 게임 간·게임 내 모두 겉보기 과제 정보를 넘는 실패 신호는 없었다 -->
 
 
