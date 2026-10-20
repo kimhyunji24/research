@@ -2,7 +2,9 @@
 
 <!-- Draft started 2026-10-17. Target (changed 2026-10-17): main conference or journal paper; venue TBD. Extra experiments needed: plan section 7. Plan: docs/paper_revision_plan_2026-10-17.md.
      Writing order (per plan): Method -> Results -> Discussion -> Conclusion -> Introduction -> Abstract -> Title.
-     [TODO-RESULT] marks text that depends on the within-game analysis, which had not been read when this draft was written. -->
+     [TODO-RESULT] marks text that depends on the within-game analysis, which had not been read when this draft was written.
+     2026-10-20 (D3): Sections 4.4 (Qwen3-4B, model pilots, ReAct prompt) and 4.6 (early termination), Table 4–5, Appendix A1–A4, prompt origin in 3.1 and limitations updated.
+     All numbers from results/*.csv (task_qwen3_4b*, task_react_qwen25_3b*, success_react_vs_v2*, react_transfer_qwen25_3b*, early_stop_3b*, pilot_action_patterns.txt) and docs/model_pilot_plan_2026-10-17.md. -->
 
 ## Abstract
 [TODO-RESULT: one paragraph, written last. What was done + main results with 95% CIs. No abbreviations, no citations.]
@@ -22,6 +24,8 @@ Because ALFWorld has no failing terminal state, a failure is a timeout. To check
 11 of 399 succeeded between actions 31 and 100 (2.8%, Wilson 95% CI 1.6–4.9%), so the upper bound was below the pre-registered 5% threshold and we kept the 30-action label (sensitivity analyses in Section 4.7).
 The agent (actor) was Qwen2.5-3B-Instruct in bfloat16. At each step the prompt contained a fixed system message (rules and one worked example episode),
 the task sentence, the last six observation–action pairs, the current observation, the actions that had recently produced no effect, and the list of admissible actions.
+We call this prompt v2. It was written by us: an earlier version followed the thought–action format of ReAct (Yao et al., 2023), and when we switched to candidate scoring we dropped the thought step
+and added six rules and one handwritten example episode. None of its text is taken from the ReAct exemplars. A second, external prompt is described in Section 4.4.
 
 The actor selected actions by constrained scoring rather than free generation. Each admissible action *a* (excluding `help`, `inventory` and `look`)
 was scored by the summed log-probability of the continuation `Action: a<|im_end|>` given the prompt, computed in one batched pass that reuses the prompt's key–value cache.
@@ -184,12 +188,80 @@ On rows pooled across games, the difficulty oracle alone reached an AUROC of 0.8
 and +0.042 (+0.017 to +0.073) at steps 1–3; adding rung 5 changed it by +0.004 (−0.018 to +0.027), +0.034 (+0.007 to +0.060) and +0.029 (+0.003 to +0.058). These gains are uncorrected secondary measures.
 Most of what any method predicts across games is therefore already predicted by knowing the game.
 ### 4.4 Other actors and a second prompt
-[TODO-RESULT: Qwen3-4B (and Llama-3.2-3B if access is granted) with the same procedures (docs/model_main_plan_2026-10-17.md);
-prompt robustness with the original ReAct exemplars (docs/prompt_robustness_plan_2026-10-17.md). Report each model and prompt separately.]
+Each model and prompt is reported separately; results are not pooled.
+
+**Which actors entered.** Five further models were piloted on the first 20 games under a rule fixed before the pilots
+(at least 3 of 20 successes, completion without running out of 12 GB of memory, at most three times the reference time per episode, no non-finite hidden states; Appendix Table A1).
+Only Qwen3-4B (thinking disabled) passed, with 7 of 20 successes. Qwen3-1.7B, Llama-3.2-3B-Instruct, SmolLM3-3B and Phi-3.5-mini-instruct each succeeded on 1 of 20 games
+(Wilson 95% CI 1–24%) and were excluded; Phi-3.5-mini also exceeded the time criterion. Before the SmolLM3 pilot we changed the rule so that every model passing it would be included,
+so that substitutes could not be chosen after seeing results. Once the pre-listed substitutes were used up we added no further models; the model extension therefore covers two Qwen models.
+In the excluded models, actions repeated within the last six steps far more often than in the two Qwen models (66–82% vs. 32–51%; exploratory description, Appendix Table A2).
+Because v2 was tuned with Qwen2.5, this may reflect prompt–model fit rather than model capability; with 20 games per model we make no claim about differences in success rate.
+
+**Qwen3-4B, task level.** On the same 250 games the greedy Qwen3-4B actor succeeded on 94 (37.6%; Qwen2.5-3B: 56).
+The depth (75%) and the comparison with rung 5 were fixed before these data were collected. The probe on the actor's own hidden states did not beat rung 5 in any round
+(Table 4): −0.049 (−0.103 to +0.005) at step 0, +0.001 (−0.076 to +0.071) at step 1 and −0.037 (−0.096 to +0.033) at step 2.
+No round was superior, also after Holm adjustment across the three rounds, and none was non-inferior or inferior, so all three were inconclusive.
+The direction matches Qwen2.5-3B: the probe on the actor's own hidden states shows no advantage over the surface baseline.
+
+**Qwen3-4B, attempt level.** Sampled rollouts of Qwen3-4B rarely diverged: only 10 of 50 games had both outcomes among eight rollouts (Qwen2.5-3B: 39 of 100),
+and the chosen action had probability above 0.99 in 77% of steps 1–3. All methods scored 0.47–0.52 within games, with most pairs tied.
+We decided before reading these results not to enlarge the sample and to report them only in the appendix (Table A3); the attempt-level question could not be answered for this model.
+
+**A second prompt (ReAct exemplars).** To test whether the conclusion depends on our own prompt, we re-ran Qwen2.5-3B on the same 250 games with the original ALFWorld exemplars of ReAct
+(Yao et al., 2023), changing only the action grammar to that of `alfworld` 0.4.2 (`put A in/on B` → `move A to B`). The two prompts differ in several ways at once (Appendix Table A4):
+the ReAct prompt is a raw completion string rather than a chat template, uses two exemplars matched to the current task type instead of one fixed example,
+keeps the full history instead of the last six steps, and omits the admissible-action list and the note on failed actions. The policy, games, analysis and decision rule were unchanged,
+and the rung-5 text used only the current game, excluding the exemplars. We therefore treat this prompt as a check on the conclusion, not as an estimate of any single prompt factor.
+
+The pre-recorded comparison (75% depth, linear, vs. rung 5; 89 successes) gave −0.002 (−0.057 to +0.045) at step 0, −0.036 (−0.096 to +0.021) at step 1 and −0.128 (−0.204 to −0.058) at step 2 (Table 4).
+No round was superior (also after Holm adjustment); steps 0 and 1 were inconclusive and step 2 was inferior. As specified in advance, this shows no evidence that the probe beats the surface baseline
+under an external prompt either. We do not compare the size of the gap between prompts, which was not tested and is affected by their different failure rates (0.776 vs. 0.644).
+At 50% depth (secondary) the differences were −0.036, −0.032 and −0.048, all inconclusive. Under this setting the ReAct-format prompt succeeded more often than v2
+(89 vs. 56 of 250; paired difference +0.132, 95% CI 0.060–0.204; exact McNemar p = 0.0006); because several factors changed together, we do not attribute this to any one of them.
+
+In an exploratory check, a probe trained on v2 trajectories and applied to ReAct trajectories (scenes of the test games excluded from training) reached 0.527, 0.493 and 0.555 at steps 0–2,
+below the probe trained within ReAct (0.659, 0.623 and 0.593; differences at steps 0 and 1 with intervals below zero). Re-standardizing the ReAct states without labels did not help (0.550, 0.482, 0.586).
+This suggests that the direction the probe learns is tied to the prompt format; because the two prompts also extract hidden states at different tokens, we cannot separate a different signal from a shifted representation.
+
+**Summary across settings.** In the four task-level evaluations (pre-registered, confirmatory, Qwen3-4B, ReAct prompt), the probe was superior to rung 5 in 0 of 12 rounds.
+
+| Table 4. Task-level probe − rung 5 (AUROC difference, 95% CI) across settings | step 0 | step 1 | step 2 |
+|---|---|---|---|
+| Qwen2.5-3B, v2, 50% depth (pre-registered; *n* = 250, 194 failures) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) |
+| Qwen2.5-3B, v2, 75% depth (confirmatory hold-out; 250, 205) | +0.039 (−0.030, +0.100) | +0.035 (−0.030, +0.096) | −0.029 (−0.087, +0.029) |
+| Qwen3-4B, v2, 75% depth (pre-specified; 250, 156) | −0.049 (−0.103, +0.005) | +0.001 (−0.076, +0.071) | −0.037 (−0.096, +0.033) |
+| Qwen2.5-3B, ReAct prompt, 75% depth (pre-recorded; 250, 161) | −0.002 (−0.057, +0.045) | −0.036 (−0.096, +0.021) | −0.128 (−0.204, −0.058) |
+
+Probe and rung-5 AUROCs: Qwen3-4B 0.660/0.687/0.680 vs. 0.709/0.686/0.717; ReAct prompt 0.659/0.623/0.593 vs. 0.661/0.660/0.721. Scene-level cluster bootstrap, 1,000 resamples.
 ### 4.5 Comparison with prior failure-prediction and uncertainty methods
 [TODO: token log-probability/entropy, verbalized confidence, LLM judge; chosen from docs/literature_check_2026-10-15.md.]
 ### 4.6 Early termination
-[TODO: steps saved vs. successes lost per stopping policy, including later rounds.]
+To test the practical motivation directly, we evaluated stopping rules on the 500 greedy Qwen2.5-3B games with a 100-action horizon
+(the 30-action trajectory for the 101 early successes and the 100-action re-run for the other 399; 112 successes within 100 actions; 40,500 steps). The plan was fixed before the late-success results were read.
+Before each action a rule stops the episode if its score is at least a threshold; a stopped episode counts as a failure. Cost is the number of executed actions, since the actor's own hidden state is computed anyway.
+For each rule we swept the threshold and measured, for every allowed loss of successes ℓ from 0 to 10% in steps of 0.5 percentage points, the largest fraction of steps saved, and averaged these values.
+The rules were a step cap, a loop detector (how often the previous action had occurred in the six steps before it; "Nothing happens" never occurred under candidate scoring),
+time-aligned rungs 4t and 5t, and the probe (75% depth plus step index), all learned rules cross-fitted by scene on rows still running at each step.
+The single primary comparison was the probe against the better of the two rules without training, with a scene-level cluster bootstrap (1,000 resamples).
+
+The probe saved 0.529 (95% CI 0.382–0.667) of the steps on this measure, the step cap 0.560 (0.468–0.656), the loop detector 0.194 (0.023–0.361),
+rung 4t 0.608 (0.477–0.748) and rung 5t 0.625 (0.503–0.758); stopping exactly the failures at step 0 would save 0.958 (Table 5).
+The primary difference, probe minus step cap, was −0.032 (−0.183 to +0.119), inconclusive, so a practical gain from self-monitoring was not shown in this setting.
+In secondary analyses the probe minus rung 5t was −0.096 (−0.219 to +0.011) and minus rung 4t −0.079 (−0.231 to +0.067). Over the whole loss range (0–100%)
+the probe was better than the step cap (+0.056, 0.029–0.082) but worse than rung 5t (−0.023, −0.046 to −0.002). With thresholds chosen on other folds for a 5% loss,
+the probe saved 0.614 of the steps (test loss 4.5%), the step cap 0.588 (6.3%) and rung 5t 0.686 (5.4%).
+These secondary results suggest that where the probe helps over a fixed cap, a surface baseline helps at least as much. Because 10% of the successes is about 11 episodes, the intervals are wide.
+Choosing the threshold on the evaluated data slightly favors scores with many distinct values, such as the learned rules (about +0.004 on synthetic data); this favors the probe and does not change the conclusion.
+
+| Table 5. Early termination, Qwen2.5-3B, 500 games, 100-action horizon | Mean max. steps saved at ≤ 10% lost successes (95% CI) | Relative to oracle |
+|---|---|---|
+| Step cap | 0.560 (0.468, 0.656) | 0.58 |
+| Loop detector | 0.194 (0.023, 0.361) | 0.20 |
+| Rung 4t | 0.608 (0.477, 0.748) | 0.63 |
+| Rung 5t | 0.625 (0.503, 0.758) | 0.65 |
+| Probe (75% depth + step) | 0.529 (0.382, 0.667) | 0.55 |
+| Oracle (stop failures at step 0) | 0.958 (0.947, 0.969) | 1 |
 ### 4.7 Robustness checks (summary; details in Appendix)
 **Label horizon.** With the 100-action label, the pre-registered comparison stayed inferior at steps 0 and 2 and became inconclusive at step 1 (upper bound +0.005);
 the confirmatory comparison again showed no superior round (step 0 changed from non-inferior to inconclusive). Re-running the original analyses with the original labels in the current
@@ -203,16 +275,54 @@ software environment reproduced every reported value exactly, so these changes r
 ## 6 Limitations
 - **Agent setting.** Actions were chosen by scoring admissible candidates, not by free generation, so the agent is a constrained selector. We did not compare with a free-generation agent.
 - **Scope.** One environment (ALFWorld). The main results use one actor (Qwen2.5-3B) and one prompt; other actors and a second prompt are reported separately (Section 4.4). We make no claim beyond these settings.
+- **Models.** The model extension covers two Qwen models of 3–4B parameters (Qwen2.5-3B, Qwen3-4B). Three non-Qwen models (Llama-3.2-3B, SmolLM3-3B, Phi-3.5-mini) and Qwen3-1.7B were piloted under the same pre-registered criterion but each succeeded on only 1 of 20 games and were excluded (Appendix Table A1). Because the main prompt was tuned with Qwen2.5, this may reflect prompt–model fit rather than model capability. We make no claim beyond these two models.
+- **Second prompt.** Only two prompts were compared, the ReAct exemplars were minimally edited, and the two prompts differ in several factors at once; the rung-5 text of the ReAct prompt lacks the admissible-action list. The ReAct check was run only for Qwen2.5-3B at the task level.
+- **Early termination.** Costs are counted in actions, not tokens or latency; only the 3B actor's own hidden states, greedy decoding and a 100-action horizon were evaluated, on games already used in earlier analyses.
 - **External monitoring.** Readers other than 3B read trajectories produced by another model. The 7B reader was 4-bit quantized, which is confounded with size.
 - **Sample size.** With 250 episodes per evaluation set (about 50 successes), intervals for an AUROC difference were about ±0.06–0.10; small differences and reader-size effects cannot be resolved.
 - **Post hoc choices.** The 75% depth and the non-inferiority margin of 0.05 were chosen after the exploratory analysis; the margin was also defined for between-game AUROC and is on a different scale at the attempt level.
 - **Policy shift.** Attempt-level results come from a sampling policy (*T* = 1), not the greedy policy used at the task level, and from games selected by their greedy outcome.
 - **Early rounds.** Pre-registered rounds cover only the first three actions; later rounds are conditioned on survival and were analyzed only exploratorily.
 - **Truncation.** Episodes were cut at 30 actions, so labels mean "not solved within 30 actions". Re-running the 399 greedy failures to 100 actions, 2.8% (95% CI 1.6–4.9%) succeeded late; conclusions did not change with the 100-action label (Section 4.7). Attempt-level labels were not re-checked at 100 actions.
-- **Prompt tuning.** The main prompt was written by us and adjusted while inspecting episodes from a different split (valid_unseen) before data collection; an external prompt (ReAct exemplars) is tested in Section 4.4.
+- **Prompt tuning.** The main prompt was written by us, starting from the ReAct thought–action format, and adjusted while inspecting episodes from a different split (valid_unseen) before data collection; an external prompt (ReAct exemplars) is tested in Section 4.4.
 
 ## 7 Conclusion
 [TODO-RESULT: 3–4 sentences, no numbers.]
 
+## Appendix (draft)
+
+| Table A1. Model pilots (first 20 games, v2 prompt, candidate scoring, 30 actions) | Successes (Wilson 95% CI) | s / episode | Peak GPU memory | Decision |
+|---|---|---|---|---|
+| Qwen3-4B (thinking off) | 7/20 (18–57%) | 14.9 | 10.24 GB | included |
+| Qwen3-1.7B (thinking off) | 1/20 (1–24%) | 8.5 | 5.03 GB | excluded (successes) |
+| Llama-3.2-3B-Instruct | 1/20 (1–24%) | 10.7 | 8.06 GB | excluded (successes) |
+| SmolLM3-3B | 1/20 (1–24%) | 10.4 | 7.41 GB | excluded (successes) |
+| Phi-3.5-mini-instruct (candidates scored in batches of 4) | 1/20 (1–24%) | 67.6 | 10.75 GB | excluded (successes, time) |
+
+Reference on the same games: Qwen2.5-3B 5/20. All runs completed, all actions were admissible and no hidden state was non-finite. Revisions were pinned; chat-template dates were fixed (Llama "26 Jul 2024", SmolLM3 "20 October 2026").
+
+| Table A2 (exploratory). Action patterns on the 20 pilot games | Successes | Repeated within last 6 steps | Distinct-action ratio | Most frequent verbs |
+|---|---|---|---|---|
+| Qwen2.5-3B | 5/20 | 51% | 0.44 | go 67%, take 11%, move 8% |
+| Qwen3-4B | 7/20 | 32% | 0.54 | go 60%, examine 14%, open 9% |
+| Llama-3.2-3B | 1/20 | 66% | 0.26 | examine 47%, go 28%, open 12% |
+| SmolLM3-3B | 1/20 | 82% | 0.19 | examine 57%, take 15%, move 14% |
+| Phi-3.5-mini | 1/20 | 76% | 0.25 | take 33%, move 30%, go 16% |
+
+Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs per step): probe 0.471/0.471/0.479, rung 4 0.479/0.471/0.521, rung 5 0.471/0.471/0.521 at steps 1–3; η² = 0.849 (0.747–0.935); difficulty oracle alone 0.911. [TODO: format as table.]
+
+| Table A4. The two prompts | v2 (ours) | ReAct exemplars (minimally edited) |
+|---|---|---|
+| Source | Written by us; earlier version in ReAct thought–action format; frozen before data collection | Yao et al. (2023), `alfworld_3prompts.json`, repository commit `6bdb3a1` |
+| Format | Chat template (system + user message) | Raw completion text ending in `>` |
+| Instructions | Six rules | One header line |
+| Exemplars | One handwritten episode (clean task), same for all tasks | Two original episodes matched to the current task type, including `think:` lines |
+| History | Last six steps | Full episode |
+| Admissible actions in prompt | Yes, plus recently failed actions | No (scoring still restricted to admissible actions) |
+| Scored continuation | `Action: a<|im_end|>` | ` a\n` |
+| Hidden state token | Last token of the generation prompt | Final `>` |
+| Edits | — | `put A in/on B` → `move A to B` and the matching observation |
+| Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
+
 ## References
-[TODO]
+[TODO; verify before citing] Yao et al. (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754 (transfer of probes across templates; check title and claim). — Ruan et al., arXiv 2607.06503 (Doomed from the Start).

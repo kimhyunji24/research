@@ -4,7 +4,8 @@
      영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 계획: docs/paper_revision_plan_2026-10-17.md.
      작성 순서: 방법 -> 결과 -> 토의 -> 결론 -> 서론 -> 초록 -> 제목.
      [TODO-결과]는 게임 내 분석에 따라 달라지는 부분이다(작성 시점에 결과를 읽지 않았다).
-     국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문. -->
+     국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문.
+     2026-10-20(D3): 4.4절(Qwen3-4B, 모델 파일럿, ReAct 프롬프트), 4.6절(조기 중단), 표 4–5, 부록 A1–A4, 3.1절 프롬프트 출처, 한계를 영문판과 같게 갱신. -->
 
 ## 초록
 [TODO-결과: 한 단락, 마지막에 작성. 무엇을 했고 무엇을 얻었는지만, 95% 신뢰구간과 함께. 약어·인용 없이.]
@@ -24,6 +25,8 @@ ALFWorld에는 실패로 끝나는 상태가 없으므로 실패는 시간 초�
 399개 중 11개가 31–100 action 사이에 성공했다(2.8%, Wilson 95% CI 1.6–4.9%). 상한이 사전 등록한 기준 5%보다 낮으므로 30 action 라벨을 유지했다(민감도 분석은 4.7절).
 에이전트(actor)는 bfloat16의 Qwen2.5-3B-Instruct이다. 매 step의 프롬프트에는 고정된 시스템 메시지(규칙과 예시 episode 하나),
 과제 문장, 최근 6개의 관찰–action 쌍, 현재 관찰, 최근 효과가 없었던 action, 가능한(admissible) action 목록이 들어갔다.
+이 프롬프트를 v2라 부른다. v2는 직접 작성했다. 이전 버전은 ReAct(Yao 등, 2023)의 생각–행동 형식을 따랐고, 후보 점수화로 바꾸면서 생각 단계를 없애고
+규칙 6줄과 직접 쓴 예시 episode 하나를 넣었다. ReAct 예시의 문장은 쓰지 않았다. 두 번째 외부 프롬프트는 4.4절에서 설명한다.
 
 action은 자유 생성이 아니라 후보 점수화(constrained selection)로 골랐다. `help`, `inventory`, `look`을 뺀 가능한 action *a*마다
 프롬프트 뒤에 `Action: a<|im_end|>`가 이어질 로그확률의 합을 점수로 하고, 프롬프트의 key–value 캐시를 재사용해 한 번의 배치 계산으로 구했다.
@@ -185,12 +188,80 @@ CIs from a game-level bootstrap (1,000 resamples). Rung 2 and the difficulty ora
 +0.042(+0.017 ~ +0.073) 바뀌었고, 5단을 더하면 +0.004(−0.018 ~ +0.027), +0.034(+0.007 ~ +0.060), +0.029(+0.003 ~ +0.058) 바뀌었다. 이 증가분은 보정하지 않은 보조 지표이다.
 즉 어느 방법이든 게임 간에 예측하는 것의 대부분은 게임을 아는 것만으로 이미 예측된다.
 ### 4.4 다른 actor와 두 번째 프롬프트
-[TODO-결과: Qwen3-4B(Llama-3.2-3B는 접근 승인 시)에 같은 절차 적용(docs/model_main_plan_2026-10-17.md),
-ReAct 원 예시로 프롬프트 강건성 점검(docs/prompt_robustness_plan_2026-10-17.md). 모델과 프롬프트마다 따로 보고한다.]
+모델과 프롬프트마다 따로 보고하며 결과를 합치지 않는다.
+
+**어떤 actor가 들어갔나.** 다섯 모델을 처음 20게임에서 파일럿했고, 포함 규칙은 파일럿 전에 정했다
+(20개 중 성공 3개 이상, 12 GB 메모리 안에서 완료, episode당 시간이 기준의 3배 이내, hidden state에 NaN·inf 없음; 부록 표 A1).
+통과한 모델은 Qwen3-4B(thinking 끔, 7/20 성공)뿐이었다. Qwen3-1.7B, Llama-3.2-3B-Instruct, SmolLM3-3B, Phi-3.5-mini-instruct는 각각 20개 중 1개만 성공해
+(Wilson 95% CI 1–24%) 제외했고, Phi-3.5-mini는 시간 기준도 넘었다. SmolLM3 파일럿 전에, 결과를 본 뒤 대체 모델을 고르지 않도록 기준을 통과한 모델은 모두 넣는 것으로 규칙을 바꾸었다.
+미리 정한 대체 후보를 다 쓴 뒤에는 모델을 더 추가하지 않았으므로, 모델 확장은 Qwen 모델 2개에 한정된다.
+제외된 모델은 최근 6 step 안에서 같은 action을 반복한 비율이 Qwen 두 모델보다 훨씬 높았다(66–82% 대 32–51%; 탐색적 기술, 부록 표 A2).
+v2는 Qwen2.5로 조정한 프롬프트이므로 모델 능력보다 프롬프트와 모델의 궁합 때문일 수 있다. 모델당 20게임이라 성공률 차이는 주장하지 않는다.
+
+**Qwen3-4B, 과제 수준.** 같은 250게임에서 탐욕 Qwen3-4B actor는 94개를 성공했다(37.6%; Qwen2.5-3B는 56개).
+깊이(75%)와 5단과의 비교는 이 데이터를 모으기 전에 정했다. actor 자신의 hidden state로 학습한 프로브는 어느 라운드에서도 5단을 넘지 못했다
+(표 4): step 0에서 −0.049(−0.103 ~ +0.005), step 1에서 +0.001(−0.076 ~ +0.071), step 2에서 −0.037(−0.096 ~ +0.033).
+우수한 라운드는 없었고(세 라운드 Holm 보정 후에도), 비열등이나 열등도 없어 세 라운드 모두 결론 없음이었다.
+방향은 Qwen2.5-3B와 같다. actor 자신의 hidden state를 읽는 프로브가 겉보기 baseline보다 낫다는 결과는 나오지 않았다.
+
+**Qwen3-4B, 시도 수준.** Qwen3-4B의 샘플링 rollout은 거의 갈라지지 않았다. 8회 중 성공과 실패가 모두 나온 게임은 50개 중 10개뿐이었고(Qwen2.5-3B는 100개 중 39개),
+step 1–3에서 고른 action의 확률이 0.99를 넘은 경우가 77%였다. 모든 방법의 게임 내 AUROC는 0.47–0.52였고 쌍 대부분이 동점이었다.
+결과를 읽기 전에 표본을 늘리지 않고 부록에만 싣기로 정했다(표 A3). 이 모델로는 시도 수준 질문에 답할 수 없었다.
+
+**두 번째 프롬프트(ReAct 예시).** 결론이 직접 만든 프롬프트에 달려 있는지 보려고, 같은 250게임에서 Qwen2.5-3B를 ReAct(Yao 등, 2023)의 원 ALFWorld 예시로 다시 돌렸다.
+바꾼 것은 action 문법을 `alfworld` 0.4.2에 맞춘 것뿐이다(`put A in/on B` → `move A to B`). 두 프롬프트는 여러 점이 동시에 다르다(부록 표 A4).
+ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정 예시 하나 대신 현재 과제 유형에 맞춘 예시 두 개를 쓰며,
+최근 6 step 대신 전체 기록을 유지하고, 가능한 action 목록과 실패 action 안내가 없다. 정책, 게임, 분석, 판정 규칙은 그대로 두었고,
+5단의 텍스트는 예시를 뺀 현재 게임 부분만 썼다. 따라서 이 프롬프트는 결론을 점검하는 용도이며, 특정 프롬프트 요소의 효과를 추정한 것이 아니다.
+
+사전 기록한 비교(75% 깊이, linear, 5단 대비; 성공 89개)는 step 0에서 −0.002(−0.057 ~ +0.045), step 1에서 −0.036(−0.096 ~ +0.021), step 2에서 −0.128(−0.204 ~ −0.058)이었다(표 4).
+우수한 라운드는 없었고(Holm 보정 후에도), step 0과 1은 결론 없음, step 2는 열등이었다. 미리 정한 해석대로, 외부 프롬프트에서도 프로브가 겉보기 baseline보다 낫다는 증거는 없었다.
+두 프롬프트 사이의 격차 크기는 검정하지 않았고 실패 비율도 달라서(0.776 대 0.644) 비교하지 않는다.
+50% 깊이(보조)에서는 −0.036, −0.032, −0.048로 모두 결론 없음이었다. 이 설정에서 ReAct 형식 프롬프트는 v2보다 자주 성공했다
+(250개 중 89개 대 56개; 짝지은 차이 +0.132, 95% CI 0.060–0.204; 정확 McNemar p = 0.0006). 여러 요소가 함께 바뀌었으므로 어느 하나의 효과로 돌리지 않는다.
+
+탐색적 점검으로, v2 궤적으로 학습한 프로브를 ReAct 궤적에 적용하면(시험 게임의 장면은 학습에서 제외) step 0–2에서 0.527, 0.493, 0.555였다.
+이는 ReAct 안에서 학습한 프로브(0.659, 0.623, 0.593)보다 낮았다(step 0과 1의 차이는 신뢰구간이 0 아래). 라벨 없이 ReAct 상태를 다시 표준화해도 나아지지 않았다(0.550, 0.482, 0.586).
+프로브가 배우는 방향이 프롬프트 형식에 묶여 있음을 시사한다. 다만 두 프롬프트는 hidden state를 뽑는 토큰도 달라서, 신호가 다른 것인지 표현 위치가 옮겨 간 것인지는 가를 수 없다.
+
+**설정 전체 요약.** 과제 수준 평가 네 가지(사전 등록, 확증, Qwen3-4B, ReAct 프롬프트)의 12개 라운드 중 프로브가 5단보다 우수한 라운드는 0개였다.
+
+| Table 4. Task-level probe − rung 5 (AUROC difference, 95% CI) across settings | step 0 | step 1 | step 2 |
+|---|---|---|---|
+| Qwen2.5-3B, v2, 50% depth (pre-registered; *n* = 250, 194 failures) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) |
+| Qwen2.5-3B, v2, 75% depth (confirmatory hold-out; 250, 205) | +0.039 (−0.030, +0.100) | +0.035 (−0.030, +0.096) | −0.029 (−0.087, +0.029) |
+| Qwen3-4B, v2, 75% depth (pre-specified; 250, 156) | −0.049 (−0.103, +0.005) | +0.001 (−0.076, +0.071) | −0.037 (−0.096, +0.033) |
+| Qwen2.5-3B, ReAct prompt, 75% depth (pre-recorded; 250, 161) | −0.002 (−0.057, +0.045) | −0.036 (−0.096, +0.021) | −0.128 (−0.204, −0.058) |
+
+프로브와 5단 AUROC: Qwen3-4B 0.660/0.687/0.680 대 0.709/0.686/0.717, ReAct 프롬프트 0.659/0.623/0.593 대 0.661/0.660/0.721. 장면 단위 cluster bootstrap 1,000회.
 ### 4.5 기존 실패 예측·불확실성 방법과의 비교
 [TODO: 토큰 로그확률·엔트로피, verbalized confidence, LLM 판정자. docs/literature_check_2026-10-15.md 기준으로 선택.]
 ### 4.6 조기 중단
-[TODO: 중단 정책별 절감한 step 수와 놓친 성공 수, 후반 라운드 포함.]
+실용 동기를 직접 확인하려고, 100 action 시간 한도에서 탐욕 Qwen2.5-3B 500게임에 중단 규칙을 평가했다
+(일찍 성공한 101게임은 30 action 궤적, 나머지 399게임은 100 action 재실행; 100 action 안 성공 112개; 40,500 step). 계획은 늦은 성공 결과를 읽기 전에 정했다.
+규칙은 각 action 직전에 점수가 문턱 이상이면 episode를 멈추고, 멈춘 episode는 실패로 센다. actor 자신의 hidden state는 어차피 계산되므로 비용은 실행한 action 수로 두었다.
+규칙마다 문턱을 훑어, 허용한 성공 손실 ℓ(0–10%, 0.5%p 간격)마다 절감한 step 비율의 최댓값을 구하고 평균했다.
+규칙은 step 상한, 루프 감지(직전 action이 그 이전 6 step 안에 나온 횟수; 후보 점수화에서는 "Nothing happens"가 한 번도 나오지 않았다),
+시점 맞춘 4t·5t, 프로브(75% 깊이 + step 번호)이고, 학습하는 규칙은 각 step에 살아 있는 행으로 장면 단위 교차적합했다.
+사전에 정한 주 비교 하나는 프로브와 학습 없는 두 규칙 중 나은 것의 차이이며, 장면 단위 cluster bootstrap(1,000회)으로 평가했다.
+
+이 지표에서 프로브는 step의 0.529(95% CI 0.382–0.667)를 절감했고, step 상한 0.560(0.468–0.656), 루프 감지 0.194(0.023–0.361),
+4t 0.608(0.477–0.748), 5t 0.625(0.503–0.758)였다. 실패만 step 0에서 정확히 멈추면 0.958을 절감한다(표 5).
+주 비교인 프로브 − step 상한은 −0.032(−0.183 ~ +0.119)로 결론 없음이었다. 이 설정에서 자기 감시의 실용 이득은 확인되지 않았다.
+보조 분석에서 프로브 − 5t는 −0.096(−0.219 ~ +0.011), 프로브 − 4t는 −0.079(−0.231 ~ +0.067)였다. 손실 전체 범위(0–100%)에서는
+프로브가 step 상한보다 나았지만(+0.056, 0.029–0.082) 5t보다 낮았다(−0.023, −0.046 ~ −0.002). 다른 fold에서 손실 5%로 문턱을 고르면
+프로브는 step의 0.614를 절감했고(시험 손실 4.5%), step 상한은 0.588(6.3%), 5t는 0.686(5.4%)이었다.
+이 보조 결과는 프로브가 고정 상한보다 나은 구간에서도 겉보기 baseline이 적어도 그만큼 낫다는 것을 시사한다. 성공의 10%가 약 11개 episode라 신뢰구간이 넓다.
+평가 데이터에서 문턱을 고르면 학습 규칙처럼 고유값이 많은 점수가 약간 유리하다(합성 데이터에서 약 +0.004). 이는 프로브에 유리한 쪽이므로 결론을 바꾸지 않는다.
+
+| Table 5. Early termination, Qwen2.5-3B, 500 games, 100-action horizon | Mean max. steps saved at ≤ 10% lost successes (95% CI) | Relative to oracle |
+|---|---|---|
+| Step cap | 0.560 (0.468, 0.656) | 0.58 |
+| Loop detector | 0.194 (0.023, 0.361) | 0.20 |
+| Rung 4t | 0.608 (0.477, 0.748) | 0.63 |
+| Rung 5t | 0.625 (0.503, 0.758) | 0.65 |
+| Probe (75% depth + step) | 0.529 (0.382, 0.667) | 0.55 |
+| Oracle (stop failures at step 0) | 0.958 (0.947, 0.969) | 1 |
 ### 4.7 강건성 점검 (요약, 상세는 부록)
 **라벨 상한.** 100 action 라벨에서 사전 등록 비교는 step 0과 2에서 여전히 열등했고 step 1은 결론 없음이 되었다(상한 +0.005).
 확증 비교도 우수한 라운드가 없었다(step 0은 비열등에서 결론 없음으로 바뀜). 원래 라벨로 원래 분석을 현재 소프트웨어 환경에서 다시 돌리면 보고한 값이 모두 그대로 재현되었으므로,
@@ -204,16 +275,54 @@ ReAct 원 예시로 프롬프트 강건성 점검(docs/prompt_robustness_plan_20
 ## 6 한계
 - **에이전트 설정.** action을 자유 생성이 아니라 가능한 후보의 점수로 골랐으므로 에이전트는 제한된 선택기이다. 자유 생성 에이전트와는 비교하지 않았다.
 - **범위.** 환경 하나(ALFWorld)이다. 주 결과는 actor 하나(Qwen2.5-3B)와 프롬프트 하나에서 나왔고, 다른 actor와 두 번째 프롬프트는 따로 보고한다(4.4절). 이 설정 밖으로 일반화하지 않는다.
+- **모델.** 모델 확장은 3–4B 크기의 Qwen 모델 2개(Qwen2.5-3B, Qwen3-4B)뿐이다. Qwen 이외 모델 3개(Llama-3.2-3B, SmolLM3-3B, Phi-3.5-mini)와 Qwen3-1.7B는 같은 사전 등록 기준으로 파일럿했으나 각각 20개 중 1개만 성공해 제외했다(부록 표 A1). 주 프롬프트를 Qwen2.5로 조정했으므로 모델 능력보다 프롬프트와 모델의 궁합 때문일 수 있다. 이 두 모델 밖으로 일반화하지 않는다.
+- **두 번째 프롬프트.** 프롬프트는 두 개뿐이고, ReAct 예시는 최소로 고쳤으며, 두 프롬프트는 여러 요소가 동시에 다르다. ReAct 프롬프트의 5단 텍스트에는 가능한 action 목록이 없다. ReAct 점검은 Qwen2.5-3B의 과제 수준에서만 했다.
+- **조기 중단.** 비용을 토큰이나 지연이 아니라 action 수로 셌고, 3B actor 자신의 hidden state, 탐욕 정책, 100 action 상한만 평가했으며, 앞선 분석에 이미 쓴 게임을 썼다.
 - **외부 감시.** 3B 이외의 reader는 다른 모델이 만든 궤적을 읽는다. 7B reader는 4비트로 양자화되어 크기 효과와 교락된다.
 - **표본 크기.** 평가 집합마다 250개 episode(성공 약 50개)라 AUROC 차이의 신뢰구간이 약 ±0.06–0.10이다. 작은 차이와 reader 크기 효과는 구분하지 못한다.
 - **사후 선택.** 75% 깊이와 비열등 마진 0.05는 탐색 분석 뒤에 정했다. 마진은 게임 간 AUROC 기준으로 정한 것이라 시도 수준에서는 척도가 다르다.
 - **정책 차이.** 시도 수준 결과는 과제 수준의 탐욕 정책이 아니라 샘플링 정책(*T* = 1)에서 나왔고, 게임은 탐욕 결과로 골랐다.
 - **초반 라운드.** 사전 등록한 라운드는 처음 세 action뿐이다. 후반 라운드는 생존에 조건부이며 탐색적으로만 분석했다.
 - **절단.** episode를 30 action에서 끊었으므로 라벨은 "30 action 안에 풀지 못함"을 뜻한다. 탐욕 실패 399개를 100 action까지 다시 돌리면 2.8%(95% CI 1.6–4.9%)가 늦게 성공했고, 100 action 라벨에서도 결론은 바뀌지 않았다(4.7절). 시도 수준 라벨은 100 action으로 다시 점검하지 않았다.
-- **프롬프트 조정.** 주 프롬프트는 직접 작성했고, 데이터 수집 전에 다른 분할(valid_unseen)의 episode를 보며 고쳤다. 외부 프롬프트(ReAct 예시)는 4.4절에서 점검한다.
+- **프롬프트 조정.** 주 프롬프트는 ReAct의 생각–행동 형식에서 출발해 직접 작성했고, 데이터 수집 전에 다른 분할(valid_unseen)의 episode를 보며 고쳤다. 외부 프롬프트(ReAct 예시)는 4.4절에서 점검한다.
 
 ## 7 결론
 [TODO-결과: 3–4문장, 수치 없이.]
 
+## 부록 (초안)
+
+| Table A1. Model pilots (first 20 games, v2 prompt, candidate scoring, 30 actions) | Successes (Wilson 95% CI) | s / episode | Peak GPU memory | Decision |
+|---|---|---|---|---|
+| Qwen3-4B (thinking off) | 7/20 (18–57%) | 14.9 | 10.24 GB | included |
+| Qwen3-1.7B (thinking off) | 1/20 (1–24%) | 8.5 | 5.03 GB | excluded (successes) |
+| Llama-3.2-3B-Instruct | 1/20 (1–24%) | 10.7 | 8.06 GB | excluded (successes) |
+| SmolLM3-3B | 1/20 (1–24%) | 10.4 | 7.41 GB | excluded (successes) |
+| Phi-3.5-mini-instruct (candidates scored in batches of 4) | 1/20 (1–24%) | 67.6 | 10.75 GB | excluded (successes, time) |
+
+같은 게임에서 Qwen2.5-3B는 5/20이었다(참고). 모든 실행이 끝까지 돌았고, 모든 action이 가능한 action이었으며, hidden state에 NaN·inf가 없었다. revision을 고정했고 chat template의 날짜도 고정했다(Llama "26 Jul 2024", SmolLM3 "20 October 2026").
+
+| Table A2 (exploratory). Action patterns on the 20 pilot games | Successes | Repeated within last 6 steps | Distinct-action ratio | Most frequent verbs |
+|---|---|---|---|---|
+| Qwen2.5-3B | 5/20 | 51% | 0.44 | go 67%, take 11%, move 8% |
+| Qwen3-4B | 7/20 | 32% | 0.54 | go 60%, examine 14%, open 9% |
+| Llama-3.2-3B | 1/20 | 66% | 0.26 | examine 47%, go 28%, open 12% |
+| SmolLM3-3B | 1/20 | 82% | 0.19 | examine 57%, take 15%, move 14% |
+| Phi-3.5-mini | 1/20 | 76% | 0.25 | take 33%, move 30%, go 16% |
+
+표 A3: Qwen3-4B 시도 수준 결과(성공·실패가 모두 나온 게임 10개, step당 120쌍). step 1–3에서 프로브 0.471/0.471/0.479, 4단 0.479/0.471/0.521, 5단 0.471/0.471/0.521; η² = 0.849(0.747–0.935); 난이도 오라클 단독 0.911. [TODO: 표로 정리.]
+
+| Table A4. The two prompts | v2 (ours) | ReAct exemplars (minimally edited) |
+|---|---|---|
+| Source | Written by us; earlier version in ReAct thought–action format; frozen before data collection | Yao et al. (2023), `alfworld_3prompts.json`, repository commit `6bdb3a1` |
+| Format | Chat template (system + user message) | Raw completion text ending in `>` |
+| Instructions | Six rules | One header line |
+| Exemplars | One handwritten episode (clean task), same for all tasks | Two original episodes matched to the current task type, including `think:` lines |
+| History | Last six steps | Full episode |
+| Admissible actions in prompt | Yes, plus recently failed actions | No (scoring still restricted to admissible actions) |
+| Scored continuation | `Action: a<|im_end|>` | ` a\n` |
+| Hidden state token | Last token of the generation prompt | Final `>` |
+| Edits | — | `put A in/on B` → `move A to B` and the matching observation |
+| Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
+
 ## 참고문헌
-[TODO]
+[TODO; 인용 전 원문 확인] Yao 등 (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754(템플릿 간 프로브 전이; 제목·주장 확인 필요). — Ruan 등, arXiv 2607.06503(Doomed from the Start).
