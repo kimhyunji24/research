@@ -28,6 +28,10 @@ Model extension & Inclusion rule changed so that every model passing the pilot c
 Model pilots & Reference time of the time criterion was not defined; judged against a reference value & 2026-10-17, after the first pilots & Exclusions rest on the success criterion \\
 \addlinespace
 Second prompt (ReAct) & Methods of the secondary success-rate comparison (Wilson CI, game-level bootstrap, exact McNemar) were not in the plan & 2026-10-20, fixed in the script before running & Secondary result only \\
+\addlinespace
+Additional checks & Six exploratory checks (training-set size, low false-positive region, split unit, interval coverage, action-token position, text encoder) planned after the pre-registered, confirmatory and exploratory results had been read & 2026-10-21, plan fixed before each check was run & Exploratory only; no verdict changed \\
+\addlinespace
+Training-size sweep & Sweep on all 500 episodes reuses the confirmatory hold-out for training and evaluation; planned after the first-250 learning curve and the hold-out results had been read & 2026-10-21, plan fixed before the run & Exploratory only; the confirmatory verdict is unchanged \\
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
