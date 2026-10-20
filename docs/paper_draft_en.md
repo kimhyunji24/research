@@ -143,14 +143,14 @@ Because ALFWorld has no failing terminal state, a failure is a timeout. To check
 11 of 399 succeeded between actions 31 and 100 (2.8%, Wilson 95% CI 1.6–4.9%), so the upper bound was below the pre-registered 5% threshold and we kept the 30-action label (sensitivity analyses in Section 4.7).
 The agent (actor) was Qwen2.5-3B-Instruct in bfloat16. At each step the prompt contained a fixed system message (rules and one worked example episode),
 the task sentence, the last six observation–action pairs, the current observation, the actions that had recently produced no effect, and the list of admissible actions.
-We call this prompt v2. It was written by us: an earlier version followed the thought–action format of ReAct (Yao et al., 2023), and when we switched to candidate scoring we dropped the thought step
+We call this prompt v2. It was written by us: an earlier version followed the thought–action format of ReAct [13], and when we switched to candidate scoring we dropped the thought step
 and added six rules and one handwritten example episode. None of its text is taken from the ReAct exemplars. A second, external prompt is described in Section 4.4.
 
 The actor selected actions by constrained scoring rather than free generation. Each admissible action *a* (excluding `help`, `inventory` and `look`)
 was scored by the summed log-probability of the continuation `Action: a<|im_end|>` given the prompt, computed in one batched pass that reuses the prompt's key–value cache.
 In the greedy policy the highest-scoring action was taken. In the sampling policy an action was drawn from softmax(score / *T*) with *T* = 1,
 i.e. the model's distribution renormalized over admissible actions; the random generator was seeded by (sample seed, episode index, step), so rollouts are reproducible and resumable.
-Free generation was not used because small models frequently produced inadmissible actions in preliminary runs (Appendix [TODO]).
+Free generation was not used because small models frequently produced inadmissible actions in preliminary runs (Appendix Table A5).
 
 ### 3.2 Representations: separating the actor from the reader
 Hidden states were taken at the last prompt token, immediately before the action is scored, at relative depths of 25, 50, 75 and 100% of the layers
@@ -224,6 +224,11 @@ Interim counts of the 100-action re-run were seen twice before its decision (at 
 One NVIDIA RTX 4070 (12 GB) under WSL2 (Ubuntu 22.04), Python 3.11, PyTorch 2.11 (CUDA 12.8), Transformers 5.19.0.
 Collecting one episode took about 8–11 s; the 640 main-set rollouts took 88 min.
 
+**Monitor cost.** Following [2], we approximate inference compute as 2*N* floating-point operations per token for a model with *N* parameters, so the extra cost of a separate monitor that reads the same tokens is its parameter count relative to the actor's.
+With the public Qwen2.5 counts (0.5B: 0.49B total, 0.36B without embeddings; 3B: 3.09B and 2.77B; 7B: 7.61B and 6.53B), a 0.5B monitor adds 0.36/2.77 ≈ 13% to 0.49/3.09 ≈ 16% to a 3B actor,
+and a 7B monitor costs 6.53/2.77 ≈ 2.36 to 7.61/3.09 ≈ 2.46 times as much as the actor (about 2.4 times). A probe on the actor's own hidden state adds one dot product with a 2,048-dimensional vector per step and needs no additional model call.
+We did not measure energy or latency.
+
 ## 4 Results
 ### 4.1 Task level
 **Data.** The greedy actor completed 56 of the first 250 episodes (22.4%, Wilson 95% CI 17.7–28.0%) and 101 of all 500.
@@ -240,7 +245,7 @@ and every 95% interval of the difference lay below zero (Table 1, Fig. 3): −0.
 −0.159 (−0.240 to −0.073) at step 2. Hypothesis H1 was therefore not supported in the pre-registered cell; this matches the third outcome of the interpretation table fixed in advance
 ("even the 3B reader does not beat rung 5").
 
-**Exploratory analyses (same 250 episodes).** We then evaluated all 96 combinations of four readers, four depths, two probe types and three rounds (Fig. 4; Appendix Table [TODO]).
+**Exploratory analyses (same 250 episodes).** We then evaluated all 96 combinations of four readers, four depths, two probe types and three rounds (Fig. 4; Appendix Table A6).
 No combination exceeded the baseline by more than 0.004, and the two positive differences (+0.004 and +0.001) had intervals spanning zero.
 The 75% depth was the best or near-best depth for every reader; for the 3B reader the linear probe at 75% depth was within −0.034 to −0.011 of the baseline (all intervals include zero).
 Averaged over steps 0–2, the best-depth linear AUROC was 0.660 (0.5B), 0.717 (1.5B), 0.727 (3B) and 0.717 (7B, 4-bit; best depth 100%), i.e. no monotonic increase with reader size;
@@ -328,7 +333,7 @@ and the chosen action had probability above 0.99 in 77% of steps 1–3. All meth
 We decided before reading these results not to enlarge the sample and to report them only in the appendix (Table A3); the attempt-level question could not be answered for this model.
 
 **A second prompt (ReAct exemplars).** To test whether the conclusion depends on our own prompt, we re-ran Qwen2.5-3B on the same 250 games with the original ALFWorld exemplars of ReAct
-(Yao et al., 2023), changing only the action grammar to that of `alfworld` 0.4.2 (`put A in/on B` → `move A to B`). The two prompts differ in several ways at once (Appendix Table A4):
+[13], changing only the action grammar to that of `alfworld` 0.4.2 (`put A in/on B` → `move A to B`). The two prompts differ in several ways at once (Appendix Table A4):
 the ReAct prompt is a raw completion string rather than a chat template, uses two exemplars matched to the current task type instead of one fixed example,
 keeps the full history instead of the last six steps, and omits the admissible-action list and the note on failed actions. The policy, games, analysis and decision rule were unchanged,
 and the rung-5 text used only the current game, excluding the exemplars. We therefore treat this prompt as a check on the conclusion, not as an estimate of any single prompt factor.
@@ -397,15 +402,15 @@ Most of what any method predicted across games was the game itself (η² = 0.695
 so in-progress failure is not invisible; it is equally visible in the text and progress features, and the hidden states did not add to it.
 Hypothesis H1 (hidden states predict failure better than surface information) was therefore not supported in any setting we tested.
 
-**Relation to prior work.** Probes on agent hidden states have been reported to predict failure early and to beat monitors that use only action-level features (Doomed from the Start; Ruan et al., 2026).
+**Relation to prior work.** Probes on agent hidden states have been reported to predict failure early and to beat monitors that use only action-level features [3].
 Their baselines contain no task information (the task sentence, task type, observations or progress). In our ladder, task type alone gave an AUROC of 0.603 and the full rung 5 gave 0.701 at the first action,
 and against this full ladder the probe showed no advantage in any setting. We did not reproduce their baselines or environments, so we cannot say that their reported gains would vanish; our results suggest that comparisons against task-blind monitors overstate what hidden states add.
-In mathematical reasoning, Bulut (2026) found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
+In mathematical reasoning, Bulut [10] found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
 Our agent results agree on the first part, since the game explained most of the outcome, but differ on the second: within games, signals were above chance from step 2 on. A likely reason is that agent trajectories diverge in observable ways, such as visited places and repeated actions,
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
-That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs (When Agents Commit Too Soon, 2026) and that surface signals compete with internal ones for web agents (Monitoring Web Agents Without Internal Signals, 2026) are consistent with our findings.
-For early stopping, a step-count control already saves a large share of the cost in software-engineering agents (Fail-Fast, Restart-Smart, 2026), matching the strength of the step cap here.
-Finally, the weak transfer of our probe from one prompt to another agrees with reports that probes trained under one template transfer poorly to others (arXiv 2604.03754; to verify).
+That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs [9] and that surface signals compete with internal ones for web agents [15] are consistent with our findings.
+For early stopping, a step-count control already saves a large share of the cost in software-engineering agents [2], matching the strength of the step cap here.
+Finally, the weak transfer of our probe from one prompt to another agrees with reports that probes trained under one template transfer poorly to others [16].
 
 **Why hidden states may not help here.** We see three explanations, none tested directly. First, at the steps we evaluated the outcome is largely fixed by the game, and the prompt already states the task and the room, so the information the probe could use is also in the text.
 Second, the probe may learn directions that encode the prompt's form rather than a general failure state: a probe trained under one prompt was near chance under another (exploratory; the two prompts also differ in the token at which hidden states are taken).
@@ -460,7 +465,16 @@ Reference on the same games: Qwen2.5-3B 5/20. All runs completed, all actions we
 | SmolLM3-3B | 1/20 | 82% | 0.19 | examine 57%, take 15%, move 14% |
 | Phi-3.5-mini | 1/20 | 76% | 0.25 | take 33%, move 30%, go 16% |
 
-Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs per step): probe 0.471/0.471/0.479, rung 4 0.479/0.471/0.521, rung 5 0.471/0.471/0.521 at steps 1–3; η² = 0.849 (0.747–0.935); difficulty oracle alone 0.911. [TODO: format as table.]
+| Table A3. Qwen3-4B within-game pairwise AUROC (T = 1 sampling; 10 of 50 games with both outcomes, 120 pairs per step) | step 1 | step 2 | step 3 |
+|---|---|---|---|
+| Probe (own hidden state, 75% depth, linear) | 0.471 (0.396, 0.500) | 0.471 (0.397, 0.509) | 0.479 (0.402, 0.517) |
+| Rung 4 | 0.479 (0.404, 0.519) | 0.471 (0.397, 0.509) | 0.521 (0.443, 0.611) |
+| Rung 5 | 0.471 (0.391, 0.508) | 0.471 (0.397, 0.509) | 0.521 (0.443, 0.611) |
+| Probe − rung 4 (95% CI) | −0.008 (−0.020, 0.000) | 0.000 (0.000, 0.000) | −0.042 (−0.202, +0.063) |
+| Probe − rung 5 (95% CI) | 0.000 (−0.011, +0.015) | 0.000 (0.000, 0.000) | −0.042 (−0.202, +0.063) |
+| Within-game permutation p, probe | 1.00 | 0.94 | 0.92 |
+
+Game-level bootstrap (1,000 resamples). η² = 0.849 (0.747–0.935); difficulty oracle alone 0.911 on pooled rows. Most pairs were tied (identical prompts), so these values carry little information; by a decision made before the results were read, no conclusion is drawn (Section 4.4). Source: `results/within_game_qwen3_4b*.csv`.
 
 | Table A4. The two prompts | v2 (ours) | ReAct exemplars (minimally edited) |
 |---|---|---|
@@ -474,6 +488,26 @@ Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs
 | Hidden state token | Last token of the generation prompt | Final `>` |
 | Edits | — | `put A in/on B` → `move A to B` and the matching observation |
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
+
+| Table A5. Preliminary runs before the policy was fixed (2026-10-08) | Episodes | Successes | Admissible actions |
+|---|---|---|---|
+| Free generation, first prompt (Thought/Action), 0.5B | 2 | 0 | 8% |
+| Free generation, first prompt, 1.5B | 5 | 0 | 56% |
+| Free generation, first prompt, 3B | 5 | 1 | 61% |
+| Free generation, 1.5B, first code on the GPU machine | 3 | 0 | 26% |
+| Free generation, 1.5B, revised prompt (rules and example) | 5 | 0 | 22% |
+| Candidate scoring (final policy), 0.5B / 1.5B / 3B, training games | 20 / 100 / 100 | 0 / 2 / 20 | 100% by construction |
+
+Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games before the prompt was frozen; with so few episodes they only show that inadmissible actions were frequent. Source: project log of 2026-10-08 (raw run logs are not in the repository; to verify).
+
+| Table A6 (exploratory). Linear-probe AUROC by reader and depth, first 250 episodes, mean over steps 0–2 | 25% | 50% | 75% | 100% | Probe − rung 5, all 24 cells per reader (min, max) |
+|---|---|---|---|---|---|
+| 0.5B reader | 0.618 | 0.615 | **0.660** | 0.642 | −0.277, +0.001 |
+| 1.5B reader | 0.589 | 0.631 | **0.717** | 0.675 | −0.195, −0.006 |
+| 3B reader (= actor) | 0.595 | 0.594 | **0.727** | 0.682 | −0.205, +0.004 |
+| 7B reader (4-bit) | 0.608 | 0.643 | 0.704 | **0.717** | −0.191, −0.004 |
+
+Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50% depth is the pre-registered cell (Table 1). Full results with CIs and permutation p-values: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv` and `*_diff.csv` (supplementary).
 
 ## References
 <!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11] not read (taken from [10]); [16] cited in Section 5 and not yet checked.
