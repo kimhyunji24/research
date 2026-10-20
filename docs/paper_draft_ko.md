@@ -1,12 +1,12 @@
-# 소형 Qwen 에이전트의 hidden state는 게임 간에도 시도 간에도 겉보기 과제 정보보다 ALFWorld 실패를 더 잘 예측하지 못한다
+#  소형 Qwen 언어모델 에이전트의 실패 예측:  Hidden State 프로빙과 관찰 가능 정보의 효용성 비교
 <!-- 제목 초안 2026-10-20(콜론 없음, ALFWorld·Qwen actor·두 평가 수준을 이름으로). 영문 제목: Hidden States of Small Qwen Agents Predict ALFWorld Failure No Better Than Visible Task Information Across Games and Attempts.
      대안: (가) ALFWorld의 소형 Qwen 에이전트 프로브 분석에서 게임 간·게임 내 모두 겉보기 과제 정보를 넘는 실패 신호는 없었다 -->
 
 
 <!-- 2026-10-17 작성 시작, 2026-10-20 모든 절 초안 완성. 목표: 학회 본 논문 또는 저널, 투고처 미정. 계획: docs/paper_revision_plan_2026-10-17.md.
      영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문.
-     수치는 results/*.csv와 각 절에 적은 계획 문서에서 가져왔다. 그림 2–4는 아직 만들지 않았다.
-     투고 전: 선행연구 수치 PDF 대조(점검표 docs/citation_check_2026-10-20.md), 2026년 프리프린트의 심사 판본 확인, 참고문헌 양식 정리. -->
+     수치는 results/*.csv와 각 절에 적은 계획 문서에서 가져왔다. 그림 2–4: figures/fig{2,3,4}_*.pdf(scripts/2026-10-20/make_figures.py가 results/*.csv로 그림, 그림 1은 아직 본문에서 참조하지 않음).
+     선행연구 수치는 2026-10-20 PDF로 대조함(docs/citation_check_2026-10-20.md). 투고 전: 2026년 프리프린트의 심사 판본 확인, 참고문헌 양식 정리. -->
 
 ## 초록
 언어모델 에이전트의 hidden state에 학습한 선형 프로브는 실패를 일찍 예측하는 값싼 모니터로 제안되었지만, 그 이득은 과제를 보지 못하는 baseline과 비교해 측정되었다.
@@ -95,7 +95,7 @@ Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합
 P(IK)는 과제 사이에서 부분적으로 전이했지만 분포 밖에서는 보정이 나빴다. Kuhn 등[5]은 샘플한 여러 답을 의미로 묶은 군집의 엔트로피로 불확실성을 정의했고, 이 값이 어휘 기반 baseline보다 정확도를 잘 예측했지만 질문마다 여러 번 생성해야 했다.
 Kossen 등[6]은 단일 생성의 hidden state에 선형 프로브를 학습해 의미 엔트로피를 근사함으로써 이 비용을 없앴고, 이 프로브는 정확도를 직접 예측하는 프로브보다 분포 밖에서 더 잘 일반화했다.
 Moreno Cencerrado 등[7]은 읽는 시점을 생성 전으로 옮겼다. 질문을 읽은 직후의 활성에 프로브를 학습해 7B에서 70B 모델이 곧 낼 답이 맞을지를 예측했으나, 수학 추론 질문에서는 일반화가 약해졌다.
-Lugoloobi 등[11]은 생성 전 활성에 선형 프로브를 학습해 수학·코딩 과제에서 그 모델의 성공을 예측했다. 이 프로브는 질문 길이나 TF-IDF 같은 표면 특징보다 분명히 나았고, 저자들은 모델이 사람의 난이도와 다른 모델별 난이도를 담는다고 결론지었다. 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
+Lugoloobi 등[11]은 생성 전 활성에 선형 프로브를 학습해 수학·코딩 과제에서 그 모델의 성공을 예측했다. 주 결과 표 15개 설정 중 14개에서 선형 프로브가 TF-IDF보다, 또 14개에서 질문 길이보다 높았고, 저자들은 모델이 사람의 난이도와 다른 모델별 난이도를 담는다고 결론지었다. 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
 이런 목표는 질문 응답에서는 의미가 있지만, 어려운 질문과 실패하는 시도를 구분하지 못한다.
 
 ### 2.2 에이전트의 hidden state 모니터
@@ -242,7 +242,7 @@ step 번호만 쓰는 1단은 의도대로 모든 라운드에서 정확히 0.50
 step 2에서 −0.159(−0.240 ~ −0.073)였다. 따라서 사전 등록한 조건에서 가설 H1은 지지되지 않았다.
 이는 미리 고정한 해석표의 세 번째 경우("3B reader도 5단을 이기지 못함")에 해당한다.
 
-**탐색 분석(같은 250개 episode).** 이어서 reader 4종, 깊이 4종, 프로브 2종, 라운드 3개의 96개 조합을 모두 평가했다(Fig. 4, 부록 표 A6).
+**탐색 분석(같은 250개 episode).** 이어서 reader 4종, 깊이 4종, 프로브 2종, 라운드 3개의 96개 조합을 모두 평가했다(선형 프로브 칸은 Fig. 4, 전체는 부록 표 A6).
 baseline보다 0.004 넘게 높은 조합은 없었고, 차이가 양수인 두 조합(+0.004, +0.001)도 신뢰구간이 0을 포함했다.
 75% 깊이는 모든 reader에서 가장 좋거나 그에 가까웠다. 3B reader의 75% 깊이 선형 프로브는 baseline 대비 −0.034 ~ −0.011이었다(신뢰구간은 모두 0을 포함).
 step 0–2 평균으로 보면 가장 좋은 깊이의 선형 AUROC는 0.660(0.5B), 0.717(1.5B), 0.727(3B), 0.717(7B 4비트, 최고 깊이 100%)로,
@@ -255,17 +255,17 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 우수 기준을 충족한 라운드는 없었고 열등한 라운드도 없었다. step 0과 1은 비열등 규칙(마진은 탐색 뒤에 정함)을 충족했고 step 2는 결론이 나지 않았다.
 5단 baseline은 홀드아웃에서 앞 250개보다 낮아(step 0에서 0.607 대 0.701), 표본에 따라 이 정도의 변동이 있음을 보여 준다.
 
-| Table 1 (draft). Failure prediction AUROC on the first 250 episodes (pre-registered rounds). | step 0 | step 1 | step 2 |
-|---|---|---|---|
-| Rung 1: step index | 0.500 | 0.500 | 0.500 |
-| Rung 2: + task type | 0.603 | 0.603 | 0.603 |
-| Rung 3: + repetition, chosen-action probability | 0.659 | 0.633 | 0.671 |
-| Rung 4: + progress | 0.673 | 0.700 | 0.834 |
-| Rung 5: + TF-IDF of prompt | 0.701 | 0.732 | 0.823 |
-| Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 |
-| Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) |
+| Table 1 (draft). Failure prediction AUROC on the first 250 episodes (pre-registered rounds: steps 0–2). | step 0 | step 1 | step 2 | step 3 (baselines only) |
+|---|---|---|---|---|
+| Rung 1: step index | 0.500 | 0.500 | 0.500 | 0.500 |
+| Rung 2: + task type | 0.603 | 0.603 | 0.603 | 0.603 |
+| Rung 3: + repetition, chosen-action probability | 0.659 | 0.633 | 0.671 | 0.700 |
+| Rung 4: + progress | 0.673 | 0.700 | 0.834 | 0.814 |
+| Rung 5: + TF-IDF of prompt | 0.701 | 0.732 | 0.823 | 0.818 |
+| Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 | – |
+| Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) | – |
 
-*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples).
+*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). step 3은 사전 등록 라운드가 아니며 프로브는 평가하지 않았다. 출처: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv`.
 
 | Table 2 (draft). Confirmatory hold-out (episodes 250–499; 3B reader, 75% depth, linear). | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -276,9 +276,19 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 
 *n* = 250 episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250.
 
-그림(작성 예정): Fig. 2 step별 baseline 사다리와 95% CI 띠, Fig. 3 프로브 − 5단 차이와 95% CI(사전 등록·탐색·확증 구분), Fig. 4 reader 크기별 최고 깊이 AUROC(7B는 4비트 표시).
+![Fig. 2](../figures/fig2_baseline_ladder.png)
+
+*Fig. 2. 처음 250 episode에서 baseline 사다리(step 0–3)와 사전 등록 프로브(step 0–2)의 실패 예측 AUROC(step마다 n = 250, 실패 194). 5단과 프로브를 강조하고 scene 단위 군집 bootstrap(1,000회) 95% CI를 음영으로 표시했다. 1–4단의 CI는 가독성을 위해 생략했다. 1단은 설계상 0.5이고 2단은 step에 따라 변하지 않는다. 두 음영이 겹치는지는 차이의 검정이 아니며, 짝지은 차이는 Fig. 3에 있다. 출처: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv`.*
+
+![Fig. 3](../figures/fig3_probe_minus_baseline.png)
+
+*Fig. 3. 사전 등록·사전 지정·확증 프로브 대 baseline 비교 전부(18개, 우수 0개). 점은 AUROC 차이, 막대는 95% CI. 과제 수준: 프로브 − 5단, scene 단위 군집 bootstrap(1,000회), 라벨에 설정과 n(episode, 실패). 시도 수준: 게임 내 쌍 AUROC 차이, 게임 단위 bootstrap(1,000회). 라벨을 섞은 데이터에서 이 구간은 귀무값을 80–94%만 포함해(4.2절) 실제보다 좁다. 점선: 비열등 한계 −0.05, 확증 hold-out에만 적용하며 탐색 분석 뒤에 정했다. 탐색 추정치는 넣지 않았다(Fig. 4). 출처: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv`.*
+
+![Fig. 4](../figures/fig4_reader_depth.png)
+
+*Fig. 4. 탐색: 처음 250 episode에서 선형 프로브의 모든 reader × 깊이 조합의 프로브 − 5단 AUROC 차이(48칸, 선택 없음). 0을 중심으로 한 발산 색(빨강: 프로브가 5단보다 낮음). †는 95% CI(scene 단위 군집 bootstrap)가 0을 포함하지 않는 칸이며 모두 0 아래다(48칸 중 31칸). CI가 0 위에 있는 칸은 없고 가장 큰 차이는 +0.001이다. 7B reader는 4비트 가중치를 써서 크기와 양자화가 섞여 있다. MLP 칸과 CI: 부록 표 A6, `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv`.*
 ### 4.2 시도 수준
-**주 결과.** 게임 안에서 프로브의 쌍 AUROC는 step 1에서 0.520(95% CI 0.453–0.583), step 2에서 0.585(0.522–0.654), step 3에서 0.619(0.552–0.687)였다(Table 3).
+**주 결과.** 게임 안에서 프로브의 쌍 AUROC는 step 1에서 0.520(95% CI 0.453–0.583), step 2에서 0.585(0.522–0.654), step 3에서 0.619(0.552–0.687)였다(Table 3, Fig. 3).
 4단과 5단은 각각 0.517과 0.547, 0.611과 0.626, 0.565와 0.612였다. step 2부터는 세 방법 모두 같은 게임의 실패 시도와 성공 시도를 우연보다 잘 구분했고(게임 안 순열 p ≤ 0.018),
 step 1에서는 5단만 그랬다(p = 0.016). 프로브–baseline 차이 6개 중 우수 기준을 충족한 것은 없었고 열등한 것도 없었다. 가장 큰 차이는 step 3의 4단 대비 +0.054(−0.017 ~ +0.136)였다.
 결과는 해석표의 어느 줄에도 깔끔하게 들어가지 않는다. 프로브는 baseline보다 낫지 않았고, 동등 정의(95% CI가 ±0.05 안)를 충족한 비교도 없었다.
@@ -343,7 +353,7 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 이는 ReAct 안에서 학습한 프로브(0.659, 0.623, 0.593)보다 낮았다(step 0과 1의 차이는 신뢰구간이 0 아래). 라벨 없이 ReAct 상태를 다시 표준화해도 나아지지 않았다(0.550, 0.482, 0.586).
 프로브가 배우는 방향이 프롬프트 형식에 묶여 있음을 시사한다. 다만 두 프롬프트는 hidden state를 뽑는 토큰도 달라서, 신호가 다른 것인지 표현 위치가 옮겨 간 것인지는 가를 수 없다.
 
-**설정 전체 요약.** 과제 수준 평가 네 가지(사전 등록, 확증, Qwen3-4B, ReAct 프롬프트)의 12개 라운드 중 프로브가 5단보다 우수한 라운드는 0개였다.
+**설정 전체 요약.** 과제 수준 평가 네 가지(사전 등록, 확증, Qwen3-4B, ReAct 프롬프트)의 12개 라운드 중 프로브가 5단보다 우수한 라운드는 0개였다(Fig. 3).
 
 | Table 4. Task-level probe − rung 5 (AUROC difference, 95% CI) across settings | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -447,7 +457,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 텍스트 baseline과 프로브가 모두 이를 읽을 수 있기 때문으로 보이지만 검정하지는 않았다.
 반복 실행한 에이전트에서 텍스트 유사도가 hidden state 유사도보다 실행 간 행동을 더 잘 예측했다는 보고[9]와, 웹 에이전트에서 겉보기 신호가 내부 신호와 경쟁할 만하다는 보고[15]는 우리 결과와 일관된다.
 조기 중단에서는 소프트웨어 공학 에이전트에서도 step 수만 쓰는 대조가 이미 비용의 상당 부분을 아꼈는데[2], 이는 여기서 step 상한이 강했던 것과 맞는다.
-반대로 수학·코딩에서는 생성 전 프로브가 질문 길이와 TF-IDF보다 분명히 나았다[11]. 우리 텍스트 baseline에는 방 묘사, 관찰, 최근 기록도 들어 있고 과제도 상호작용형이다. 이런 차이가 반대 결과를 설명하는지는 검정하지 않았다.
+반대로 수학·코딩에서는 생성 전 프로브가 15개 설정 중 각각 14개에서 질문 길이와 TF-IDF보다 높았다[11]. 우리 텍스트 baseline에는 방 묘사, 관찰, 최근 기록도 들어 있고 과제도 상호작용형이다. 이런 차이가 반대 결과를 설명하는지는 검정하지 않았다.
 끝으로 프롬프트 사이에서 프로브가 잘 옮겨 가지 않은 결과는, 진실성 프로브의 기하와 일반화가 프롬프트 템플릿과 지시문에 따라 달라진다는 보고[16]와 같은 방향이다.
 
 **여기서 hidden state가 도움이 되지 않은 이유.** 세 가지 설명이 가능하며 어느 것도 직접 검정하지 않았다. 첫째, 평가한 step에서는 결과가 대부분 게임으로 정해지고, 프롬프트가 이미 과제와 방을 서술하므로 프로브가 쓸 수 있는 정보는 텍스트에도 있다.
@@ -548,7 +558,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 5단은 step 0–2 평균 0.752였다. 마지막 열은 네 깊이·세 step의 선형·MLP 프로브를 모두 포함한다(reader당 24칸, 모두 96칸). 굵은 글씨는 reader별 최고 깊이이다. 3B reader 50% 깊이가 사전 등록 조건이다(표 1). CI와 순열 p를 포함한 전체 결과: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv`와 `*_diff.csv`(보조 자료).
 
 ## 참고문헌
-<!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11], [14], [16]은 2026-10-20 arXiv 초록으로 확인(주 세션; [14]는 "zero measured inference overhead").
+<!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11], [14], [16]은 2026-10-20 arXiv 초록으로 확인(주 세션; [14]는 "zero measured inference overhead"). 선행연구 수치 전부를 2026-10-20 arXiv PDF로 다시 대조(docs/citation_check_2026-10-20.md PDF 열), 바뀐 것은 [11] 문구뿐.
      5절은 아직 이름으로 인용하므로 확정할 때 번호로 바꾼다. 저자가 많은 항목은 투고 양식에 맞춰 정리한다. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.

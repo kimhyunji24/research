@@ -4,8 +4,8 @@
      (b) Do Hidden States Reveal Agent Failure Beyond the Task? A Controlled Test in ALFWorld  [has a question mark; check venue style] -->
 
 <!-- Draft started 2026-10-17; all sections drafted by 2026-10-20. Target: main conference or journal paper; venue TBD. Plan: docs/paper_revision_plan_2026-10-17.md.
-     Numbers come from results/*.csv and the plan documents named in each section. Figures 2–4 are not produced yet.
-     Before submission: check prior-work numbers against the PDFs (checklist docs/citation_check_2026-10-20.md), check for reviewed versions of 2026 preprints, format references for the venue. -->
+     Numbers come from results/*.csv and the plan documents named in each section. Figures 2–4: figures/fig{2,3,4}_*.pdf, drawn from results/*.csv by scripts/2026-10-20/make_figures.py (no Fig. 1 is referenced yet).
+     Prior-work numbers checked against the PDFs on 2026-10-20 (docs/citation_check_2026-10-20.md). Before submission: check for reviewed versions of 2026 preprints, format references for the venue. -->
 
 ## Abstract
 Linear probes on the hidden states of language-model agents have been proposed as cheap monitors that predict failure early, but their gains have been measured against baselines that do not see the task.
@@ -97,7 +97,7 @@ Work on reading success or failure from a model's own states began at the level 
 P(IK) transferred partially across tasks but was poorly calibrated out of distribution. Kuhn et al. [5] measured uncertainty as the entropy over meaning clusters of several sampled answers, which predicted accuracy better than lexical baselines, but it required multiple generations per question.
 Kossen et al. [6] removed that cost by training linear probes on the hidden state of a single generation to approximate the semantic entropy; the probes generalized better out of distribution than probes that predict accuracy directly.
 Moreno Cencerrado et al. [7] moved the readout before generation: probes on activations taken after the question is read, in models from 7B to 70B parameters, predicted whether the forthcoming answer would be correct, but generalization faltered on mathematical reasoning questions.
-Lugoloobi et al. [11] trained linear probes on pre-generation activations to predict policy-specific success on math and coding tasks; the probes clearly outperformed surface features such as question length and TF-IDF, and the authors concluded that models encode a model-specific notion of difficulty distinct from human difficulty. In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
+Lugoloobi et al. [11] trained linear probes on pre-generation activations to predict policy-specific success on math and coding tasks; the linear probe scored above TF-IDF and above question length in 14 of the 15 settings of their main results table, and the authors concluded that models encode a model-specific notion of difficulty distinct from human difficulty. In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
 Such a target is meaningful for question answering, but it does not separate a hard question from a failing attempt.
 
 ### 2.2 Hidden-state monitors for agents
@@ -243,7 +243,7 @@ and every 95% interval of the difference lay below zero (Table 1, Fig. 3): −0.
 −0.159 (−0.240 to −0.073) at step 2. Hypothesis H1 was therefore not supported in the pre-registered cell; this matches the third outcome of the interpretation table fixed in advance
 ("even the 3B reader does not beat rung 5").
 
-**Exploratory analyses (same 250 episodes).** We then evaluated all 96 combinations of four readers, four depths, two probe types and three rounds (Fig. 4; Appendix Table A6).
+**Exploratory analyses (same 250 episodes).** We then evaluated all 96 combinations of four readers, four depths, two probe types and three rounds (linear cells in Fig. 4; all cells in Appendix Table A6).
 No combination exceeded the baseline by more than 0.004, and the two positive differences (+0.004 and +0.001) had intervals spanning zero.
 The 75% depth was the best or near-best depth for every reader; for the 3B reader the linear probe at 75% depth was within −0.034 to −0.011 of the baseline (all intervals include zero).
 Averaged over steps 0–2, the best-depth linear AUROC was 0.660 (0.5B), 0.717 (1.5B), 0.727 (3B) and 0.717 (7B, 4-bit; best depth 100%), i.e. no monotonic increase with reader size;
@@ -256,17 +256,17 @@ These analyses were chosen after seeing the pre-registered result and are not ev
 No round met the criterion for superiority and none was inferior; steps 0 and 1 met the non-inferiority rule, whose margin was set after exploration, and step 2 was inconclusive.
 The rung-5 baseline was lower on the hold-out than on the first 250 episodes (0.607 vs. 0.701 at step 0), which indicates sample-to-sample variation of this size.
 
-| Table 1 (draft). Failure prediction AUROC on the first 250 episodes (pre-registered rounds). | step 0 | step 1 | step 2 |
-|---|---|---|---|
-| Rung 1: step index | 0.500 | 0.500 | 0.500 |
-| Rung 2: + task type | 0.603 | 0.603 | 0.603 |
-| Rung 3: + repetition, chosen-action probability | 0.659 | 0.633 | 0.671 |
-| Rung 4: + progress | 0.673 | 0.700 | 0.834 |
-| Rung 5: + TF-IDF of prompt | 0.701 | 0.732 | 0.823 |
-| Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 |
-| Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) |
+| Table 1 (draft). Failure prediction AUROC on the first 250 episodes (pre-registered rounds: steps 0–2). | step 0 | step 1 | step 2 | step 3 (baselines only) |
+|---|---|---|---|---|
+| Rung 1: step index | 0.500 | 0.500 | 0.500 | 0.500 |
+| Rung 2: + task type | 0.603 | 0.603 | 0.603 | 0.603 |
+| Rung 3: + repetition, chosen-action probability | 0.659 | 0.633 | 0.671 | 0.700 |
+| Rung 4: + progress | 0.673 | 0.700 | 0.834 | 0.814 |
+| Rung 5: + TF-IDF of prompt | 0.701 | 0.732 | 0.823 | 0.818 |
+| Probe, 3B reader, 50% depth (pre-registered) | 0.520 | 0.599 | 0.665 | – |
+| Probe − rung 5 (95% CI) | −0.181 (−0.276, −0.069) | −0.133 (−0.230, −0.031) | −0.159 (−0.240, −0.073) | – |
 
-*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). Interval half-widths for single AUROCs were about 0.07–0.09.
+*n* = 250 episodes (194 failures) per round; CIs from a scene-level cluster bootstrap (1,000 resamples). Interval half-widths for single AUROCs were about 0.07–0.09. Step 3 is not a pre-registered round; the probe was not evaluated there. Sources: `results/probe_main_3b_primary*.csv`, `results/baselines_main_3b.csv`.
 
 | Table 2 (draft). Confirmatory hold-out (episodes 250–499; 3B reader, 75% depth, linear). | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -277,10 +277,19 @@ The rung-5 baseline was lower on the hold-out than on the first 250 episodes (0.
 
 *n* = 250 episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250.
 
-Figures (to be produced): Fig. 2 baseline ladder by step with 95% CI bands; Fig. 3 probe − rung 5 differences with 95% CIs, marking pre-registered, exploratory and confirmatory estimates;
-Fig. 4 best-depth AUROC by reader size (7B marked as 4-bit).
+![Fig. 2](../figures/fig2_baseline_ladder.png)
+
+*Fig. 2. Failure-prediction AUROC of the baseline ladder (steps 0–3) and the pre-registered probe (steps 0–2) on the first 250 episodes (n = 250, 194 failures per step). Rung 5 and the probe are emphasized, with shaded 95% CIs from a scene-level cluster bootstrap (1,000 resamples); CIs of rungs 1–4 are omitted for legibility. Rung 1 is 0.5 by design and rung 2 does not change with the step. Overlap of the two shaded bands is not a test of their difference; the paired differences are in Fig. 3. Sources: `results/baselines_main_3b.csv`, `results/probe_main_3b_primary.csv`.*
+
+![Fig. 3](../figures/fig3_probe_minus_baseline.png)
+
+*Fig. 3. All pre-registered, pre-specified and confirmatory probe-versus-baseline comparisons (18; none superior). Points are AUROC differences with 95% CIs. Task level: probe − rung 5, scene-level cluster bootstrap (1,000 resamples); labels give the setting and n (episodes, failures). Attempt level: within-game pairwise AUROC differences, game-level bootstrap (1,000 resamples); on label-shuffled data these intervals covered the null value only 80–94% of the time (Section 4.2), so they are too narrow. Dashed segment: −0.05 non-inferiority margin, applied only to the confirmatory hold-out and set after the exploratory analysis. Exploratory estimates are not shown (Fig. 4). Sources: `results/probe_main_3b_primary_diff.csv`, `confirm_main_3b_diff.csv`, `task_qwen3_4b_diff_p.csv`, `task_react_qwen25_3b_diff_p.csv`, `within_game_diff.csv`.*
+
+![Fig. 4](../figures/fig4_reader_depth.png)
+
+*Fig. 4. Exploratory: probe − rung 5 AUROC difference for every reader × depth of the linear probe on the first 250 episodes (48 cells, no selection). Diverging color centered on zero (red: probe below rung 5); † marks cells whose 95% CI (scene-level cluster bootstrap) excludes zero, all of them below zero (31 of 48). No cell's CI lies above zero; the largest difference is +0.001. The 7B reader used 4-bit weights, so size is confounded with quantization. MLP cells and CIs: Appendix Table A6 and `results/explore_{0.5B,1.5B,3B,7B-4bit}_diff.csv`.*
 ### 4.2 Attempt level
-**Primary result.** Within games, the probe's pairwise AUROC was 0.520 (95% CI 0.453–0.583) at step 1, 0.585 (0.522–0.654) at step 2 and 0.619 (0.552–0.687) at step 3 (Table 3).
+**Primary result.** Within games, the probe's pairwise AUROC was 0.520 (95% CI 0.453–0.583) at step 1, 0.585 (0.522–0.654) at step 2 and 0.619 (0.552–0.687) at step 3 (Table 3, Fig. 3).
 Rungs 4 and 5 reached 0.517 and 0.547, 0.611 and 0.626, and 0.565 and 0.612. From step 2 on, all three methods separated failed from successful attempts of the same game above chance
 (within-game permutation p ≤ 0.018), whereas at step 1 only rung 5 did (p = 0.016). None of the six probe–baseline differences met the superiority criterion and none was inferior;
 the largest difference was +0.054 (−0.017 to +0.136) against rung 4 at step 3. The result fits no row of the interpretation table cleanly: the probe was not better than the baselines,
@@ -346,7 +355,7 @@ In an exploratory check, a probe trained on v2 trajectories and applied to ReAct
 below the probe trained within ReAct (0.659, 0.623 and 0.593; differences at steps 0 and 1 with intervals below zero). Re-standardizing the ReAct states without labels did not help (0.550, 0.482, 0.586).
 This suggests that the direction the probe learns is tied to the prompt format; because the two prompts also extract hidden states at different tokens, we cannot separate a different signal from a shifted representation.
 
-**Summary across settings.** In the four task-level evaluations (pre-registered, confirmatory, Qwen3-4B, ReAct prompt), the probe was superior to rung 5 in 0 of 12 rounds.
+**Summary across settings.** In the four task-level evaluations (pre-registered, confirmatory, Qwen3-4B, ReAct prompt), the probe was superior to rung 5 in 0 of 12 rounds (Fig. 3).
 
 | Table 4. Task-level probe − rung 5 (AUROC difference, 95% CI) across settings | step 0 | step 1 | step 2 |
 |---|---|---|---|
@@ -451,7 +460,7 @@ Our agent results agree on the first part, since the game explained most of the 
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
 That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs [9] and that surface signals compete with internal ones for web agents [15] are consistent with our findings.
 For early stopping, a step-count control already saves a large share of the cost in software-engineering agents [2], matching the strength of the step cap here.
-In contrast, pre-generation probes in math and coding clearly outperformed question length and TF-IDF [11]. Our text baseline also contains the room description, the observations and the recent history, and our task is interactive; whether these differences explain the opposite outcome we did not test.
+In contrast, pre-generation probes in math and coding scored above question length and TF-IDF in 14 of 15 settings each [11]. Our text baseline also contains the room description, the observations and the recent history, and our task is interactive; whether these differences explain the opposite outcome we did not test.
 Finally, the weak transfer of our probe from one prompt to another agrees with reports that the geometry and generalization of truth probes depend on prompt templates and instructions [16].
 
 **Why hidden states may not help here.** We see three explanations, none tested directly. First, at the steps we evaluated the outcome is largely fixed by the game, and the prompt already states the task and the room, so the information the probe could use is also in the text.
@@ -552,7 +561,7 @@ Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games bef
 Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50% depth is the pre-registered cell (Table 1). Full results with CIs and permutation p-values: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv` and `*_diff.csv` (supplementary).
 
 ## References
-<!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11], [14] and [16] checked against their arXiv abstracts on 2026-10-20 (main session; [14] states "zero measured inference overhead").
+<!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11], [14] and [16] checked against their arXiv abstracts on 2026-10-20 (main session; [14] states "zero measured inference overhead"). All prior-work numbers re-checked against the arXiv PDFs on 2026-10-20 (docs/citation_check_2026-10-20.md, PDF column); only [11] wording changed.
      Section 5 still cites by name; convert to numbers when finalizing. Long author lists to be formatted for the venue. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
