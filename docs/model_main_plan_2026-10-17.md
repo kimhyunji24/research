@@ -8,8 +8,8 @@ Qwen2.5-3B에서 쓴 두 층 평가(과제 단위, 시도 단위)를 다른 acto
 | 모델 | revision | 설정 | 상태 |
 |---|---|---|---|
 | Qwen/Qwen3-4B (thinking 끔) | `1cfa9a72…` | `configs/pilot_qwen3_4b.yaml`와 같음(출력 폴더만 다름) | 파일럿 포함(7/20) |
-| meta-llama/Llama-3.2-3B-Instruct | `0cb88a4f…` | `configs/pilot_llama32_3b.yaml`와 같음 | 접근 승인 대기(10-20 정정: 요청은 10-20 처음 제출, `model_pilot_plan` 변경 이력). 파일럿 통과 시 포함 |
-| HuggingFaceTB/SmolLM3-3B | `a07cc9a0…` | 필요할 때 만듦 | Llama 탈락 시 대체 1순위 → 10-20 변경: 파일럿 기준 통과 시 Llama와 무관하게 포함(`model_pilot_plan` 변경 이력) |
+| meta-llama/Llama-3.2-3B-Instruct | `0cb88a4f…` | `configs/pilot_llama32_3b.yaml`와 같음 | 접근 승인 대기(10-20 정정: 요청은 10-20 처음 제출, `model_pilot_plan` 변경 이력). 파일럿 통과 시 포함 → **10-20 파일럿 1/20, 제외** |
+| HuggingFaceTB/SmolLM3-3B | `a07cc9a0…` | 필요할 때 만듦 | Llama 탈락 시 대체 1순위 → 10-20 변경: 파일럿 기준 통과 시 Llama와 무관하게 포함(`model_pilot_plan` 변경 이력) → **10-20 파일럿 1/20, 제외**. Phi-3.5-mini(대체 2순위)도 1/20으로 제외. **본 실험 모델은 Qwen3-4B로 확정**(10-20 사용자 결정, 모델 추가 없음) |
 - 같은 절차를 모델마다 적용한다. 아래 수치(게임 수, 반복, seed, 판정 규칙)는 모델과 무관하게 고정이다.
 
 ## 데이터
