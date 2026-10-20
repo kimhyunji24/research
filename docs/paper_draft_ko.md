@@ -86,7 +86,51 @@ Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합
 - actor와 reader를 분리해 같은 궤적을 다른 크기의 reader로 읽어 비교했다. 이 부분은 탐색적이며 크기에 따른 단조 추세는 관찰되지 않았다.
 
 ## 2 관련 연구
-[TODO: docs/literature_check_2026-10-15.md의 출처를 원문으로 확인한 뒤 인용한다.]
+<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[14]·[15]는 arXiv HTML 원문 대조, [11]은 [10]을 통해). 합치면서 고친 것:
+     참고문헌 번호 정리([14] Khan & Khan, [15] Pan 등, [16] = 5절에서 인용한 2604.03754), 2.3의 "모두 hidden state를 쓰지 않는다"를 "관찰 가능한 신호를 읽는다"로 낮춤([15]의 내부 신호 baseline 종류 미확인),
+     [14] 비용 문구를 영문("측정된 추가 비용 없음")에 맞춤(0으로 측정했는지, 측정하지 않았는지 확인 필요). 부재 서술은 원문 검색 근거이며 저자 확인은 아니다. 인용 대부분이 2026년 프리프린트라 투고 전 심사 판본을 확인한다. -->
+
+선행 연구를 예측기가 무엇을 읽는지, 무엇과 비교했는지에 따라 나누어 살펴본다. 마지막에는 기존 프로토콜에서 무엇을 가져왔는지 밝힌다.
+
+### 2.1 내부 표현으로 정답 여부를 예측하는 연구
+모델 자신의 상태에서 성공이나 실패를 읽는 연구는 단일 질문 수준에서 시작했다. Kadavath 등[4]은 제안된 답과 무관하게 모델이 질문의 답을 아는지를 나타내는 확률 P(IK)를 예측하도록 value head를 학습했다.
+P(IK)는 과제 사이에서 부분적으로 전이했지만 분포 밖에서는 보정이 나빴다. Kuhn 등[5]은 샘플한 여러 답을 의미로 묶은 군집의 엔트로피로 불확실성을 정의했고, 이 값이 어휘 기반 baseline보다 정확도를 잘 예측했지만 질문마다 여러 번 생성해야 했다.
+Kossen 등[6]은 단일 생성의 hidden state에 선형 프로브를 학습해 의미 엔트로피를 근사함으로써 이 비용을 없앴고, 이 프로브는 정확도를 직접 예측하는 프로브보다 분포 밖에서 더 잘 일반화했다.
+Moreno Cencerrado 등[7]은 읽는 시점을 생성 전으로 옮겼다. 질문을 읽은 직후의 활성에 프로브를 학습해 7B에서 70B 모델이 곧 낼 답이 맞을지를 예측했으나, 수학 추론 질문에서는 일반화가 약해졌다.
+생성 전 활성이 모델별 난이도를 담는다는 보고도 있다([10]이 요약한 [11]). 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
+이런 목표는 질문 응답에서는 의미가 있지만, 어려운 질문과 실패하는 시도를 구분하지 못한다.
+
+### 2.2 에이전트의 hidden state 모니터
+Ruan 등[3]은 프로브를 다단계 에이전트에 적용했다. 이들은 각 action 마지막 토큰의 residual stream에 선형 프로브를 놓았고, 모델과 환경의 조합마다 층을 하나로 고정했다.
+프로브는 과제 단위로 묶은 분할로 교차적합했으며, TextCraft와 WebShop에서 라운드마다 평가했다(셀당 800 episode, 1.7B–7B 에이전트 세 개).
+프로브가 첫 라운드부터 최종 실패를 예측하고 행동 특징으로 만든 scorer보다 낫다고 보고했으며, 이 신호를 recall을 보장하는 중단 cascade로 바꿨다.
+ALFWorld는 Qwen-2.5-7B(477 rollout, 프로브 AUC 0.815)와 Qwen3-1.7B(0.764)로 경계 조건을 시험하는 데에만 쓰였다. 이들의 프로브, 재생 절차, 과제 단위 평가는 우리와 가깝다.
+그러나 행동 scorer는 action 로그확률, 토큰 수, prefix 길이, 오류 키워드만 쓴다. 과제당 4–8개의 rollout을 모았는데도 과제 내 평가나 난이도 통제는 보고하지 않았고, 저자 스스로 묶은 분할이 분포 안에 머문다고 밝혔다.
+
+다른 에이전트 연구는 다른 목표를 hidden state에서 읽는다. Khan과 Khan[14]은 Gemma 4 E4B의 28번째 층 hidden state로 추론 열화를 감지하는 프로브 모니터를 만들었고, 측정된 추가 추론 비용은 없었다.
+이 프로브는 나중에 평가에 쓰는 과제 목록에서 뽑은 대리 라벨 예시 35개로 학습되었으며, 저자들은 이를 타당성 연구로 제시한다. 1B–1.5B 모델에서는 개선이 없었다.
+Mehta와 Datta[9]는 같은 step에서 반복 실행 사이의 hidden state 유사도를 재어 ReAct 에이전트의 행동 안정성과 연결했다(Llama-3.1-70B, step 4에서 r = −0.35).
+이들은 공유된 검색 근거가 상관의 많은 부분을 설명하고, 관찰 텍스트가 행동을 더 잘 예측하며, 이 지표는 정답 여부가 아니라 안정성을 가리킨다고 보고했다. 같은 연구에서 선형 프로브는 회차 단위 정답을 예측하지 못했다.
+
+### 2.3 내부 상태 없는 조기 중단
+두 번째 계열은 관찰 가능한 신호로 실패할 실행을 멈춘다. AgentStop[1]은 토큰 로그확률 특징에 gradient-boosted tree를 학습하고 소비자 노트북에서 에너지를 측정했다.
+Qwen3-30B-A3B에서는 낭비된 에너지를 15–20% 줄였고 성능 하락은 5% 미만이었다. 다만 1.7B 모델에서는 실패 실행과 성공 실행의 로그확률이 더 많이 겹쳤다.
+Fail-Fast[2]는 SWE-bench Verified 궤적의 텍스트 prefix로 0.6B 모델을 미세조정했다. 5% 오탐 예산에서 Qwen3.6-27B의 토큰을 20.4% 줄였고, AgentStop 변형은 12.5%, step 수만 쓰는 대조는 11.4%였다.
+학습 때는 진행 정도를 맞춘 성공·실패 prefix를 짝지어 인스턴스 난이도를 통제하지만, 평가는 보류한 100개 인스턴스 × 5회 실행을 합쳐서 하며 인스턴스 내 분석은 찾지 못했다.
+EarlyEval[8]은 같은 아이디어를 평가 비용에 적용해, 행동·텍스트·참조 해답 특징의 분류기로 벤치마크 실행을 중단한다(step 13–26% 감소).
+Pan 등[15]은 웹 에이전트에서 관찰 가능한 거시·미시 궤적 특징이 내부 신호 baseline과 견줄 만하다고 보였고, 과제 단위 교차검증을 썼다.
+이 모니터들은 관찰 가능한 신호(로그확률, 텍스트, 행동)를 읽으며, 평가는 모두 과제를 합쳐서 한다. 이들 모니터가 싼 것은 큰 policy에 견줄 때뿐이다. [2]의 0.1–0.6% 비용은 공개 모델 9–31B 세 개에서 성립한다.
+
+### 2.4 교락 요인으로서의 과제 난이도
+합친 점수가 오도할 수 있다는 가장 강한 논거는 Bulut[10]에서 나온다. 그는 합친 AUROC가 문제 내 성분과 문제 간 성분의 가중합이며, 문제만으로 점수를 정하는 예측기는 문제 안에서 정확히 0.5라는 점을 보였다.
+궤적을 읽지 않는 난이도 대리 변수가 공개된 R1 생성 19만 건에서 AUROC 0.873에 도달했다. 가장 가까운 기존 조기 구간 프로브를 재구성하면 합친 값은 0.849였지만 문제 안에서는 0.496(95% CI 0.466–0.527)이었고, 사전 등록한 검정에서도 난이도 baseline 대비 이득이 없었다.
+Mehta와 Datta[9]는 에이전트에서 반대편으로부터 비슷한 결론에 이르렀다. 정답 여부는 대부분 질문이 정했고(100문항 중 64개는 항상 정답, 23개는 한 번도 정답이 아님) 회차 단위 프로브는 실패했다.
+두 연구는 같은 질문에 독립적으로 답하는 설정, 즉 단일 생성[10]이나 소수의 ReAct 실행[9]을 다룬다. 어느 쪽도 환경에서 행동하는 에이전트의 hidden state 실패 프로브를 평가하지는 않는다.
+
+### 2.5 본 연구의 위치
+[3]에서는 teacher-forced 재생, 라운드별 평가, 묶은 분할을 가져왔다. [10]에서는 문제 내 쌍 AUROC와 과제만으로 정해지는 baseline을 쓰는 방식을 가져왔다. [2]에서는 step 수만 쓰는 대조를 가져왔다.
+여기에 소형 상호작용 에이전트에서 이 연구들에 없는 요소를 더했다. 겉보기 정보를 단계적으로 더하는 5단 baseline 사다리, 두 층(게임 간과 게임 내) 평가, 장면 단위 묶음,
+이산 action 환경에서의 동점 쌍과 신뢰구간 포함률 처리, 그리고 actor 자신의 hidden state 프로브와 3B actor에 견준 비용으로 센 모니터의 비교이다.
 
 ## 3 방법
 
@@ -429,7 +473,7 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
 
 ## 참고문헌
-<!-- [1]–[10], [12], [13]은 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11]은 원문 미확인([10]에서 가져옴). [14], [15]는 5절에서 인용, 아직 미확인.
+<!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11]은 원문 미확인([10]에서 가져옴). [16]은 5절에서 인용, 아직 미확인.
      5절은 아직 이름으로 인용하므로 확정할 때 번호로 바꾼다. 저자가 많은 항목은 투고 양식에 맞춰 정리한다. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
@@ -444,5 +488,6 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 [11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [원문 미확인, [10]을 통해 인용]
 [12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
 [13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
-[14] Monitoring Web Agents Without Internal Signals. arXiv:2609.02057, 2026. [저자·주장 확인 필요]
-[15] arXiv:2604.03754(프롬프트 템플릿 간 프로브 전이). [제목·저자·주장 확인 필요]
+[14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
+[15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
+[16] arXiv:2604.03754(프롬프트 템플릿 간 프로브 전이, 5절에서 인용). [제목·저자·주장 확인 필요]

@@ -86,7 +86,53 @@ Our contributions are as follows.
 - We compare readers of different sizes on identical trajectories by separating the actor from the reader. This part is exploratory, and no monotone trend with size was observed.
 
 ## 2 Related Work
-[TODO: verify sources in docs/literature_check_2026-10-15.md against the originals before citing numbers.]
+<!-- 2026-10-20 draft from a separate writing session (statements checked against arXiv HTML for [1]-[10], [14], [15]; [11] via [10]). Merged with:
+     reference numbers aligned ([14] Khan & Khan, [15] Pan et al., [16] = 2604.03754 cited in Section 5);
+     2.3 "none used hidden states" lowered to "read observable signals" because the internal-signal baselines of [15] could not be typed;
+     absence statements ("[3] reports no within-task evaluation", "no within-instance analysis in [2]") rest on full-text search, not on author confirmation;
+     [14] "no measured inference overhead": check whether overhead was measured as zero or not measured. Most cited works are 2026 preprints; check for reviewed versions before submission. -->
+
+We group prior work by what the predictor reads and what it is compared against. We then state which parts of earlier protocols we reuse.
+
+### 2.1 Predicting correctness from internal representations
+Work on reading success or failure from a model's own states began at the level of single questions. Kadavath et al. [4] trained a value head to predict P(IK), the probability that the model knows the answer to a question, without reference to any proposed answer.
+P(IK) transferred partially across tasks but was poorly calibrated out of distribution. Kuhn et al. [5] measured uncertainty as the entropy over meaning clusters of several sampled answers, which predicted accuracy better than lexical baselines, but it required multiple generations per question.
+Kossen et al. [6] removed that cost by training linear probes on the hidden state of a single generation to approximate the semantic entropy; the probes generalized better out of distribution than probes that predict accuracy directly.
+Moreno Cencerrado et al. [7] moved the readout before generation: probes on activations taken after the question is read, in models from 7B to 70B parameters, predicted whether the forthcoming answer would be correct, but generalization faltered on mathematical reasoning questions.
+Pre-generation activations have also been reported to encode model-specific difficulty ([11], as summarized in [10]). In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
+Such a target is meaningful for question answering, but it does not separate a hard question from a failing attempt.
+
+### 2.2 Hidden-state monitors for agents
+Ruan et al. [3] applied probing to multi-step agents. They placed a linear probe on the residual stream at the last token of each action, with one layer fixed per model–environment cell.
+Probes were cross-fitted with task-grouped splits and evaluated per round on TextCraft and WebShop (800 episodes per cell, three agents of 1.7B–7B parameters).
+They reported that the probe predicts eventual failure from the first rounds and outperforms a scorer built from behavioral features. They then converted the signal into an abort cascade with a recall guarantee.
+ALFWorld appears in their work only as a boundary test with Qwen-2.5-7B (477 rollouts; probe AUC 0.815) and Qwen3-1.7B (0.764). Their probe, replay procedure and task-grouped evaluation are close to ours.
+Their behavioral scorer, however, uses only action log-probabilities, token counts, prefix length and error keywords. Their study reports no within-task evaluation or difficulty control, even though it collected 4–8 rollouts per task, and the grouped splits remain in-distribution by their own account.
+
+Other agent studies read hidden states for different targets. Khan and Khan [14] built a probe-based monitor on layer-28 hidden states of Gemma 4 E4B that detects reasoning degradation at no measured inference overhead.
+The probe was trained on 35 proxy-labeled examples drawn from the task bank later used for evaluation, and the authors present the work as a feasibility study. Their small-model tests (1B–1.5B) showed no improvement.
+Mehta and Datta [9] measured the similarity of hidden states across repeated runs at the same step and related it to behavioral stability in ReAct agents (r = −0.35 at step 4 on Llama-3.1-70B).
+They reported that shared retrieved evidence explains much of the association, that observation text predicts behavior better, and that the measure indexes stability rather than correctness. Linear probes in the same study could not predict per-run correctness.
+
+### 2.3 Early termination without internal states
+A second line of work stops likely failures from observable signals. AgentStop [1] trains gradient-boosted trees on token log-probability features and measures energy on a consumer laptop.
+It reduced wasted energy by 15–20% for Qwen3-30B-A3B with less than a 5% utility drop. In the 1.7B model, however, log-probabilities of failed and successful runs overlapped more.
+Fail-Fast [2] fine-tunes a 0.6B model on text prefixes of SWE-bench Verified trajectories. At a 5% false-positive budget it saved 20.4% of tokens for Qwen3.6-27B, against 12.5% for an AgentStop adaptation and 11.4% for a control that uses the step count alone.
+During training it pairs successful and failed prefixes matched by progress to control for instance difficulty. Its evaluation, however, pools 100 held-out instances × 5 runs, and we found no within-instance analysis.
+EarlyEval [8] applies the same idea to evaluation cost, halting benchmark runs with classifiers over behavioral, textual and reference-solution features (13–26% fewer steps).
+Pan et al. [15] showed that observable macro and micro trajectory features are competitive with internal-signal baselines for web agents, with task-grouped cross-validation.
+These monitors read observable signals (log-probabilities, text and behavior), and all of their evaluations are pooled over tasks. Their monitors are cheap only relative to large policies: the 0.1–0.6% overhead in [2] holds for three open-weight 9–31B policies.
+
+### 2.4 Task difficulty as a confound
+The strongest argument that pooled scores can mislead comes from Bulut [10]. He showed that a pooled AUROC is a weighted sum of a within-problem and a between-problem component, and that any predictor that depends on the problem alone scores exactly 0.5 within a problem.
+A trace-blind difficulty proxy reached AUROC 0.873 on 192K public R1 generations. A reconstruction of the closest published early-window probe scored 0.849 pooled but 0.496 (95% CI 0.466–0.527) within problem, and a pre-registered test found no gain over a difficulty baseline.
+Mehta and Datta [9] reached a similar conclusion for agents from the other direction: correctness was largely determined by the question (64 of 100 questions always correct, 23 never), and per-run probes failed.
+Both studies concern settings in which the same question is answered independently, either as a single generation [10] or as a few ReAct runs [9]. Neither evaluates a hidden-state failure probe for an agent that acts in an environment.
+
+### 2.5 Positioning
+We reuse from [3] the teacher-forced replay, the per-round evaluation, and the grouping of splits. From [10] we take the within-problem pairwise AUROC and the use of a baseline that depends on the task alone. From [2] we take the control that uses the step count alone.
+We add what these works lack for small interactive agents: a five-rung baseline ladder that gradually adds visible information, evaluation at two levels (across games and within a game), scene-level grouping,
+handling of tied pairs and of interval coverage in discrete-action environments, and a comparison of a probe on the actor's own hidden state against monitors whose cost is counted relative to a 3B actor.
 
 ## 3 Method
 
@@ -430,7 +476,7 @@ Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
 
 ## References
-<!-- [1]-[10], [12], [13] checked against arXiv HTML on 2026-10-20 (writing session); [11] not read (taken from [10]); [14], [15] cited in Section 5 and not yet checked.
+<!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11] not read (taken from [10]); [16] cited in Section 5 and not yet checked.
      Section 5 still cites by name; convert to numbers when finalizing. Long author lists to be formatted for the venue. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
@@ -445,5 +491,6 @@ Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs
 [11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [not read; cited via [10]]
 [12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
 [13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
-[14] Monitoring Web Agents Without Internal Signals. arXiv:2609.02057, 2026. [authors and claim to verify]
-[15] arXiv:2604.03754 (transfer of probes across prompt templates). [title, authors and claim to verify]
+[14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
+[15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
+[16] arXiv:2604.03754 (transfer of probes across prompt templates; cited in Section 5). [title, authors and claim to verify]
