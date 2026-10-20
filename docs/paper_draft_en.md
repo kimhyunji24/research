@@ -3,11 +3,9 @@
      (a) Probing Small Qwen Agents in ALFWorld Finds No Failure Signal Beyond Visible Task Information Between or Within Games
      (b) Do Hidden States Reveal Agent Failure Beyond the Task? A Controlled Test in ALFWorld  [has a question mark; check venue style] -->
 
-<!-- Draft started 2026-10-17. Target (changed 2026-10-17): main conference or journal paper; venue TBD. Extra experiments needed: plan section 7. Plan: docs/paper_revision_plan_2026-10-17.md.
-     Writing order (per plan): Method -> Results -> Discussion -> Conclusion -> Introduction -> Abstract -> Title.
-     [TODO-RESULT] marks text that depends on the within-game analysis, which had not been read when this draft was written.
-     2026-10-20 (D3): Sections 4.4 (Qwen3-4B, model pilots, ReAct prompt) and 4.6 (early termination), Table 4–5, Appendix A1–A4, prompt origin in 3.1 and limitations updated.
-     All numbers from results/*.csv (task_qwen3_4b*, task_react_qwen25_3b*, success_react_vs_v2*, react_transfer_qwen25_3b*, early_stop_3b*, pilot_action_patterns.txt) and docs/model_pilot_plan_2026-10-17.md. -->
+<!-- Draft started 2026-10-17; all sections drafted by 2026-10-20. Target: main conference or journal paper; venue TBD. Plan: docs/paper_revision_plan_2026-10-17.md.
+     Numbers come from results/*.csv and the plan documents named in each section. Figures 2–4 are not produced yet.
+     Before submission: check prior-work numbers against the PDFs (checklist docs/citation_check_2026-10-20.md), check for reviewed versions of 2026 preprints, format references for the venue. -->
 
 ## Abstract
 Linear probes on the hidden states of language-model agents have been proposed as cheap monitors that predict failure early, but their gains have been measured against baselines that do not see the task.
@@ -22,7 +20,7 @@ Used to stop failing episodes, the probe was not shown to save more actions than
 In this setting, hidden states did not add to visible information; claims of hidden-state failure signals in agents should be tested against baselines that see the task and within tasks.
 
 ## 1 Introduction
-<!-- 2026-10-20 draft from a separate writing session (citations checked against arXiv HTML for [1]-[10], [12], [13]); merged here with: [11] lowered to "cited by [10]" (original not read),
+<!-- 2026-10-20 draft from a separate writing session (citations checked against arXiv HTML for [1]-[10], [12], [13]); merged here with: [11] first lowered to "cited by [10]", then cited directly after its abstract was checked (2026-10-20),
      denominators made explicit (22.4% = 56/250 first 250 games; 89.7% = 5,820/6,490 steps of the first 250 games, recomputed from data/main_3b),
      results paragraph checked against Table 4 and extended with the early-termination result. Monitor-cost numbers (13–16%, 2.4x) use Qwen2.5 public parameter counts (0.49B/3.09B; non-embedding 0.36B/2.77B) and the 2N FLOPs/token approximation; state this in the Method. -->
 
@@ -44,7 +42,7 @@ First, outcomes are largely determined by the task. In ten repeated runs of Llam
 In our data, the game explains 69.5% of the outcome variance (95% CI 61.3–76.5%; the games were stratified by greedy outcome, so this is not a population value). A pooled AUROC can then reflect which task it is rather than how the attempt is going.
 Bulut [10] showed that the pooled AUROC is a weighted sum of a within-task and a between-task component, and that a predictor depending on the task alone scores exactly 0.5 within a task.
 Reconstructing the closest published early-window probe on public MATH generations, he obtained a pooled AUROC of 0.849 but only 0.496 (95% CI 0.466–0.527) within problem, and a pre-registered difficulty-controlled test found no gain.
-[10] also cites evidence that activations before generation encode model-specific difficulty [11]. Ruan et al. collected 4–8 rollouts per task but report no within-task evaluation or difficulty control.
+Activations taken before generation have also been reported to encode a model-specific notion of difficulty [11]. Ruan et al. collected 4–8 rollouts per task but report no within-task evaluation or difficulty control.
 
 Second, the comparison baselines are weak. The behavioral scorer in [3] uses only action log-probabilities, token counts, prefix length and error keywords; it has no access to the task statement, the observations or the progress made.
 In our data, the task type alone gives an AUROC of 0.603 before the first action. In another study, the similarity of observed text predicted behavioral variability better than the similarity of hidden states (r = −0.63 versus −0.35) [9].
@@ -86,11 +84,11 @@ Our contributions are as follows.
 - We compare readers of different sizes on identical trajectories by separating the actor from the reader. This part is exploratory, and no monotone trend with size was observed.
 
 ## 2 Related Work
-<!-- 2026-10-20 draft from a separate writing session (statements checked against arXiv HTML for [1]-[10], [14], [15]; [11] via [10]). Merged with:
+<!-- 2026-10-20 draft from a separate writing session (statements checked against arXiv HTML for [1]-[10], [14], [15]; [11] abstract checked later). Merged with:
      reference numbers aligned ([14] Khan & Khan, [15] Pan et al., [16] = 2604.03754 cited in Section 5);
      2.3 "none used hidden states" lowered to "read observable signals" because the internal-signal baselines of [15] could not be typed;
      absence statements ("[3] reports no within-task evaluation", "no within-instance analysis in [2]") rest on full-text search, not on author confirmation;
-     [14] "no measured inference overhead": check whether overhead was measured as zero or not measured. Most cited works are 2026 preprints; check for reviewed versions before submission. -->
+     [14] "no measured inference overhead": confirmed by its abstract ("zero measured inference overhead"); [11] and [16] abstracts checked 2026-10-20. Most cited works are 2026 preprints; check for reviewed versions before submission. -->
 
 We group prior work by what the predictor reads and what it is compared against. We then state which parts of earlier protocols we reuse.
 
@@ -99,7 +97,7 @@ Work on reading success or failure from a model's own states began at the level 
 P(IK) transferred partially across tasks but was poorly calibrated out of distribution. Kuhn et al. [5] measured uncertainty as the entropy over meaning clusters of several sampled answers, which predicted accuracy better than lexical baselines, but it required multiple generations per question.
 Kossen et al. [6] removed that cost by training linear probes on the hidden state of a single generation to approximate the semantic entropy; the probes generalized better out of distribution than probes that predict accuracy directly.
 Moreno Cencerrado et al. [7] moved the readout before generation: probes on activations taken after the question is read, in models from 7B to 70B parameters, predicted whether the forthcoming answer would be correct, but generalization faltered on mathematical reasoning questions.
-Pre-generation activations have also been reported to encode model-specific difficulty ([11], as summarized in [10]). In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
+Lugoloobi et al. [11] trained linear probes on pre-generation activations to predict policy-specific success on math and coding tasks; the probes clearly outperformed surface features such as question length and TF-IDF, and the authors concluded that models encode a model-specific notion of difficulty distinct from human difficulty. In all of these studies the target is defined per question, either as one outcome or as an aggregate over samples.
 Such a target is meaningful for question answering, but it does not separate a hard question from a failing attempt.
 
 ### 2.2 Hidden-state monitors for agents
@@ -453,7 +451,8 @@ Our agent results agree on the first part, since the game explained most of the 
 which both the text baseline and the probe can read; this is a hypothesis we did not test.
 That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs [9] and that surface signals compete with internal ones for web agents [15] are consistent with our findings.
 For early stopping, a step-count control already saves a large share of the cost in software-engineering agents [2], matching the strength of the step cap here.
-Finally, the weak transfer of our probe from one prompt to another agrees with reports that probes trained under one template transfer poorly to others [16].
+In contrast, pre-generation probes in math and coding clearly outperformed question length and TF-IDF [11]. Our text baseline also contains the room description, the observations and the recent history, and our task is interactive; whether these differences explain the opposite outcome we did not test.
+Finally, the weak transfer of our probe from one prompt to another agrees with reports that the geometry and generalization of truth probes depend on prompt templates and instructions [16].
 
 **Why hidden states may not help here.** We see three explanations, none tested directly. First, at the steps we evaluated the outcome is largely fixed by the game, and the prompt already states the task and the room, so the information the probe could use is also in the text.
 Second, the probe may learn directions that encode the prompt's form rather than a general failure state: a probe trained under one prompt was near chance under another (exploratory; the two prompts also differ in the token at which hidden states are taken).
@@ -553,7 +552,7 @@ Free-generation runs used Qwen2.5-Instruct models on ALFWorld training games bef
 Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50% depth is the pre-registered cell (Table 1). Full results with CIs and permutation p-values: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv` and `*_diff.csv` (supplementary).
 
 ## References
-<!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11] not read (taken from [10]); [16] cited in Section 5 and not yet checked.
+<!-- [1]-[10], [12]-[15] checked against arXiv HTML on 2026-10-20 (writing sessions); [11], [14] and [16] checked against their arXiv abstracts on 2026-10-20 (main session; [14] states "zero measured inference overhead").
      Section 5 still cites by name; convert to numbers when finalizing. Long author lists to be formatted for the venue. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
@@ -565,9 +564,9 @@ Rung 5 averaged 0.752 over steps 0–2. The last column covers both linear and M
 [8] Y. Shi, Z. Sun, J. Dong, C. Wan, D. Lo, X. Gu. EarlyEval: Cheaper Agent Evaluation via Early Outcome Prediction. arXiv:2609.02783, 2026.
 [9] A. Mehta, A. Datta. When Agents Commit Too Soon: Diagnosing Premature Commitment in LLM Agents. arXiv:2606.22936v2, 2026.
 [10] Y. U. Bulut. It's the Problem, Not the Path: Budget and Difficulty Confounds in LLM Reasoning Trajectories. arXiv:2609.03436, 2026.
-[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [not read; cited via [10]]
+[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924).
 [12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
 [13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
 [14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
 [15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
-[16] arXiv:2604.03754 (transfer of probes across prompt templates; cited in Section 5). [title, authors and claim to verify]
+[16] A. Poulis, M. Crovella, E. Terzi. Testing the Limits of Truth Directions in LLMs. arXiv:2604.03754v2, 2026.

@@ -3,12 +3,10 @@
      대안: (가) ALFWorld의 소형 Qwen 에이전트 프로브 분석에서 게임 간·게임 내 모두 겉보기 과제 정보를 넘는 실패 신호는 없었다 -->
 
 
-<!-- 2026-10-17 작성 시작. 목표(2026-10-17 변경): 학회 본 논문 또는 저널, 투고처 미정. 추가 실험은 계획서 7절.
-     영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 계획: docs/paper_revision_plan_2026-10-17.md.
-     작성 순서: 방법 -> 결과 -> 토의 -> 결론 -> 서론 -> 초록 -> 제목.
-     [TODO-결과]는 게임 내 분석에 따라 달라지는 부분이다(작성 시점에 결과를 읽지 않았다).
-     국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문.
-     2026-10-20(D3): 4.4절(Qwen3-4B, 모델 파일럿, ReAct 프롬프트), 4.6절(조기 중단), 표 4–5, 부록 A1–A4, 3.1절 프롬프트 출처, 한계를 영문판과 같게 갱신. -->
+<!-- 2026-10-17 작성 시작, 2026-10-20 모든 절 초안 완성. 목표: 학회 본 논문 또는 저널, 투고처 미정. 계획: docs/paper_revision_plan_2026-10-17.md.
+     영문 초안 docs/paper_draft_en.md의 국문판이며 내용은 같게 유지한다. 국문 논문 관행에 따라 능동태, 자기 연구는 과거시제로 쓴다. 그림·표 제목은 영문.
+     수치는 results/*.csv와 각 절에 적은 계획 문서에서 가져왔다. 그림 2–4는 아직 만들지 않았다.
+     투고 전: 선행연구 수치 PDF 대조(점검표 docs/citation_check_2026-10-20.md), 2026년 프리프린트의 심사 판본 확인, 참고문헌 양식 정리. -->
 
 ## 초록
 언어모델 에이전트의 hidden state에 학습한 선형 프로브는 실패를 일찍 예측하는 값싼 모니터로 제안되었지만, 그 이득은 과제를 보지 못하는 baseline과 비교해 측정되었다.
@@ -22,7 +20,7 @@
 이 설정에서 hidden state는 겉보기 정보에 더하는 것이 없었으며, 에이전트 hidden state의 실패 신호에 관한 주장은 과제를 보는 baseline과 과제 내 평가로 검증해야 한다.
 
 ## 1 서론
-<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[12]·[13]은 arXiv HTML 원문 대조). 합치면서 고친 것: [11]은 원문 미확인이라 "[10]이 인용한 결과"로 낮춤,
+<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[12]·[13]은 arXiv HTML 원문 대조). 합치면서 고친 것: [11]은 처음에 "[10]이 인용한 결과"로 낮췄다가 초록 확인 뒤(2026-10-20) 직접 인용,
      분모 명시(22.4% = 앞 250게임 56/250, 89.7% = 앞 250게임 step 5,820/6,490, data/main_3b로 재계산), 결과 문단을 표 4와 대조하고 조기 중단 결과 추가.
      모니터 비용(13–16%, 2.4배)은 Qwen2.5 공개 파라미터 수(0.49B/3.09B, 임베딩 제외 0.36B/2.77B)와 토큰당 2N FLOPs 근사로 계산했으며 방법 절에 적는다. -->
 
@@ -44,7 +42,7 @@
 우리 데이터에서는 결과 분산의 69.5%를 게임이 설명한다(95% CI 61.3–76.5%, 게임을 탐욕 결과로 층화해 골랐으므로 모집단 값은 아니다). 이 경우 과제를 합친 AUROC는 시도의 진행이 아니라 어떤 과제인지를 반영할 수 있다.
 Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합이며, 과제만으로 점수를 정하는 예측기는 과제 안에서 정확히 0.5라는 점을 보였다.
 그는 공개된 MATH 생성 데이터에서 가장 가까운 기존 조기 구간 프로브를 재구성했고, 합친 AUROC는 0.849이지만 문제 안에서는 0.496(95% CI 0.466–0.527)에 그쳤으며, 사전 등록한 난이도 통제 검정에서도 이득이 없었다.
-[10]은 생성 전 활성이 모델별 난이도를 담는다는 결과도 인용한다[11]. Ruan 등은 과제당 4–8개의 rollout을 모았지만 과제 내 평가나 난이도 통제는 보고하지 않았다.
+생성 전 활성이 모델별 난이도를 담는다는 보고도 있다[11]. Ruan 등은 과제당 4–8개의 rollout을 모았지만 과제 내 평가나 난이도 통제는 보고하지 않았다.
 
 둘째, 비교 대상이 약하다. [3]의 행동 scorer는 action 로그확률, 토큰 수, prefix 길이, 오류 키워드만 쓰고, 과제 문장, 관찰, 진행도는 쓰지 않는다.
 우리 데이터에서는 과제 유형만으로도 첫 action 전에 AUROC 0.603이 나온다. 다른 연구에서는 관찰 텍스트의 유사도가 hidden state의 유사도보다 행동 변동을 더 잘 예측했다(r = −0.63 대 −0.35)[9].
@@ -86,9 +84,9 @@ Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합
 - actor와 reader를 분리해 같은 궤적을 다른 크기의 reader로 읽어 비교했다. 이 부분은 탐색적이며 크기에 따른 단조 추세는 관찰되지 않았다.
 
 ## 2 관련 연구
-<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[14]·[15]는 arXiv HTML 원문 대조, [11]은 [10]을 통해). 합치면서 고친 것:
+<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[14]·[15]는 arXiv HTML 원문 대조, [11]은 나중에 초록 확인). 합치면서 고친 것:
      참고문헌 번호 정리([14] Khan & Khan, [15] Pan 등, [16] = 5절에서 인용한 2604.03754), 2.3의 "모두 hidden state를 쓰지 않는다"를 "관찰 가능한 신호를 읽는다"로 낮춤([15]의 내부 신호 baseline 종류 미확인),
-     [14] 비용 문구를 영문("측정된 추가 비용 없음")에 맞춤(0으로 측정했는지, 측정하지 않았는지 확인 필요). 부재 서술은 원문 검색 근거이며 저자 확인은 아니다. 인용 대부분이 2026년 프리프린트라 투고 전 심사 판본을 확인한다. -->
+     [14] 비용 문구를 영문("측정된 추가 비용 없음")에 맞춤(초록의 "zero measured inference overhead"로 확인). [11]·[16]도 초록으로 확인(2026-10-20). 부재 서술은 원문 검색 근거이며 저자 확인은 아니다. 인용 대부분이 2026년 프리프린트라 투고 전 심사 판본을 확인한다. -->
 
 선행 연구를 예측기가 무엇을 읽는지, 무엇과 비교했는지에 따라 나누어 살펴본다. 마지막에는 기존 프로토콜에서 무엇을 가져왔는지 밝힌다.
 
@@ -97,7 +95,7 @@ Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합
 P(IK)는 과제 사이에서 부분적으로 전이했지만 분포 밖에서는 보정이 나빴다. Kuhn 등[5]은 샘플한 여러 답을 의미로 묶은 군집의 엔트로피로 불확실성을 정의했고, 이 값이 어휘 기반 baseline보다 정확도를 잘 예측했지만 질문마다 여러 번 생성해야 했다.
 Kossen 등[6]은 단일 생성의 hidden state에 선형 프로브를 학습해 의미 엔트로피를 근사함으로써 이 비용을 없앴고, 이 프로브는 정확도를 직접 예측하는 프로브보다 분포 밖에서 더 잘 일반화했다.
 Moreno Cencerrado 등[7]은 읽는 시점을 생성 전으로 옮겼다. 질문을 읽은 직후의 활성에 프로브를 학습해 7B에서 70B 모델이 곧 낼 답이 맞을지를 예측했으나, 수학 추론 질문에서는 일반화가 약해졌다.
-생성 전 활성이 모델별 난이도를 담는다는 보고도 있다([10]이 요약한 [11]). 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
+Lugoloobi 등[11]은 생성 전 활성에 선형 프로브를 학습해 수학·코딩 과제에서 그 모델의 성공을 예측했다. 이 프로브는 질문 길이나 TF-IDF 같은 표면 특징보다 분명히 나았고, 저자들은 모델이 사람의 난이도와 다른 모델별 난이도를 담는다고 결론지었다. 이 연구들의 목표는 모두 질문마다 정해진다. 결과 하나이거나 여러 샘플의 집계이다.
 이런 목표는 질문 응답에서는 의미가 있지만, 어려운 질문과 실패하는 시도를 구분하지 못한다.
 
 ### 2.2 에이전트의 hidden state 모니터
@@ -449,7 +447,8 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 텍스트 baseline과 프로브가 모두 이를 읽을 수 있기 때문으로 보이지만 검정하지는 않았다.
 반복 실행한 에이전트에서 텍스트 유사도가 hidden state 유사도보다 실행 간 행동을 더 잘 예측했다는 보고[9]와, 웹 에이전트에서 겉보기 신호가 내부 신호와 경쟁할 만하다는 보고[15]는 우리 결과와 일관된다.
 조기 중단에서는 소프트웨어 공학 에이전트에서도 step 수만 쓰는 대조가 이미 비용의 상당 부분을 아꼈는데[2], 이는 여기서 step 상한이 강했던 것과 맞는다.
-끝으로 프롬프트 사이에서 프로브가 잘 옮겨 가지 않은 결과는, 한 템플릿에서 학습한 프로브가 다른 템플릿으로 잘 옮겨 가지 않는다는 보고[16]와 같은 방향이다.
+반대로 수학·코딩에서는 생성 전 프로브가 질문 길이와 TF-IDF보다 분명히 나았다[11]. 우리 텍스트 baseline에는 방 묘사, 관찰, 최근 기록도 들어 있고 과제도 상호작용형이다. 이런 차이가 반대 결과를 설명하는지는 검정하지 않았다.
+끝으로 프롬프트 사이에서 프로브가 잘 옮겨 가지 않은 결과는, 진실성 프로브의 기하와 일반화가 프롬프트 템플릿과 지시문에 따라 달라진다는 보고[16]와 같은 방향이다.
 
 **여기서 hidden state가 도움이 되지 않은 이유.** 세 가지 설명이 가능하며 어느 것도 직접 검정하지 않았다. 첫째, 평가한 step에서는 결과가 대부분 게임으로 정해지고, 프롬프트가 이미 과제와 방을 서술하므로 프로브가 쓸 수 있는 정보는 텍스트에도 있다.
 둘째, 프로브가 일반적인 실패 상태가 아니라 프롬프트의 형식을 담은 방향을 배울 수 있다. 한 프롬프트에서 학습한 프로브는 다른 프롬프트에서 거의 우연 수준이었다(탐색적; 두 프롬프트는 hidden state를 뽑는 토큰도 다르다).
@@ -549,7 +548,7 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 5단은 step 0–2 평균 0.752였다. 마지막 열은 네 깊이·세 step의 선형·MLP 프로브를 모두 포함한다(reader당 24칸, 모두 96칸). 굵은 글씨는 reader별 최고 깊이이다. 3B reader 50% 깊이가 사전 등록 조건이다(표 1). CI와 순열 p를 포함한 전체 결과: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv`와 `*_diff.csv`(보조 자료).
 
 ## 참고문헌
-<!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11]은 원문 미확인([10]에서 가져옴). [16]은 5절에서 인용, 아직 미확인.
+<!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11], [14], [16]은 2026-10-20 arXiv 초록으로 확인(주 세션; [14]는 "zero measured inference overhead").
      5절은 아직 이름으로 인용하므로 확정할 때 번호로 바꾼다. 저자가 많은 항목은 투고 양식에 맞춰 정리한다. -->
 [1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
 [2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
@@ -561,9 +560,9 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 [8] Y. Shi, Z. Sun, J. Dong, C. Wan, D. Lo, X. Gu. EarlyEval: Cheaper Agent Evaluation via Early Outcome Prediction. arXiv:2609.02783, 2026.
 [9] A. Mehta, A. Datta. When Agents Commit Too Soon: Diagnosing Premature Commitment in LLM Agents. arXiv:2606.22936v2, 2026.
 [10] Y. U. Bulut. It's the Problem, Not the Path: Budget and Difficulty Confounds in LLM Reasoning Trajectories. arXiv:2609.03436, 2026.
-[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [원문 미확인, [10]을 통해 인용]
+[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924).
 [12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
 [13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
 [14] R. Khan, N. I. Khan. The Cognitive Companion: A Lightweight Parallel Monitoring Architecture for Detecting and Recovering from Reasoning Degradation in LLM Agents. arXiv:2604.13759, 2026.
 [15] S. Pan, Y. Shen, Y. Lu, C. Ding, et al. Monitoring Web Agents Without Internal Signals: Observable Trajectories and Key-Step Supervision. arXiv:2609.02057, 2026.
-[16] arXiv:2604.03754(프롬프트 템플릿 간 프로브 전이, 5절에서 인용). [제목·저자·주장 확인 필요]
+[16] A. Poulis, M. Crovella, E. Terzi. Testing the Limits of Truth Directions in LLMs. arXiv:2604.03754v2, 2026.
