@@ -10,7 +10,68 @@
 [TODO-RESULT: one paragraph, written last. What was done + main results with 95% CIs. No abbreviations, no citations.]
 
 ## 1 Introduction
-[TODO: write after Results/Discussion. Known facts -> open question (task difficulty vs. in-progress failure) -> what differs here -> aim and hypotheses.]
+<!-- 2026-10-20 draft from a separate writing session (citations checked against arXiv HTML for [1]-[10], [12], [13]); merged here with: [11] lowered to "cited by [10]" (original not read),
+     denominators made explicit (22.4% = 56/250 first 250 games; 89.7% = 5,820/6,490 steps of the first 250 games, recomputed from data/main_3b),
+     results paragraph checked against Table 4 and extended with the early-termination result. Monitor-cost numbers (13–16%, 2.4x) use Qwen2.5 public parameter counts (0.49B/3.09B; non-embedding 0.36B/2.77B) and the 2N FLOPs/token approximation; state this in the Method. -->
+
+Language-model agents interact with an environment over many steps, and an episode that ends in failure consumes as much computation as one that succeeds. The cost matters most where agents run locally.
+On consumer devices, agentic execution raises power draw, temperature and battery drain well above single-inference use, and a substantial amount of this energy is spent on runs that do not succeed [1].
+In our setting, a Qwen2.5-3B agent solved 22.4% of the first 250 ALFWorld games (56/250; Wilson 95% CI 17.7–28.0%), and failed episodes accounted for 89.7% of the executed steps in these games.
+Stopping doomed episodes early could recover much of this cost. For a small agent, however, the monitor itself has to be cheap. A 0.6B text monitor adds only 0.1–0.6% compute to the three open-weight 9–31B policies in Fail-Fast [2].
+Under the same parameter-proportional approximation, a 0.5B monitor would add about 13–16% to a 3B actor, and a 7B monitor would cost about 2.4 times as much as the actor.
+A probe on the hidden states that the actor already computes needs no additional model call, which makes it a natural candidate for small agents, provided that it really predicts failure.
+
+Predicting failure from internal representations began at the level of questions. Language models can predict whether they know the answer to a question [4]. The entropy over the meanings of sampled answers predicts accuracy [5],
+and linear probes approximate that entropy from the hidden state of a single generation [6] or from the question alone, before any token is generated [7]. Ruan et al. [3] extended probing to multi-step agents.
+They trained a linear probe on the hidden state at the last token of an action and reported that it predicts eventual failure from the first rounds (round-1 AUC 0.86 and 0.81 on TextCraft with two of three models)
+and is consistently stronger than a scorer built from behavioral features. In parallel, early-termination systems based on token log-probabilities [1], a small text monitor [2], and behavioral and textual features [8] have been proposed.
+
+These reports leave one question open: does the signal show how the current attempt is going, or does it show which task the agent faces? Four limitations prevent an answer.
+
+First, outcomes are largely determined by the task. In ten repeated runs of Llama-3.1-70B on HotpotQA, 64 of 100 questions were answered correctly in every run and 23 in none, and linear probes could not predict per-run correctness (AUC 0.34–0.56) [9].
+In our data, the game explains 69.5% of the outcome variance (95% CI 61.3–76.5%; the games were stratified by greedy outcome, so this is not a population value). A pooled AUROC can then reflect which task it is rather than how the attempt is going.
+Bulut [10] showed that the pooled AUROC is a weighted sum of a within-task and a between-task component, and that a predictor depending on the task alone scores exactly 0.5 within a task.
+Reconstructing the closest published early-window probe on public MATH generations, he obtained a pooled AUROC of 0.849 but only 0.496 (95% CI 0.466–0.527) within problem, and a pre-registered difficulty-controlled test found no gain.
+[10] also cites evidence that activations before generation encode model-specific difficulty [11]. Ruan et al. collected 4–8 rollouts per task but report no within-task evaluation or difficulty control.
+
+Second, the comparison baselines are weak. The behavioral scorer in [3] uses only action log-probabilities, token counts, prefix length and error keywords; it has no access to the task statement, the observations or the progress made.
+In our data, the task type alone gives an AUROC of 0.603 before the first action. In another study, the similarity of observed text predicted behavioral variability better than the similarity of hidden states (r = −0.63 versus −0.35) [9].
+
+Third, the within-task control of [10] does not carry over to interactive agents. Rollouts of the same game in a discrete-action environment share identical prompts early on, which produces tied pairs (52–70% of our evaluation pairs)
+and caps the attainable AUROC. In our data, bootstrap intervals also proved narrower than their nominal level (80–94% coverage against 95%). The analysis in [10] covers single-generation math reasoning and does not address these issues.
+
+Fourth, the cost argument for monitors assumes a large policy. The 0.1–0.6% overhead in [2] holds for 9–31B policies, and the assumption fails for the 3B-class agents that run on consumer devices.
+
+**The core problem is therefore that existing evidence cannot tell whether hidden-state failure signals in agents read in-progress failure or task difficulty and visible information. As a result, it is unknown whether the cheapest monitor available to a small agent is useful.**
+
+The distinction decides what to deploy. If a probe reads only difficulty, a classifier on the task text is enough and no access to model internals is needed. If it reads in-progress failure within a task, it offers a gain that visible information cannot provide.
+The same distinction also determines whether the probe supports early stopping.
+
+We therefore evaluate hidden-state failure prediction in a small ALFWorld agent [12] under controls that address each limitation. Each limitation is matched with a required function and a design component:
+
+1. *Separate difficulty from in-progress failure.* We evaluate at two levels: a task level (greedy decoding, 500 games) and an attempt level (100 games × 8 rollouts at temperature 1, scored by within-game pairwise AUROC), together with a difficulty oracle that scores exactly 0.5 within a game.
+2. *Measure the gain over visible information.* We compare against a five-rung baseline ladder (step index; + task type; + repetition and chosen-action probability; + progress; + TF-IDF of the prompt), plus time-matched variants that drop information from the current step.
+3. *Prevent leakage between games.* Games in ALFWorld share room layouts, so we cross-fit and bootstrap by scene. Splitting by game inflated AUROC to 0.97 for a synthetic feature that contained only scene information.
+4. *Make the within-task statistics valid for agents.* We report the share of tied pairs and the AUROC ceiling it implies, add a secondary analysis restricted to non-tied pairs, and check the coverage of the intervals with permuted labels.
+5. *Prevent selection after seeing results.* The primary analysis and decision rules were registered and run once, and a setting chosen after exploration was confirmed on 250 new games.
+6. *Fit a small-agent setting.* The probe reads the 3B actor's own hidden state at no additional model call, actions are chosen by candidate scoring, and we vary the actor (Qwen3-4B), the prompt (the original ReAct examples [13]) and, in an exploratory analysis, the size of the reader that reads the actor's trajectory (0.5B–7B).
+
+We did not reuse existing methods unchanged, for three reasons. The protocol of [3] controls neither difficulty nor visible information and splits by task, which leaks scene information in ALFWorld.
+The within-problem evaluation of [10] assumes independent single generations, so it cannot handle shared prefixes in sequential environments. The text monitors of [2] and [1] assume a policy large enough that the monitor's cost is negligible.
+Small models also often produce actions that are not in the admissible list when they generate freely, so we choose actions by the log-probability of each admissible candidate and reuse the prompt's key–value cache, which lets the agent run on a single 12 GB GPU.
+
+Under these controls, the probe did not outperform the visible-information baseline. In the pre-registered task-level comparison, the probe scored below the five-rung baseline (differences −0.181, −0.133 and −0.159 at steps 0–2; all 95% CIs below zero).
+In a confirmatory hold-out, no step was superior (+0.039, +0.035, −0.029; all CIs include zero). Within a game, both the probe and the baselines predicted failure better than chance from step 2 (probe AUROC 0.585 and 0.619 at steps 2 and 3),
+but the probe was superior in none of six comparisons. The same pattern appeared with another actor (Qwen3-4B, superior in 0/3 comparisons) and another prompt (ReAct, 0/3; inferior at step 2).
+Used to stop doomed episodes, the probe was not shown to save more steps than a fixed step cap at up to 10% lost successes (difference −0.032, 95% CI −0.183 to +0.119).
+These results do not show that the probe and the baseline are equivalent: the intervals are wide (about ±0.06–0.10 at the task level), and we tested one environment and two prompts.
+
+Our contributions are as follows.
+
+- We re-examine hidden-state failure prediction for multi-step agents under difficulty control and within-task evaluation, and find no evidence that the probe beats visible information in this setting.
+- We provide pre-registered comparisons of a hidden-state probe against a baseline ladder of visible information, using the same splits and statistics throughout.
+- We quantify two problems that arise when within-task evaluation is applied to discrete-action agents: tied pairs from shared prefixes, and bootstrap intervals that are narrower than nominal.
+- We compare readers of different sizes on identical trajectories by separating the actor from the reader. This part is exploratory, and no monotone trend with size was observed.
 
 ## 2 Related Work
 [TODO: verify sources in docs/literature_check_2026-10-15.md against the originals before citing numbers.]
@@ -316,7 +377,10 @@ Whether attempts diverge at all depends on the policy: Qwen3-4B sampled at *T* =
 - **Prompt tuning.** The main prompt was written by us, starting from the ReAct thought–action format, and adjusted while inspecting episodes from a different split (valid_unseen) before data collection; an external prompt (ReAct exemplars) is tested in Section 4.4.
 
 ## 7 Conclusion
-[TODO-RESULT: 3–4 sentences, no numbers.]
+In a text-based household environment, linear probes on the hidden states of small Qwen agents did not predict failure better than a baseline built from the task, the prompt text and simple progress features, whether tested under a pre-registered plan, on a held-out set, with a second model or with an external prompt.
+Early failure was largely a property of the game rather than of the attempt, and the failure that did develop within a game was visible in the text as well.
+Using the probe to stop doomed episodes was not shown to save more steps than a fixed step limit.
+Claims that hidden states reveal agent failure should therefore be tested against baselines that see the same task information, with evaluation within tasks.
 
 ## Appendix (draft)
 
@@ -354,4 +418,20 @@ Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
 
 ## References
-[TODO; verify before citing] Yao et al. (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754 (transfer of probes across templates; check title and claim). — Ruan et al., arXiv 2607.06503 (Doomed from the Start). — Bulut, arXiv 2609.03436 (It's the Problem, Not the Path). — arXiv 2606.22936 (When Agents Commit Too Soon). — arXiv 2609.02057 (Monitoring Web Agents Without Internal Signals). — Wang et al., arXiv 2608.03222 (Fail-Fast, Restart-Smart).
+<!-- [1]-[10], [12], [13] checked against arXiv HTML on 2026-10-20 (writing session); [11] not read (taken from [10]); [14], [15] cited in Section 5 and not yet checked.
+     Section 5 still cites by name; convert to numbers when finalizing. Long author lists to be formatted for the venue. -->
+[1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
+[2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
+[3] K. Ruan, Z. Huang, Z. Zhou, Q. Wei, J. Lin, X. Wang, H. Sun. Doomed from the Start: Early Abort of LLM Agent Episodes via a Recall-Controlled Probe Cascade. arXiv:2607.06503v2, 2026.
+[4] S. Kadavath et al. Language Models (Mostly) Know What They Know. arXiv:2207.05221, 2022.
+[5] L. Kuhn, Y. Gal, S. Farquhar. Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation. ICLR 2023.
+[6] J. Kossen, J. Han, M. Razzak, L. Schut, S. Malik, Y. Gal. Semantic Entropy Probes: Robust and Cheap Hallucination Detection in LLMs. arXiv:2406.15927, 2024.
+[7] I. V. Moreno Cencerrado, A. Padrés Masdemont, et al. No Answer Needed: Predicting LLM Answer Accuracy from Question-Only Linear Probes. ICLR 2026 Workshop (arXiv:2509.10625).
+[8] Y. Shi, Z. Sun, J. Dong, C. Wan, D. Lo, X. Gu. EarlyEval: Cheaper Agent Evaluation via Early Outcome Prediction. arXiv:2609.02783, 2026.
+[9] A. Mehta, A. Datta. When Agents Commit Too Soon: Diagnosing Premature Commitment in LLM Agents. arXiv:2606.22936v2, 2026.
+[10] Y. U. Bulut. It's the Problem, Not the Path: Budget and Difficulty Confounds in LLM Reasoning Trajectories. arXiv:2609.03436, 2026.
+[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [not read; cited via [10]]
+[12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
+[13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
+[14] Monitoring Web Agents Without Internal Signals. arXiv:2609.02057, 2026. [authors and claim to verify]
+[15] arXiv:2604.03754 (transfer of probes across prompt templates). [title, authors and claim to verify]

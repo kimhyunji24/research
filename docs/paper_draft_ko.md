@@ -11,7 +11,68 @@
 [TODO-결과: 한 단락, 마지막에 작성. 무엇을 했고 무엇을 얻었는지만, 95% 신뢰구간과 함께. 약어·인용 없이.]
 
 ## 1 서론
-[TODO: 결과·토의 이후 작성. 알려진 사실 -> 의문점(과제 난이도 대 진행 중 실패) -> 이 연구가 다른 점 -> 목적과 가설.]
+<!-- 2026-10-20 초안(별도 작성 세션, [1]–[10]·[12]·[13]은 arXiv HTML 원문 대조). 합치면서 고친 것: [11]은 원문 미확인이라 "[10]이 인용한 결과"로 낮춤,
+     분모 명시(22.4% = 앞 250게임 56/250, 89.7% = 앞 250게임 step 5,820/6,490, data/main_3b로 재계산), 결과 문단을 표 4와 대조하고 조기 중단 결과 추가.
+     모니터 비용(13–16%, 2.4배)은 Qwen2.5 공개 파라미터 수(0.49B/3.09B, 임베딩 제외 0.36B/2.77B)와 토큰당 2N FLOPs 근사로 계산했으며 방법 절에 적는다. -->
+
+언어모델 에이전트는 환경과 여러 step에 걸쳐 상호작용하며, 실패로 끝나는 episode도 성공하는 episode만큼 계산을 쓴다. 이 비용은 에이전트를 로컬에서 실행할 때 가장 크다.
+소비자 기기에서 에이전트 실행은 단일 추론보다 전력, 발열, 배터리 소모를 크게 높이며, 이 에너지의 상당량이 성공하지 못한 실행에 쓰인다[1].
+본 연구의 설정에서 Qwen2.5-3B 에이전트는 앞 250개 ALFWorld 게임의 22.4%를 풀었고(56/250, Wilson 95% CI 17.7–28.0%), 이 게임들에서 실행한 step의 89.7%가 실패 episode에서 나왔다.
+실패할 episode를 일찍 멈추면 이 비용의 상당 부분을 아낄 수 있다. 다만 소형 에이전트에서는 모니터 자체도 싸야 한다. 0.6B 텍스트 모니터는 Fail-Fast의 9–31B 공개 모델 세 개에 0.1–0.6%의 계산량만 더한다[2].
+같은 파라미터 비례 근사로 계산하면 0.5B 모니터는 3B actor에 약 13–16%를 더하고, 7B 모니터는 actor의 약 2.4배가 든다.
+반면 actor가 이미 계산한 hidden state를 읽는 프로브는 모델을 다시 부를 필요가 없다. 따라서 실제로 실패를 예측한다면 소형 에이전트에 가장 자연스러운 모니터 후보이다.
+
+내부 표현으로 실패를 예측하는 연구는 질문 단위에서 시작했다. 언어모델은 질문의 답을 아는지를 예측할 수 있다[4]. 샘플한 답들의 의미 엔트로피는 정확도를 예측하고[5],
+선형 프로브는 이 엔트로피를 단일 생성의 hidden state에서[6], 또는 토큰을 생성하기 전 질문만으로[7] 근사한다. Ruan 등[3]은 프로브를 다단계 에이전트로 확장했다.
+이들은 action 마지막 토큰의 hidden state에 선형 프로브를 학습해 첫 라운드부터 최종 실패를 예측할 수 있고(TextCraft에서 세 모델 중 두 모델의 라운드 1 AUC가 0.86과 0.81),
+행동 특징만 쓰는 scorer보다 일관되게 강하다고 보고했다. 같은 시기에 토큰 로그확률[1], 작은 텍스트 모니터[2], 행동·텍스트 특징[8]을 쓰는 조기 중단 시스템도 제안되었다.
+
+이 보고들은 한 가지 질문을 열어 둔다. 이 신호는 현재 시도가 어떻게 진행되는지를 보여 주는가, 아니면 에이전트가 어떤 과제를 맡았는지를 보여 주는가? 네 가지 한계 때문에 답할 수 없다.
+
+첫째, 결과는 대부분 과제가 정한다. Llama-3.1-70B를 HotpotQA에서 10회씩 반복했을 때 100문항 중 64개는 모든 회차에서 맞고 23개는 한 번도 맞지 못했으며, 선형 프로브는 회차 단위 정답을 예측하지 못했다(AUC 0.34–0.56)[9].
+우리 데이터에서는 결과 분산의 69.5%를 게임이 설명한다(95% CI 61.3–76.5%, 게임을 탐욕 결과로 층화해 골랐으므로 모집단 값은 아니다). 이 경우 과제를 합친 AUROC는 시도의 진행이 아니라 어떤 과제인지를 반영할 수 있다.
+Bulut[10]은 합친 AUROC가 과제 내 성분과 과제 간 성분의 가중합이며, 과제만으로 점수를 정하는 예측기는 과제 안에서 정확히 0.5라는 점을 보였다.
+그는 공개된 MATH 생성 데이터에서 가장 가까운 기존 조기 구간 프로브를 재구성했고, 합친 AUROC는 0.849이지만 문제 안에서는 0.496(95% CI 0.466–0.527)에 그쳤으며, 사전 등록한 난이도 통제 검정에서도 이득이 없었다.
+[10]은 생성 전 활성이 모델별 난이도를 담는다는 결과도 인용한다[11]. Ruan 등은 과제당 4–8개의 rollout을 모았지만 과제 내 평가나 난이도 통제는 보고하지 않았다.
+
+둘째, 비교 대상이 약하다. [3]의 행동 scorer는 action 로그확률, 토큰 수, prefix 길이, 오류 키워드만 쓰고, 과제 문장, 관찰, 진행도는 쓰지 않는다.
+우리 데이터에서는 과제 유형만으로도 첫 action 전에 AUROC 0.603이 나온다. 다른 연구에서는 관찰 텍스트의 유사도가 hidden state의 유사도보다 행동 변동을 더 잘 예측했다(r = −0.63 대 −0.35)[9].
+
+셋째, [10]의 과제 내 통제는 상호작용 에이전트에 그대로 옮겨지지 않는다. 이산 action 환경에서 같은 게임의 rollout은 초반에 프롬프트가 같으므로 동점 쌍이 생기고(우리 평가 쌍의 52–70%) 도달 가능한 AUROC가 제한된다.
+우리 데이터에서는 bootstrap 신뢰구간도 명목 수준보다 좁았다(포함률 80–94%, 명목 95%). [10]의 분석은 단일 생성 수학 추론이라 이 문제를 다루지 않는다.
+
+넷째, 모니터 비용에 대한 논의는 대형 policy를 전제한다. [2]의 0.1–0.6% 비용은 9–31B policy에서 성립하며, 소비자 기기에서 도는 3B급 에이전트에서는 이 전제가 성립하지 않는다.
+
+**따라서 핵심 문제는 다음과 같다. 에이전트 hidden state의 실패 신호가 진행 중인 실패를 읽는지, 과제 난이도와 겉보기 정보를 읽는지를 기존 근거로는 구분할 수 없다. 그 결과 소형 에이전트가 쓸 수 있는 가장 값싼 모니터가 쓸모 있는지 알 수 없다.**
+
+이 구분은 무엇을 배포할지를 정한다. 프로브가 난이도만 읽는다면 과제 문장을 보는 분류기로 충분하고 모델 내부에 접근할 이유가 없다. 같은 과제 안에서 진행 중인 실패를 읽는다면 겉보기 정보가 줄 수 없는 이득이 있다.
+같은 구분이 프로브가 조기 중단에 쓸 만한지도 정한다.
+
+그래서 우리는 작은 ALFWorld 에이전트[12]의 hidden state 실패 예측을 각 한계에 대응하는 통제 아래에서 평가했다. 각 한계는 필요한 기능과 설계 요소에 다음과 같이 대응한다.
+
+1. *난이도와 진행 중 실패를 분리한다.* 평가를 두 층으로 나눴다. 과제 단위(탐욕 정책, 500게임)와 시도 단위(100게임 × 온도 1에서 8회 rollout, 게임 내 쌍 AUROC)이고, 게임 안에서 정확히 0.5가 나오는 난이도 오라클을 함께 두었다.
+2. *겉보기 정보 대비 이득을 잰다.* 5단 baseline 사다리(step 번호, + 과제 유형, + 반복·선택 확률, + 진행도, + 프롬프트 TF-IDF)와 비교하고, 현재 step의 정보를 뺀 시점 맞춤 변형도 두었다.
+3. *게임 사이의 누수를 막는다.* ALFWorld의 게임은 방 배치를 공유하므로 장면 단위로 교차적합하고 bootstrap했다. 게임 단위로 나누면 장면 정보만 담은 합성 특징에서도 AUROC가 0.97까지 부풀었다.
+4. *과제 내 통계를 에이전트에 맞게 만든다.* 동점 쌍의 비율과 그에 따른 AUROC 상한을 보고하고, 동점 쌍을 뺀 보조 분석을 더하며, 라벨을 섞어 신뢰구간의 포함률을 점검했다.
+5. *결과를 본 뒤의 선택을 막는다.* 주 분석과 판정 규칙을 사전에 등록해 한 번만 실행했고, 탐색 뒤에 고른 설정은 새 250게임에서 확인했다.
+6. *소형 에이전트 환경에 맞춘다.* 프로브가 3B actor 자신의 hidden state를 추가 모델 호출 없이 읽게 했고, action은 후보 점수화로 골랐으며, actor(Qwen3-4B), 프롬프트(ReAct 원 예시[13]), 그리고 탐색 분석으로 actor의 궤적을 읽는 reader의 크기(0.5B–7B)를 바꿨다.
+
+기존 방법을 그대로 쓰지 않은 이유는 세 가지이다. [3]의 프로토콜은 난이도와 겉보기 정보를 통제하지 않으며 과제 단위로 나누므로 ALFWorld에서는 장면 정보가 샌다.
+[10]의 문제 내 평가는 독립적인 단일 생성을 가정하므로 순차 환경에서 prefix를 공유하는 rollout을 다루지 못한다. [2]와 [1]의 텍스트 모니터는 모니터 비용이 무시될 만큼 큰 policy를 가정한다.
+소형 모델은 자유 생성에서 가능한 action 목록에 없는 action을 자주 내므로, 본 연구는 가능한 후보마다 로그확률을 계산해 action을 고르고 프롬프트의 key–value 캐시를 재사용했다. 이 방식으로 12 GB GPU 한 장에서 실행할 수 있었다.
+
+이 통제 아래에서 프로브는 겉보기 정보 baseline을 넘어서지 못했다. 사전 등록한 과제 단위 비교에서 프로브는 5단 baseline보다 낮았다(step 0–2에서 −0.181, −0.133, −0.159, 95% CI가 모두 0 아래).
+확증 홀드아웃에서는 우수한 step이 없었다(+0.039, +0.035, −0.029, CI가 모두 0을 포함). 같은 게임 안에서는 프로브와 baseline 모두 step 2부터 우연보다 잘 실패를 구분했지만(step 2와 3에서 프로브 AUROC 0.585, 0.619),
+프로브가 우수한 경우는 6개 비교 중 하나도 없었다. 다른 actor(Qwen3-4B, 우수 0/3)와 다른 프롬프트(ReAct, 0/3, step 2는 열등)에서도 같은 양상이었다.
+실패할 episode를 멈추는 데 쓰면, 성공 손실 10% 이하에서 프로브가 고정 step 상한보다 step을 더 아낀다는 것은 보이지 않았다(차이 −0.032, 95% CI −0.183 ~ +0.119).
+다만 이 결과가 프로브와 baseline이 같다는 뜻은 아니다. 신뢰구간이 넓고(과제 단위에서 약 ±0.06–0.10) 환경 하나와 프롬프트 두 개만 시험했다.
+
+본 연구의 기여는 다음과 같다.
+
+- 다단계 에이전트의 hidden state 실패 예측을 난이도 통제와 과제 내 평가로 다시 검토했고, 이 설정에서 프로브가 겉보기 정보보다 낫다는 증거를 찾지 못했다.
+- 같은 분할과 같은 통계로 hidden state 프로브와 겉보기 정보 baseline 사다리를 비교한 사전 등록 결과를 제시했다.
+- 과제 내 평가를 이산 action 에이전트에 적용할 때 생기는 두 문제, 즉 prefix를 공유해 생기는 동점 쌍과 명목보다 좁은 bootstrap 신뢰구간을 정량화했다.
+- actor와 reader를 분리해 같은 궤적을 다른 크기의 reader로 읽어 비교했다. 이 부분은 탐색적이며 크기에 따른 단조 추세는 관찰되지 않았다.
 
 ## 2 관련 연구
 [TODO: docs/literature_check_2026-10-15.md의 출처를 원문으로 확인한 뒤 인용한다.]
@@ -316,7 +377,10 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 - **프롬프트 조정.** 주 프롬프트는 ReAct의 생각–행동 형식에서 출발해 직접 작성했고, 데이터 수집 전에 다른 분할(valid_unseen)의 episode를 보며 고쳤다. 외부 프롬프트(ReAct 예시)는 4.4절에서 점검한다.
 
 ## 7 결론
-[TODO-결과: 3–4문장, 수치 없이.]
+텍스트 기반 가정 환경에서 소형 Qwen 에이전트의 hidden state에 학습한 선형 프로브는, 과제·프롬프트 텍스트·단순한 진행도 특징으로 만든 baseline보다 실패를 더 잘 예측하지 못했다. 사전 등록 분석, 홀드아웃, 두 번째 모델, 외부 프롬프트 어디에서도 마찬가지였다.
+초반의 실패는 대체로 시도가 아니라 게임의 성질이었고, 게임 안에서 생겨난 실패도 텍스트에서 똑같이 보였다.
+프로브로 실패할 episode를 멈추는 것이 고정 step 상한보다 step을 더 아낀다는 것은 보이지 않았다.
+따라서 hidden state가 에이전트의 실패를 드러낸다는 주장은 같은 과제 정보를 보는 baseline과 비교하고, 과제 안에서 평가해 검증해야 한다.
 
 ## 부록 (초안)
 
@@ -354,4 +418,20 @@ ReAct 프롬프트는 chat template이 아닌 completion 문자열이고, 고정
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
 
 ## 참고문헌
-[TODO; 인용 전 원문 확인] Yao 등 (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754(템플릿 간 프로브 전이; 제목·주장 확인 필요). — Ruan 등, arXiv 2607.06503(Doomed from the Start). — Bulut, arXiv 2609.03436(It's the Problem, Not the Path). — arXiv 2606.22936(When Agents Commit Too Soon). — arXiv 2609.02057(Monitoring Web Agents Without Internal Signals). — Wang 등, arXiv 2608.03222(Fail-Fast, Restart-Smart).
+<!-- [1]–[10], [12], [13]은 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11]은 원문 미확인([10]에서 가져옴). [14], [15]는 5절에서 인용, 아직 미확인.
+     5절은 아직 이름으로 인용하므로 확정할 때 번호로 바꾼다. 저자가 많은 항목은 투고 양식에 맞춰 정리한다. -->
+[1] D. Pham, K. Katevas, A. S. Shamsabadi, H. Haddadi. AgentStop: Terminating Local AI Agents Early to Save Energy in Consumer Devices. ACM CAIS 2026.
+[2] C. Wang, Y. Lyu, J. He, Z. Yang, C. Zhong, Y. Harel, D. Lo. Fail-Fast, Restart-Smart: Early Failure Prediction and Restart for SWE Agentic Tasks. arXiv:2608.03222, 2026.
+[3] K. Ruan, Z. Huang, Z. Zhou, Q. Wei, J. Lin, X. Wang, H. Sun. Doomed from the Start: Early Abort of LLM Agent Episodes via a Recall-Controlled Probe Cascade. arXiv:2607.06503v2, 2026.
+[4] S. Kadavath et al. Language Models (Mostly) Know What They Know. arXiv:2207.05221, 2022.
+[5] L. Kuhn, Y. Gal, S. Farquhar. Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation. ICLR 2023.
+[6] J. Kossen, J. Han, M. Razzak, L. Schut, S. Malik, Y. Gal. Semantic Entropy Probes: Robust and Cheap Hallucination Detection in LLMs. arXiv:2406.15927, 2024.
+[7] I. V. Moreno Cencerrado, A. Padrés Masdemont, et al. No Answer Needed: Predicting LLM Answer Accuracy from Question-Only Linear Probes. ICLR 2026 Workshop (arXiv:2509.10625).
+[8] Y. Shi, Z. Sun, J. Dong, C. Wan, D. Lo, X. Gu. EarlyEval: Cheaper Agent Evaluation via Early Outcome Prediction. arXiv:2609.02783, 2026.
+[9] A. Mehta, A. Datta. When Agents Commit Too Soon: Diagnosing Premature Commitment in LLM Agents. arXiv:2606.22936v2, 2026.
+[10] Y. U. Bulut. It's the Problem, Not the Path: Budget and Difficulty Confounds in LLM Reasoning Trajectories. arXiv:2609.03436, 2026.
+[11] W. Lugoloobi, T. Foster, W. Bankes, C. Russell. LLMs Encode Their Failures: Predicting Success from Pre-Generation Activations. COLM 2026 (arXiv:2602.09924). [원문 미확인, [10]을 통해 인용]
+[12] M. Shridhar, X. Yuan, M.-A. Côté, Y. Bisk, A. Trischler, M. Hausknecht. ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR 2021.
+[13] S. Yao et al. ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023.
+[14] Monitoring Web Agents Without Internal Signals. arXiv:2609.02057, 2026. [저자·주장 확인 필요]
+[15] arXiv:2604.03754(프롬프트 템플릿 간 프로브 전이). [제목·저자·주장 확인 필요]
