@@ -1,0 +1,36 @@
+start 2026-10-20 17:24:53 HEAD ead6e3e38a4c8b4af02711b411bd6f1877e8bec6
+uncommitted:  M docs/prompt_robustness_plan_2026-10-17.md ?? results/react_transfer_qwen25_3b.log ?? scripts/2026-10-20/react_transfer.py 
+sha256 scripts/2026-10-20/react_transfer.py a557b0cf4447856e | git diff e954e4eba8fe35b9
+cmd: python scripts/2026-10-20/react_transfer.py --out results/react_transfer_qwen25_3b.csv
+v2 rows=6490 react rows=6039 layer=2 hidden=2048
+  step 0 done
+  step 1 done
+  step 2 done
+ step          method   n  n_fail  auroc  ci_lo  ci_hi  C_median
+    0      transfer_A 250     161 0.5266 0.4524 0.6043    0.0010
+    0      transfer_B 250     161 0.5495 0.4664 0.6308    0.0010
+    0     react_probe 250     161 0.6586 0.5793 0.7368       NaN
+    0 react_baseline5 250     161 0.6610 0.5949 0.7304       NaN
+    1      transfer_A 250     161 0.4933 0.4361 0.5550    0.0505
+    1      transfer_B 250     161 0.4818 0.4183 0.5604    0.0505
+    1     react_probe 250     161 0.6233 0.5503 0.7003       NaN
+    1 react_baseline5 250     161 0.6595 0.5894 0.7310       NaN
+    2      transfer_A 250     161 0.5550 0.4854 0.6305    0.0100
+    2      transfer_B 250     161 0.5857 0.5174 0.6612    0.0100
+    2     react_probe 250     161 0.5928 0.5160 0.6607       NaN
+    2 react_baseline5 250     161 0.7207 0.6496 0.7841       NaN
+
+ step     method              vs  auroc_diff   ci_lo   ci_hi
+    0 transfer_A     react_probe     -0.1320 -0.2435 -0.0201
+    0 transfer_A react_baseline5     -0.1344 -0.2412 -0.0250
+    0 transfer_B     react_probe     -0.1091 -0.2303  0.0137
+    0 transfer_B react_baseline5     -0.1115 -0.2289  0.0019
+    1 transfer_A     react_probe     -0.1299 -0.2253 -0.0333
+    1 transfer_A react_baseline5     -0.1662 -0.2557 -0.0703
+    1 transfer_B     react_probe     -0.1415 -0.2388 -0.0464
+    1 transfer_B react_baseline5     -0.1777 -0.2713 -0.0788
+    2 transfer_A     react_probe     -0.0378 -0.1382  0.0594
+    2 transfer_A react_baseline5     -0.1657 -0.2556 -0.0844
+    2 transfer_B     react_probe     -0.0071 -0.1065  0.0941
+    2 transfer_B react_baseline5     -0.1350 -0.2262 -0.0537
+end 2026-10-20 17:25:52 exit=0
