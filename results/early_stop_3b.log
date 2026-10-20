@@ -1,0 +1,61 @@
+start 2026-10-20 17:02:17 HEAD 251a53d2c7e2f4c2ff30dd2a1099aa4369d2880b
+uncommitted:  M docs/early_stop_plan_2026-10-17.md ?? probes/early_stop.py ?? results/early_stop_3b.log ?? scripts/2026-10-20/test_early_stop.py 
+sha256 probes/early_stop.py 952e88eca26fd9ce | git diff d54d07deb44a9fac
+cmd: python probes/early_stop.py --out results/early_stop_3b --n_boot 1000 --n_jobs 10
+games=500 rows=40500 scenes=103 hidden=(40500, 2048) success_within_100=112 base_steps=40500
+  baseline4t: 2s, C=[0.01, 0.001, 0.01, 0.001, 1.0, 0.01, 0.01, 0.01, 0.01, 1.0]
+  baseline5t: 56s, C=[0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.01, 0.01, 0.1, 0.01]
+  probe: 188s, C=[0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001]
+
+주 지표(손실 0~10% 평균 최대 절감률) 등
+        segment      area     method  value  ci_lo  ci_hi  ratio_to_oracle
+            all  loss0_10        cap 0.5603 0.4679 0.6558           0.5849
+            all  loss0_10       loop 0.1939 0.0230 0.3606           0.2024
+            all  loss0_10 baseline4t 0.6078 0.4769 0.7479           0.6345
+            all  loss0_10 baseline5t 0.6247 0.5026 0.7578           0.6521
+            all  loss0_10      probe 0.5286 0.3817 0.6667           0.5518
+            all  loss0_10     oracle 0.9580 0.9469 0.9686           1.0000
+            all loss0_100        cap 0.8284 0.8005 0.8546           0.8647
+            all loss0_100       loop 0.6889 0.6313 0.7411           0.7190
+            all loss0_100 baseline4t 0.9007 0.8764 0.9239           0.9401
+            all loss0_100 baseline5t 0.9078 0.8878 0.9271           0.9476
+            all loss0_100      probe 0.8848 0.8535 0.9128           0.9236
+            all loss0_100     oracle 0.9580 0.9469 0.9686           1.0000
+  explore_0_249  loss0_10        cap 0.6152 0.5186 0.7289           0.6421
+  explore_0_249  loss0_10       loop 0.1557 0.0037 0.3824           0.1626
+  explore_0_249  loss0_10 baseline4t 0.6042 0.4137 0.7900           0.6306
+  explore_0_249  loss0_10 baseline5t 0.6410 0.4580 0.8154           0.6690
+  explore_0_249  loss0_10      probe 0.5117 0.3221 0.7196           0.5341
+  explore_0_249  loss0_10     oracle 0.9581 0.9427 0.9710           1.0000
+confirm_250_499  loss0_10        cap 0.5186 0.4201 0.6409           0.5414
+confirm_250_499  loss0_10       loop 0.2330 0.0253 0.4905           0.2432
+confirm_250_499  loss0_10 baseline4t 0.6194 0.4677 0.7766           0.6466
+confirm_250_499  loss0_10 baseline5t 0.6149 0.4319 0.7866           0.6418
+confirm_250_499  loss0_10      probe 0.5610 0.3356 0.7405           0.5856
+confirm_250_499  loss0_10     oracle 0.9580 0.9430 0.9726           1.0000
+
+비교(장면 cluster bootstrap 95% CI)
+        segment      area            comparison role    diff   ci_lo   ci_hi      verdict best_rule_point
+            all  loss0_10 probe - max(cap,loop) main -0.0317 -0.1828  0.1194 inconclusive             cap
+            all  loss0_10    probe - baseline5t supp -0.0961 -0.2193  0.0111 inconclusive             cap
+            all  loss0_10    probe - baseline4t supp -0.0792 -0.2308  0.0667 inconclusive             cap
+            all loss0_100 probe - max(cap,loop) supp  0.0564  0.0290  0.0823     superior             cap
+            all loss0_100    probe - baseline5t supp -0.0230 -0.0459 -0.0021     inferior             cap
+            all loss0_100    probe - baseline4t supp -0.0159 -0.0427  0.0085 inconclusive             cap
+  explore_0_249  loss0_10 probe - max(cap,loop) supp -0.1035 -0.2870  0.0837 inconclusive             cap
+  explore_0_249  loss0_10    probe - baseline5t supp -0.1293 -0.2915  0.0057 inconclusive             cap
+  explore_0_249  loss0_10    probe - baseline4t supp -0.0924 -0.2895  0.1003 inconclusive             cap
+confirm_250_499  loss0_10 probe - max(cap,loop) supp  0.0424 -0.1694  0.2233 inconclusive             cap
+confirm_250_499  loss0_10    probe - baseline5t supp -0.0539 -0.2045  0.0530 inconclusive             cap
+confirm_250_499  loss0_10    probe - baseline4t supp -0.0585 -0.2210  0.0798 inconclusive             cap
+
+보조: fold 안 τ(손실 5%)
+    method  target_loss  test_saving  test_loss
+       cap         0.05       0.5881     0.0625
+      loop         0.05       0.0209     0.0000
+baseline4t         0.05       0.6455     0.0446
+baseline5t         0.05       0.6864     0.0536
+     probe         0.05       0.6141     0.0446
+
+총 263s
+end 2026-10-20 17:06:41 exit=0
