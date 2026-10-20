@@ -1,0 +1,5 @@
+start 2026-10-21T03:04:37 HEAD 33d7c74
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:   1%|          | 1/199 [00:01<03:39,  1.11s/it]Loading weights: 100%|██████████| 199/199 [00:01<00:00, 169.92it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (544 > 512). Running this sequence through the model will result in indexing errors
+saved (750, 768) revision None chunks min/max 1 2 device cuda
+end 2026-10-21T03:05:06

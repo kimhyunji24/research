@@ -1,0 +1,11 @@
+start 2026-10-21T03:22:13 HEAD 33d7c74
+  0/750 max|diff| 0 rel 0
+  100/750 max|diff| 2 rel 0.02614
+  200/750 max|diff| 2.75 rel 0.03667
+  300/750 max|diff| 2.75 rel 0.03667
+  400/750 max|diff| 3.125 rel 0.04252
+  500/750 max|diff| 3.125 rel 0.04252
+  600/750 max|diff| 3.125 rel 0.04444
+  700/750 max|diff| 3.125 rel 0.04444
+saved (750, 2, 2048) {'model': 'Qwen/Qwen2.5-3B-Instruct', 'revision': None, 'layers': [18, 27], 'n': 750, 'prompt_token_mismatch': 0, 'max_abs_diff_vs_stored': 3.125, 'max_rel_diff_vs_stored': 0.04444444552063942}
+end 2026-10-21T03:23:39
