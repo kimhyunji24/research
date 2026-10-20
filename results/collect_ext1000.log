@@ -1,0 +1,59 @@
+batch 1 start 2026-10-21T04:24:59+09:00 HEAD a492d02
+Initializing AlfredTWEnv...
+0it [00:00, ?it/s]0it [00:00, ?it/s]
+Overall we have 0 games in split=train
+Training with 0 games
+Traceback (most recent call last):
+  File "/root/research/collect/rollout.py", line 316, in <module>
+    main()
+  File "/root/research/collect/rollout.py", line 177, in main
+    games = json.load(open(cfg["game_list"]))
+                      ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'data/ext1000_3b/games.json'
+batch 1 stopped 2026-10-21T04:25:14+09:00 episodes_done 
+batch 1 start (retry with ALFWORLD_DATA set) 2026-10-21T04:26:30+09:00 HEAD a492d02
+Initializing AlfredTWEnv...
+  0%|          | 0/8810 [00:00<?, ?it/s]  5%|▌         | 467/8810 [00:00<00:03, 2580.90it/s] 10%|█         | 910/8810 [00:00<00:02, 3394.13it/s] 15%|█▌        | 1326/8810 [00:00<00:02, 2804.95it/s] 20%|██        | 1803/8810 [00:00<00:02, 3384.81it/s] 26%|██▌       | 2290/8810 [00:00<00:01, 3825.15it/s] 31%|███       | 2704/8810 [00:00<00:01, 3170.78it/s] 37%|███▋      | 3237/8810 [00:00<00:01, 3718.31it/s] 41%|████▏     | 3647/8810 [00:01<00:01, 3050.34it/s] 46%|████▌     | 4055/8810 [00:01<00:01, 3287.23it/s] 50%|█████     | 4421/8810 [00:01<00:01, 2862.24it/s] 56%|█████▌    | 4945/8810 [00:01<00:01, 3414.38it/s] 60%|██████    | 5326/8810 [00:01<00:01, 2973.80it/s] 66%|██████▋   | 5853/8810 [00:01<00:00, 3504.73it/s] 71%|███████   | 6276/8810 [00:01<00:00, 2945.12it/s] 77%|███████▋  | 6761/8810 [00:02<00:00, 3361.55it/s] 82%|████████▏ | 7267/8810 [00:02<00:00, 3099.50it/s] 89%|████████▊ | 7811/8810 [00:02<00:00, 3613.43it/s] 95%|█████████▍| 8348/8810 [00:02<00:00, 4031.84it/s]100%|█████████▉| 8793/8810 [00:02<00:00, 3381.15it/s]100%|██████████| 8810/8810 [00:02<00:00, 3304.26it/s]
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Overall we have 3553 games in split=train
+Training with 3553 games
+Loading weights:   0%|          | 0/434 [00:00<?, ?it/s]Loading weights:  77%|███████▋  | 336/434 [00:00<00:00, 3350.82it/s]Loading weights: 100%|██████████| 434/434 [00:00<00:00, 3480.55it/s]
+[Qwen2.5-3B-Instruct] ep 1/1000 won=False steps=30 total_wins=0
+[Qwen2.5-3B-Instruct] ep 2/1000 won=False steps=30 total_wins=0
+[Qwen2.5-3B-Instruct] ep 3/1000 won=False steps=30 total_wins=0
+[Qwen2.5-3B-Instruct] ep 4/1000 won=False steps=30 total_wins=0
+[Qwen2.5-3B-Instruct] ep 5/1000 won=False steps=30 total_wins=0
+[Qwen2.5-3B-Instruct] ep 6/1000 won=True steps=24 total_wins=1
+[Qwen2.5-3B-Instruct] ep 7/1000 won=False steps=30 total_wins=1
+[Qwen2.5-3B-Instruct] ep 8/1000 won=False steps=30 total_wins=1
+[Qwen2.5-3B-Instruct] ep 9/1000 won=True steps=24 total_wins=2
+[Qwen2.5-3B-Instruct] ep 10/1000 won=True steps=21 total_wins=3
+[Qwen2.5-3B-Instruct] ep 11/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 12/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 13/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 14/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 15/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 16/1000 won=False steps=30 total_wins=3
+[Qwen2.5-3B-Instruct] ep 17/1000 won=True steps=22 total_wins=4
+[Qwen2.5-3B-Instruct] ep 18/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 19/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 20/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 21/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 22/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 23/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 24/1000 won=False steps=30 total_wins=4
+[Qwen2.5-3B-Instruct] ep 25/1000 won=True steps=12 total_wins=5
+[Qwen2.5-3B-Instruct] ep 26/1000 won=False steps=30 total_wins=5
+[Qwen2.5-3B-Instruct] ep 27/1000 won=True steps=13 total_wins=6
+[Qwen2.5-3B-Instruct] ep 28/1000 won=True steps=18 total_wins=7
+[Qwen2.5-3B-Instruct] ep 29/1000 won=True steps=15 total_wins=8
+[Qwen2.5-3B-Instruct] ep 30/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 31/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 32/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 33/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 34/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 35/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 36/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 37/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 38/1000 won=False steps=30 total_wins=8
+[Qwen2.5-3B-Instruct] ep 39/1000 won=False steps=30 total_wins=8
