@@ -270,7 +270,36 @@ software environment reproduced every reported value exactly, so these changes r
 [TODO: divergence-aligned analysis, stronger probes (C grid, PCA, layer combination, MLP search), stronger text baseline, time-aligned baselines, CV-seed variance, scene-level permutation, Holm-adjusted exploratory table, 3B free-generation comparison.]
 
 ## 5 Discussion
-[TODO-RESULT]
+<!-- 2026-10-20 draft. Prior-work numbers come from docs/literature_review_2026-10-17.md (arXiv HTML read); check each against the PDF before submission. -->
+
+**What the results show.** Across four task-level evaluations (pre-registered, confirmatory, a second Qwen model and a second prompt), a linear probe on the actor's hidden states was never better than a baseline built from information visible in the prompt; in the pre-registered cell it was worse.
+The early-termination analysis gave the same picture in practical terms: the probe did not save more steps than a fixed step cap at the same loss of successes, and in secondary analyses it did not reach the surface baseline.
+Most of what any method predicted across games was the game itself (η² = 0.695 in the sampled data; a difficulty oracle alone reached 0.877 on pooled rows). Within games, from step 2 on, all methods separated failed from successful attempts above chance,
+so in-progress failure is not invisible; it is equally visible in the text and progress features, and the hidden states did not add to it.
+Hypothesis H1 (hidden states predict failure better than surface information) was therefore not supported in any setting we tested.
+
+**Relation to prior work.** Probes on agent hidden states have been reported to predict failure early and to beat monitors that use only action-level features (Doomed from the Start; Ruan et al., 2026).
+Their baselines contain no task information (the task sentence, task type, observations or progress). In our ladder, task type alone gave an AUROC of 0.603 and the full rung 5 gave 0.701 at the first action,
+and against this full ladder the probe showed no advantage in any setting. We did not reproduce their baselines or environments, so we cannot say that their reported gains would vanish; our results suggest that comparisons against task-blind monitors overstate what hidden states add.
+In mathematical reasoning, Bulut (2026) found that a high pooled AUROC of an early hidden-state probe (0.849) fell to chance within problems (0.496) and argued that early signals mostly identify hard problems.
+Our agent results agree on the first part, since the game explained most of the outcome, but differ on the second: within games, signals were above chance from step 2 on. A likely reason is that agent trajectories diverge in observable ways, such as visited places and repeated actions,
+which both the text baseline and the probe can read; this is a hypothesis we did not test.
+That a text-similarity measure predicted run-to-run behavior better than hidden-state similarity in repeated agent runs (When Agents Commit Too Soon, 2026) and that surface signals compete with internal ones for web agents (Monitoring Web Agents Without Internal Signals, 2026) are consistent with our findings.
+For early stopping, a step-count control already saves a large share of the cost in software-engineering agents (Fail-Fast, Restart-Smart, 2026), matching the strength of the step cap here.
+Finally, the weak transfer of our probe from one prompt to another agrees with reports that probes trained under one template transfer poorly to others (arXiv 2604.03754; to verify).
+
+**Why hidden states may not help here.** We see three explanations, none tested directly. First, at the steps we evaluated the outcome is largely fixed by the game, and the prompt already states the task and the room, so the information the probe could use is also in the text.
+Second, the probe may learn directions that encode the prompt's form rather than a general failure state: a probe trained under one prompt was near chance under another (exploratory; the two prompts also differ in the token at which hidden states are taken).
+Third, with about 250 training episodes per round and 2,048 dimensions, a regularized linear probe may be too weak to extract a subtle signal; however, 96 exploratory combinations of readers, depths and probe types, including a nonlinear probe, did not exceed the baseline either.
+
+**Practical implication.** For small agents that run their own monitor, the hidden state costs nothing extra, so even a modest gain would be useful. We did not find one: at up to 10% lost successes, a step cap saved about as many steps as the probe, and a surface baseline at least as many.
+A monitor that reads the agent's text, or a simple cap, is a cheaper starting point and does not require access to the model's internals; claims of a hidden-state advantage should be tested against baselines that see the same task information.
+
+**Methodological points.** Several design choices changed conclusions in ways that matter for similar studies. Splitting by game instead of by floor plan inflated a scene-only synthetic feature to an AUROC of 0.97.
+Within-game evaluation was diluted by rollouts that had not yet diverged: 52–70% of pairs had identical prompts, which caps any prompt-based predictor. Game-level percentile bootstrap intervals were too narrow on shuffled labels (coverage 80–94% instead of 95%).
+Whether attempts diverge at all depends on the policy: Qwen3-4B sampled at *T* = 1 diverged in only 10 of 50 games, which left its attempt-level question unanswerable. Extending to other model families was limited by prompt–model fit: three non-Qwen models solved 1 of 20 pilot games each under our prompt.
+
+**Unexpected results.** The external ReAct-format prompt raised the success rate of the same actor (89 vs. 56 of 250 games), although our prompt had been tuned for this model. Because several factors changed together, we do not know which one mattered; whatever the cause, the probe again did not beat the surface baseline under the stronger prompt.
 
 ## 6 Limitations
 - **Agent setting.** Actions were chosen by scoring admissible candidates, not by free generation, so the agent is a constrained selector. We did not compare with a free-generation agent.
@@ -325,4 +354,4 @@ Table A3: Qwen3-4B attempt-level results (10 games with both outcomes, 120 pairs
 | Length (Qwen2.5 tokens) | median 864 (whole prompt) | 1,115–1,571 (exemplars only) |
 
 ## References
-[TODO; verify before citing] Yao et al. (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754 (transfer of probes across templates; check title and claim). — Ruan et al., arXiv 2607.06503 (Doomed from the Start).
+[TODO; verify before citing] Yao et al. (2023), ReAct: Synergizing reasoning and acting in language models (ICLR). — arXiv 2604.03754 (transfer of probes across templates; check title and claim). — Ruan et al., arXiv 2607.06503 (Doomed from the Start). — Bulut, arXiv 2609.03436 (It's the Problem, Not the Path). — arXiv 2606.22936 (When Agents Commit Too Soon). — arXiv 2609.02057 (Monitoring Web Agents Without Internal Signals). — Wang et al., arXiv 2608.03222 (Fail-Fast, Restart-Smart).
