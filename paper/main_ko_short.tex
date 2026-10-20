@@ -1,0 +1,205 @@
+% 학회용 국문 축약판(단일 단, 본문 9쪽 한도). 전체판은 paper/main_ko.tex(arXiv·저널용).
+% 2026-10-21 영문 축약판(main_en_short.tex)과 같은 내용으로 작성했고, 용어는 국문 전체판을 따른다. 자체 수치·주장은 더하지 않는다
+% (점검: scripts/2026-10-21/check_short_numbers.py ko). 표·그림은 floats_ko/에서 \input하며, main_ko.tex에서 scripts/2026-10-21/extract_floats.py로 뽑는다.
+% 쪽 설정은 영문 축약판과 같다(letter, 본문 5.5 x 9 in, 10 pt). XeLaTeX로 컴파일한다.
+\documentclass[10pt]{article}
+\usepackage[letterpaper,textwidth=5.5in,textheight=9in,top=1in,headsep=0.25in]{geometry}
+\usepackage{fontspec}
+\IfFontExistsTF{TeX Gyre Termes}{\setmainfont{TeX Gyre Termes}}{}
+\usepackage{kotex}
+\IfFontExistsTF{Noto Serif CJK KR}{\setmainhangulfont{Noto Serif CJK KR}}{}
+\IfFontExistsTF{Noto Sans CJK KR}{\setsanshangulfont{Noto Sans CJK KR}}{}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage[section]{placeins}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\captionsetup{font=small,labelfont=bf}
+\graphicspath{{figures/}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcommand{\code}[1]{\texttt{#1}}
+\setlist{itemsep=1pt,topsep=3pt}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\refname}{참고문헌}
+\renewcommand{\abstractname}{초록}
+\renewcommand{\figurename}{그림}
+\renewcommand{\tablename}{표}
+
+\title{소형 Qwen 언어모델 에이전트의 실패 예측:\\겉보기 정보를 넘지 못한 hidden state 프로브}
+\author{저자 정보는 심사를 위해 생략}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+언어모델 에이전트의 hidden state에 학습한 선형 프로브는 실패를 일찍 예측하는 값싼 모니터로 제안되었지만, 그 이득은 과제를 보지 못하는 baseline과 비교해 측정되었다.
+본 연구는 ALFWorld 가정 텍스트 환경의 30억 파라미터 Qwen2.5 에이전트에서, 이러한 프로브가 프롬프트에 보이는 정보를 넘어 실패를 예측하는지 게임 간(탐욕 episode 500개)과 게임 내(100개 게임을 각 8번 실행)에서 검증했다.
+비교 대상은 과제 유형·프롬프트 텍스트·진행도 특징으로 만든 baseline 사다리이고, 모든 데이터는 방 배치 단위로 나누었으며 주 분석은 미리 정해 한 번만 실행했다.
+사전 등록한 비교에서 프로브는 처음 세 action에서 전체 baseline보다 AUROC가 0.13--0.18 낮았고(95\% 신뢰구간 모두 0 아래), 새 250개 게임에서는 우수한 action이 없었다.
+게임 안에서는 세 번째 action부터 프로브와 baseline 모두 실패 시도와 성공 시도를 우연보다 잘 구분했지만, 프로브는 비교 6개 중 어디에서도 우수하지 않았다.
+40억 파라미터 Qwen3 에이전트와 외부 프롬프트에서도 프로브가 우수한 action은 없었고, 외부 프롬프트의 세 번째 action에서는 프로브가 baseline보다 낮았다.
+실패할 episode를 멈추는 데 쓰면, 프로브가 고정 상한보다 action을 더 아낀다는 것은 보이지 않았다.
+에이전트 hidden state의 실패 신호에 관한 주장은 과제를 보는 baseline과 과제 내 평가로 검증해야 한다.
+\end{abstract}
+
+\section{서론}
+실패로 끝나는 episode도 성공하는 episode만큼 계산을 쓰며, 이 비용은 에이전트를 로컬에서 실행할 때 가장 크다~\cite{pham2026agentstop}.
+본 연구의 설정에서 Qwen2.5-3B 에이전트는 앞 250개 ALFWorld 게임의 22.4\%를 풀었고, 실행한 step의 89.7\%가 실패 episode에서 나왔다.
+실패할 episode를 일찍 멈추면 이 비용의 상당 부분을 아낄 수 있지만, 소형 에이전트에서는 모니터 자체도 싸야 한다. 0.6B 텍스트 모니터는 9--31B policy에 0.1--0.6\%의 계산량만 더하지만~\cite{wang2026failfast},
+같은 근사로 0.5B 모니터는 3B actor에 약 13--16\%를 더한다. actor가 이미 계산한 hidden state를 읽는 프로브는 모델을 다시 부를 필요가 없다.
+
+Ruan 등~\cite{ruan2026doomed}은 이런 프로브가 다단계 에이전트의 최종 실패를 첫 라운드부터 예측하고, 행동 특징으로 만든 scorer보다 일관되게 강하다고 보고했다.
+이 보고는 한 가지 질문을 열어 둔다. 이 신호는 현재 시도가 어떻게 진행되는지를 보여 주는가, 아니면 에이전트가 어떤 과제를 맡았는지를 보여 주는가?
+결과는 대부분 과제가 정한다. 우리 샘플링 데이터에서는 게임이 결과 분산의 69.5\%를 설명하고, HotpotQA 반복 실행에서는 100문항 중 64개가 모든 회차에서 맞고 23개는 한 번도 맞지 못했다~\cite{mehta2026commit}.
+합친 AUROC는 과제 내 성분과 과제 간 성분의 가중합이며, 과제만으로 점수를 정하는 예측기는 과제 안에서 정확히 0.5이다~\cite{bulut2026problem}.
+또 에이전트 연구의 비교 대상은 약했다. \cite{ruan2026doomed}의 행동 scorer는 과제 문장도 관찰도 보지 않지만, 우리 데이터에서는 과제 유형만으로도 첫 action 전에 AUROC 0.603이 나온다.
+끝으로 과제 내 평가는 이산 action 에이전트에 그대로 옮겨지지 않는다. 같은 게임의 rollout은 초반에 프롬프트가 같아 동점 쌍이 생긴다.
+
+그래서 우리는 작은 ALFWorld 에이전트~\cite{shridhar2021alfworld}의 hidden state 실패 예측을 이 설명들을 가르는 통제 아래에서 시험했다.
+\begin{itemize}
+\item 두 평가 층: 게임 간(탐욕 디코딩, 500게임)과 게임 내(100게임 $\times$ 8회 rollout, 게임 내 쌍 AUROC). 게임 안에서 정확히 0.5가 나오는 난이도 오라클을 함께 둔다.
+\item 겉보기 정보의 5단 baseline 사다리(step 번호, + 과제 유형, + 반복·선택 확률, + 진행도, + 프롬프트 TF-IDF)와 시점 맞춤 변형.
+\item 장면 단위 교차적합과 bootstrap. 게임 단위로 나누면 장면 정보만 담은 합성 특징에서도 AUROC가 0.97까지 부풀었다.
+\item 주 분석은 사전에 등록해 한 번만 실행하고, 탐색 뒤에 고른 설정은 새 250게임에서 확인한다.
+\end{itemize}
+이 통제 아래에서 프로브는 어느 설정에서도 겉보기 정보 baseline을 넘어서지 못했다. 다만 이 결과가 프로브와 baseline이 같다는 뜻은 아니다. 신뢰구간이 넓고(과제 단위에서 약 $\pm$0.06--0.10) 환경 하나와 프롬프트 두 개만 시험했다.
+기여는 (i) 에이전트 hidden state 실패 예측을 겉보기 정보 사다리와 비교한 사전 등록 검정(게임 간·게임 내), (ii) 이산 action 에이전트에서 과제 내 평가가 부딪히는 두 문제(동점 쌍, 명목보다 좁은 bootstrap 구간)의 정량화, (iii) 같은 궤적을 다른 크기의 reader로 읽은 탐색적 비교이다.
+
+\section{관련 연구}
+\paragraph{내부 표현으로 정답 여부 예측.} 언어모델은 질문의 답을 아는지를 예측할 수 있고~\cite{kadavath2022know}, 샘플한 답들의 의미 엔트로피는 정확도를 예측하며~\cite{kuhn2023semantic}, 선형 프로브는 이를 단일 생성에서~\cite{kossen2024sep} 또는 질문만으로~\cite{moreno2026noanswer} 근사한다.
+이 계열은 진실과 관련된 정보가 활성에서 선형으로 읽힌다는 근거에 기대고 있다~\cite{burns2022latent,marks2023geometry}. 수학·코딩에서 생성 전 프로브는 15개 설정 중 각각 14개에서 질문 길이와 TF-IDF보다 높았고~\cite{lugoloobi2026failures}, 고정된 모델의 hidden state와 attention 패턴은 자기 답의 정답 여부를 예측한다~\cite{ghasemabadi2025gnosis}.
+이 연구들의 목표는 모두 질문마다 정해지므로 어려운 질문과 실패하는 시도를 구분하지 못한다.
+
+\paragraph{에이전트의 hidden state 모니터.} Ruan 등~\cite{ruan2026doomed}은 각 action 마지막 토큰에 선형 프로브를 두고 과제 단위 분할로 교차적합해 TextCraft와 WebShop에서 이른 실패 예측을 보고했다. ALFWorld는 경계 시험으로만 쓰였다(Qwen-2.5-7B에서 프로브 AUC 0.815).
+행동 scorer는 action 로그확률, 토큰 수, prefix 길이, 오류 키워드만 쓰며, 과제당 4--8개 rollout을 모았는데도 과제 내 평가는 보고하지 않았다.
+다른 연구는 hidden state에서 추론 열화~\cite{khan2026companion}나 반복 실행 사이의 안정성~\cite{mehta2026commit}을 읽는다. 후자에서는 관찰 텍스트가 hidden state 유사도보다 행동을 더 잘 예측했고, 프로브는 회차 단위 정답을 예측하지 못했다.
+
+\paragraph{내부 상태 없는 모니터.} 조기 중단에는 토큰 로그확률~\cite{pham2026agentstop}, 미세조정한 텍스트 모니터~\cite{wang2026failfast}, 행동·텍스트 특징~\cite{shi2026earlyeval}, 내부 신호 baseline과 견줄 만한 관찰 가능한 궤적 특징~\cite{pan2026monitoring}, 단계 기록~\cite{dubey2026realtime}도 쓰였다. 이들의 평가는 과제를 합쳐서 한다.
+
+\paragraph{교락 요인으로서의 난이도.} 수학 추론에서 조기 구간 프로브를 재구성하면 합친 값은 0.849였지만 문제 안에서는 0.496이었고, 사전 등록한 난이도 통제 검정에서도 이득이 없었다~\cite{bulut2026problem}. 우리는 \cite{bulut2026problem}에서 문제 내 쌍 AUROC를, \cite{ruan2026doomed}에서 재생과 라운드별 평가를, \cite{wang2026failfast}에서 step 수 대조를 가져오고, 겉보기 정보 사다리, 장면 단위 묶음, 동점 쌍 처리를 더했다.
+
+\section{방법}
+\paragraph{환경과 에이전트.} ALFWorld(\code{alfworld} 0.4.2)의 train 게임 3,553개와 6개 과제 유형을 모두 썼다. episode는 성공하거나 30 action을 마치면 끝났고, 끝내지 못한 episode를 실패로 두었다.
+actor는 Qwen2.5-3B-Instruct이다. 프롬프트(v2, 직접 작성)에는 규칙과 예시 episode 하나, 과제, 최근 6개의 관찰--action 쌍, 현재 관찰, 최근 효과가 없었던 action, 가능한 action 목록이 들어갔다.
+action은 후보 점수화로 골랐다. 가능한 action $a$마다 \code{Action: a<|im\_end|>}의 로그확률 합을 프롬프트 key--value 캐시를 재사용한 한 번의 배치 계산으로 구했고, 탐욕 정책은 최고점 action을, 샘플링 정책은 $\mathrm{softmax}(\text{점수}/T)$, $T=1$에서 뽑았다.
+예비 실행에서 소형 모델이 자유 생성으로는 목록에 없는 action을 자주 냈기 때문에 자유 생성은 쓰지 않았다(부록 표~\ref{tab:a5}).
+
+\paragraph{표현.} hidden state는 프롬프트 마지막 토큰의 25, 50, 75, 100\% 깊이에서 뽑았다. 궤적을 바꾸지 않고 모델 크기만 바꾸려고, 저장한 프롬프트를 teacher forcing으로 \emph{reader} 모델(Qwen2.5-0.5B, 1.5B, 3B, 4비트 가중치의 7B)에 통과시켰다. 3B reader는 actor의 hidden state를 그대로 재현했다.
+
+\paragraph{데이터.} \emph{과제 수준:} 서로 다른 게임 500개의 탐욕 episode. 앞 250개는 사전 등록·탐색 분석에 썼고, 250--499번 episode는 그 뒤에 비교 하나를 위한 확증 홀드아웃으로 수집했다.
+\emph{시도 수준:} 게임 100개를 샘플링 정책으로 각 8번씩 다시 돌렸다(파일럿 20게임과 본 규모 80게임, 탐욕 결과로 층화). 모두 800개 rollout이다.
+
+\paragraph{평가 단위.} 게임 간 평가는 라운드 $r$마다 step $r$에 진행 중인 episode당 한 행을 쓴다. 사전 등록 라운드는 step 0--2이며 이때 모든 episode가 진행 중이었다. 게임 내 평가는 두 결과가 모두 있는 게임에서 step 1--3을 평가하고, 지표는 쌍 수에 비례한 가중치로 합친 게임 내 쌍 AUROC이다.
+같은 게임의 rollout은 아직 갈라지지 않은 경우가 많았다. step마다 470쌍(게임 39개) 중 프롬프트가 같은 쌍이 step 1--3에서 70.4\%, 66.4\%, 52.3\%였고, 이 동점 때문에 프로브의 쌍 AUROC 상한은 0.648, 0.668, 0.739가 된다.
+그래서 보조 분석 두 개를 미리 정했다. 프롬프트가 다른 쌍만 쓰는 분석과, 반복 횟수와 고른 action의 확률을 직전 step 값으로 바꾼 시점 맞춤 4t·5t단이다.
+
+\paragraph{예측 방법.} 프로브는 표준화한 L2 정규화 로지스틱 회귀이고 $C$는 nested 교차검증으로 골랐다. baseline 각 단은 겉보기 정보를 더한다. (1) step 번호, (2) + 과제 유형, (3) + 최근 반복 횟수, 고른 action의 확률, 후보 수, (4) + 이전 action에서 계산한 진행도, (5) + user 메시지 전체의 TF-IDF.
+난이도 오라클은 각 게임의 탐욕 결과로, 게임 안에서는 상수이다.
+
+\paragraph{통계와 사전 등록.}\label{sec:stats} 모든 예측 방법은 장면(앞 250개 게임에서 86개) 단위 5-fold 층화 그룹 분할로 교차적합했고 seed 2개로 반복했다. 과제 수준 95\% 신뢰구간은 장면 단위 cluster bootstrap(1,000회), 시도 수준은 게임 단위 bootstrap이며 차이는 짝지어 계산했다.
+프로브를 학습하기 전에 주 분석과 가설 H1을 등록했다. H1: 3B actor의 궤적을 3B 모델로 읽을 때, 처음 세 action에서 50\% 깊이의 선형 프로브가 5단보다 실패를 더 잘 예측한다(AUROC 차이의 95\% CI가 0 위).
+판정 규칙은 하한이 0보다 크면 우수, $-0.05$보다 크면 비열등, 상한이 0보다 작으면 열등, 그 밖에는 결론 없음이며, 마진 0.05는 탐색 분석 뒤에 정했다. 등록한 항목과 해석표는 부록 표~\ref{tab:a7}에 있다.
+같은 episode에서 그 뒤에 한 분석은 모두 탐색적이라고 표시했고, 시도 수준 분석(75\% 깊이, 선형, 4·5단과 비교, step 1--3)은 샘플링 rollout을 수집하기 전에 정했다.
+
+\paragraph{모니터 비용.} \cite{wang2026failfast}를 따라 파라미터 $N$개 모델의 추론 계산량을 토큰당 $2N$ 연산으로 근사했다. Qwen2.5의 공개 파라미터 수로 계산하면 별도 0.5B 모니터는 3B actor에 약 13--16\%를 더하고 7B 모니터는 actor의 약 2.4배가 들지만, actor 자신의 hidden state를 읽는 프로브는 step마다 2,048차원 벡터와의 내적 하나를 더할 뿐이다. 에너지와 지연은 측정하지 않았다.
+
+\section{결과}
+\subsection{과제 수준}\label{sec:task}
+탐욕 actor는 앞 250개 episode 중 56개, 500개 전체 중 101개를 성공했다. 겉보기 정보만으로도 첫 action 전에 실패가 예측되었다(표~\ref{tab:ladder}). 과제 유형만으로 0.603이었고, 5단은 step 0--2에서 0.701, 0.732, 0.823이었으며, 이후의 상승은 대부분 진행도 특징에서 나왔다.
+한 번 실행한 사전 등록 분석에서 프로브는 세 라운드 모두 5단보다 낮았고 신뢰구간도 모두 0 아래였다. $-0.181$($-0.276$ \textasciitilde{} $-0.069$), $-0.133$($-0.230$ \textasciitilde{} $-0.031$), $-0.159$($-0.240$ \textasciitilde{} $-0.073$). 따라서 H1은 지지되지 않았다.
+
+\input{floats_ko/tab_ladder}
+
+같은 episode에서 한 탐색 분석은 reader 4종, 깊이 4종, 프로브 2종, 라운드 3개의 96개 조합을 다뤘다. baseline보다 0.004 넘게 높은 조합은 없었고, 최고 깊이 AUROC는 reader 크기에 따라 단조 증가하지 않았다(부록 그림~\ref{fig:heat}, 표~\ref{tab:a6}).
+탐색에서 고른 설정(3B reader, 75\% 깊이, 선형)을 새 250개 episode에서 평가하자 5단과의 차이는 $+0.039$, $+0.035$, $-0.029$였고, 우수도 열등도 없었다(부록 표~\ref{tab:confirm}).
+
+\subsection{시도 수준}\label{sec:attempt}
+게임 안에서 프로브의 쌍 AUROC는 step 1--3에서 0.520, 0.585, 0.619였다(표~\ref{tab:within}). step 2부터는 프로브와 4·5단 모두 같은 게임의 실패 시도와 성공 시도를 우연보다 잘 구분했지만(게임 안 순열 $p \le 0.018$),
+프로브--baseline 차이 6개 중 우수 기준을 충족한 것도 열등한 것도 없었다(그림~\ref{fig:forest}). 프롬프트가 다른 쌍만 쓰면 모든 방법이 높아졌지만 차이는 가려지지 않았고, 시점 맞춘 단과 비교해도 프로브는 어느 step에서도 낫지 않았다.
+동등 정의(95\% CI가 $\pm 0.05$ 안)를 충족한 비교도 없었는데, 구간 폭이 0.088--0.154라 이는 데이터만큼 표본 크기 때문이기도 하다. 라벨을 섞은 데이터에서 게임 단위 percentile bootstrap 구간은 귀무값을 80--94\%만 포함했으므로 경계 판정은 조심해 읽어야 한다.
+게임은 결과 분산의 $\eta^2 = 0.695$를 설명했고 난이도 오라클 단독의 합친 AUROC는 0.877이었다. 어느 방법이든 게임 간에 예측하는 것의 대부분은 게임을 아는 것만으로 예측된다.
+
+\input{floats_ko/tab_within}
+\input{floats_ko/fig_forest}
+
+\subsection{다른 actor와 두 번째 프롬프트}\label{sec:actors}
+사전에 정한 포함 규칙으로 다섯 모델을 파일럿했고 Qwen3-4B만 통과했다(부록 표~\ref{tab:a1}--\ref{tab:a2}). 이 모델의 프로브도 어느 라운드에서 5단을 넘지 못했고($-0.049$, $+0.001$, $-0.037$, 모두 결론 없음), 샘플링 rollout이 거의 갈라지지 않아(50게임 중 10게임) 시도 수준 질문에는 답할 수 없었다(부록 표~\ref{tab:a3}).
+Qwen2.5-3B를 ReAct 원 예시~\cite{yao2023react}로 다시 돌리면(부록 표~\ref{tab:a4}) $-0.002$, $-0.036$, $-0.128$($-0.204$ \textasciitilde{} $-0.058$)로, 우수한 라운드는 없었고 step 2는 열등이었다(부록 표~\ref{tab:settings}).
+과제 수준 평가 네 가지에서 프로브가 5단보다 우수한 라운드는 12개 중 0개였다. v2 궤적으로 학습한 프로브는 ReAct 궤적에 잘 옮겨 가지 않았고(0.527, 0.493, 0.555), 이는 프로브의 방향이 프롬프트 형식에 묶여 있음을 시사한다.
+
+\subsection{선행 방식 모니터와의 비교}\label{sec:prior}
+기존 에이전트 모니터의 과제를 보지 못하는 baseline을 근사하면(탐색, 부록 표~\ref{tab:prior}), 같은 프로브가 \cite{ruan2026doomed}를 따른 행동 scorer보다 $+0.145$--$+0.190$ 높았고 \cite{pham2026agentstop}를 따른 로그확률 scorer보다 step 1과 2에서 높았다.
+행동 특징에 과제 유형만 더해도 AUROC가 0.08--0.10 올랐고, 5단 전체와 비교하면 프로브의 이점이 없었다. 과제를 보지 못하는 모니터 대비 hidden state의 이점은 baseline이 과제를 보면 사라질 수 있다.
+
+\subsection{조기 중단}
+100 action 상한의 탐욕 500게임에서 중단 규칙을 평가했고, 성공 손실 10\% 이하에서 절감한 step 비율의 최댓값 평균을 지표로 썼다(표~\ref{tab:early}). 프로브는 step의 0.529를, step 상한은 0.560을 절감했고, 주 비교 차이는 $-0.032$($-0.183$ \textasciitilde{} $+0.119$)로 결론 없음이었다.
+보조 분석은 프로브가 고정 상한보다 나은 구간에서도 시점 맞춘 겉보기 baseline이 적어도 그만큼 낫다는 것을 시사한다(5t 0.625). 성공의 10\%가 약 11개 episode라 신뢰구간이 넓다.
+
+\input{floats_ko/tab_early}
+
+\subsection{강건성}\label{sec:robust}
+100 action 라벨로 바꿔도 우수한 라운드는 없었다. 더 강한 프로브 다섯 개(넓힌 정규화 격자, PCA, 네 깊이 결합, MLP 격자, 5단에 hidden state 추가)도 18개 비교 중 5단보다 우수한 것이 없었고 가장 큰 차이는 $+0.013$이었다(부록 표~\ref{tab:strength}).
+사전 등록 라운드 너머 step 0--10의 차이는 $-0.114$에서 $+0.009$ 사이였고, 이전 step hidden state의 누적 평균을 쓴 프로브도 낫지 않았다.
+
+\section{토의}
+과제 수준 평가 네 가지에서 actor hidden state의 선형 프로브는 겉보기 정보로 만든 baseline보다 나은 적이 없었고, 사전 등록 조건에서는 더 낮았다.
+어느 방법이든 게임 간에 예측한 것의 대부분은 게임 자체였다. 게임 안에서는 step 2부터 실패가 보였지만, 텍스트와 진행도 특징에도 똑같이 보였다.
+에이전트 hidden state의 프로브가 행동 수준 특징만 보는 모니터보다 낫다는 보고가 있다~\cite{ruan2026doomed}. 우리 결과는 과제를 보는 사다리가 그 차이를 메웠으므로 그런 비교가 hidden state의 기여를 과대평가할 수 있음을 시사한다. 그들의 환경은 재현하지 않았다.
+수학 추론에서는 초기 프로브가 문제 안에서 우연 수준으로 떨어졌지만~\cite{bulut2026problem}, 우리 에이전트에서는 게임 안 신호가 우연보다 높았다. 궤적이 관찰 가능한 방식으로 갈라지고 텍스트 baseline과 프로브가 모두 이를 읽기 때문으로 보이지만 검정하지는 않았다.
+웹 에이전트에서도 겉보기 신호가 내부 신호와 경쟁할 만했고~\cite{pan2026monitoring}, 가벼운 TF-IDF 감지기가 LLM 심사 모델보다 에이전트의 거짓 성공을 더 잘 찾았다~\cite{advani2026false}. 프롬프트 사이에서 프로브가 잘 옮겨 가지 않은 결과는 진실성 프로브의 기하가 프롬프트 템플릿에 따라 달라진다는 보고~\cite{poulis2026truth}와 같은 방향이다.
+
+\paragraph{여기서 hidden state가 도움이 되지 않은 이유.} 세 가지 설명이 가능하며 어느 것도 직접 검정하지 않았다. 첫째, 평가한 step에서는 결과가 대부분 게임으로 정해지고 프롬프트가 이미 과제와 방을 서술하므로, 프로브가 쓸 수 있는 정보는 텍스트에도 있다.
+둘째, 프롬프트 사이의 약한 전이가 시사하듯 프로브가 일반적인 실패 상태가 아니라 프롬프트의 형식을 담은 방향을 배울 수 있다(두 프롬프트는 hidden state를 뽑는 토큰도 다르다).
+셋째, 라운드당 학습 episode가 약 250개이고 차원이 2,048이라 정규화한 선형 프로브가 약할 수 있다. 다만 reader, 깊이, 프로브 종류의 탐색 조합 96개와 더 강한 프로브 다섯 개도 baseline을 넘지 못했다.
+
+\paragraph{실용적 함의.} 작은 에이전트가 스스로 모니터를 돌린다면 hidden state는 추가 비용이 없으므로 작은 이득이라도 쓸모가 있다. 그러나 그런 이득은 찾지 못했다. 성공 손실 10\% 이하에서 step 상한은 프로브만큼 step을 아꼈고, 겉보기 baseline은 적어도 그만큼 아꼈다.
+단순한 상한이나 에이전트의 텍스트를 읽는 모니터가 더 싼 출발점이며 모델 내부에 접근할 필요도 없다.
+
+\paragraph{방법론적 시사점.} 몇몇 설계 선택은 비슷한 연구에서 결론을 바꿀 만큼 중요했다. 방 배치가 아니라 게임 단위로 나누면 장면 정보만 담은 합성 특징의 AUROC가 0.97까지 부풀었다.
+게임 내 평가는 아직 갈라지지 않은 rollout 때문에 희석되었고(쌍의 52--70\%가 동점), 라벨을 섞은 데이터에서 게임 단위 percentile bootstrap 구간은 너무 좁았다(포함률 95\%가 아니라 80--94\%).
+시도가 갈라지는지는 정책에 달려 있다. $T = 1$로 샘플링한 Qwen3-4B는 50게임 중 10게임에서만 갈라졌다.
+
+\section{한계}\label{sec:limits}
+환경 하나, 3--4B 크기의 Qwen 모델 2개, 프롬프트 2개만 시험했다. Qwen 이외 모델 세 개는 우리 프롬프트에서 파일럿 20게임 중 1개만 풀었는데, 이는 프롬프트와 모델의 궁합 때문일 수 있다. action은 자유 생성이 아니라 후보 점수화로 골랐다.
+평가 집합마다 250개 episode라 신뢰구간이 약 $\pm$0.06--0.10이어서 작은 차이는 가릴 수 없다. 75\% 깊이와 0.05 마진은 탐색 뒤에 정했고, 시도 수준 결과는 샘플링 정책과 탐욕 결과로 고른 게임에서 나왔으며, 조기 중단 비용은 action 수로만 셌고, 7B reader는 4비트로 양자화되었다.
+사전 등록 라운드는 처음 세 action뿐이다. episode를 30 action에서 끊었으며, 탐욕 실패 399개를 100 action까지 다시 돌리면 2.8\%가 늦게 성공했지만 100 action 라벨에서도 결론은 바뀌지 않았다. 주 프롬프트는 직접 작성해 데이터 수집 전에 다른 분할에서 고쳤고, 외부 프롬프트는 따로 시험했다.
+
+\section{결론}
+소형 Qwen 에이전트의 hidden state에 학습한 선형 프로브는 과제·프롬프트 텍스트·진행도 특징으로 만든 baseline보다 ALFWorld 실패를 더 잘 예측하지 못했다. 사전 등록 분석, 홀드아웃, 두 번째 모델, 외부 프롬프트 어디에서도 마찬가지였고, 프로브로 실패할 episode를 멈추는 것이 고정 상한보다 step을 더 아낀다는 것은 보이지 않았다.
+hidden state가 에이전트의 실패를 드러낸다는 주장은 같은 과제 정보를 보는 baseline과 비교하고, 과제 안에서 평가해 검증해야 한다.
+
+\section*{코드와 데이터 공개}
+코드, 설정, 각 실행 전에 고정한 분석 계획(날짜 포함), 보고한 수치를 낸 결과 표, 그림 스크립트는 공개 저장소에 있다(심사를 위해 링크 생략). 수집한 궤적과 hidden state(3.6 GB)는 용량 때문에 저장소에 없다.
+% 투고처가 정해지면 정할 것: 저장소 링크(camera-ready)와 궤적·hidden state 공유 방식(예: 데이터 DOI).
+
+\bibliographystyle{unsrtnat}
+\bibliography{refs}
+
+\clearpage
+\appendix
+\section{추가 결과와 사전 등록 항목}
+\setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
+\setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
+전체 방법과 모든 보조 분석은 이 논문의 전체판에 있으며, 아래 표와 그림은 전체판과 같다.
+
+\input{floats_ko/tab_a7}
+\input{floats_ko/tab_confirm}
+\input{floats_ko/tab_settings}
+\input{floats_ko/fig_ladder}
+\input{floats_ko/fig_heat}
+\input{floats_ko/tab_a6}
+\input{floats_ko/tab_prior}
+\input{floats_ko/tab_strength}
+\input{floats_ko/tab_a1}
+\input{floats_ko/tab_a2}
+\input{floats_ko/tab_a3}
+\input{floats_ko/tab_a4}
+\input{floats_ko/tab_a5}
+
+\end{document}
