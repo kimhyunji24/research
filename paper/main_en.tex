@@ -36,7 +36,7 @@ split all data by room layout, and fixed the primary analysis before running it 
 In the pre-registered comparison the probe was below the full baseline at the first three actions by 0.13 to 0.18 in area under the receiver operating characteristic curve (all 95\% confidence intervals below zero),
 and on 250 held-out games no action was superior (differences from $-0.029$ to $+0.039$, all intervals including zero).
 The game explained 69.5\% of the outcome variance (95\% confidence interval 61.3--76.5\%). Within games, the probe and the baselines all separated failed from successful attempts above chance from the third action,
-but the probe was superior in none of six comparisons. A four-billion-parameter Qwen3 agent and an external prompt gave the same result, with no superior action in either.
+but the probe was superior in none of six comparisons. With a four-billion-parameter Qwen3 agent and with an external prompt the probe was again superior at no action, and under the external prompt it was below the baseline at the third action (difference $-0.128$, 95\% confidence interval $-0.204$ to $-0.058$).
 Used to stop failing episodes, the probe was not shown to save more actions than a fixed limit (difference $-0.032$, 95\% confidence interval $-0.183$ to $+0.119$).
 In this setting, hidden states did not add to visible information; claims of hidden-state failure signals in agents should be tested against baselines that see the task and within tasks.
 \end{abstract}
@@ -230,7 +230,7 @@ Before any probe was fit we fixed the code commit, configuration and primary ana
 and ran it once. Every later analysis on the same episodes is labeled exploratory. A single exploratory configuration (75\% depth, linear) was then tested on the confirmatory
 hold-out, training on all 500 episodes and evaluating only episodes 250--499. The decision rule was: superior if the lower 95\% bound of the difference exceeds 0,
 non-inferior if it exceeds $-0.05$, inferior if the upper bound is below 0, otherwise inconclusive. The margin of 0.05 was chosen after the exploratory analysis.
-The attempt-level analysis (75\% depth, linear, vs.\ rungs 4 and 5, steps 1--3) and its interpretation table were fixed before the sampled rollouts were collected.
+The attempt-level analysis (75\% depth, linear, vs.\ rungs 4 and 5, steps 1--3) and its interpretation table (Appendix Table~\ref{tab:a7}) were fixed before the sampled rollouts were collected.
 All changes to the frozen procedures are logged with dates in the repository.
 Interim counts of the 100-action re-run were seen twice before its decision (at most 3 late successes among the first 116 games); the decision rule had been committed beforehand and was not changed.
 
@@ -256,7 +256,7 @@ The step-index rung was exactly 0.500 in every round, as intended. Permuted-labe
 
 \paragraph{Pre-registered comparison.} In the single pre-registered run (3B reader, 50\% depth, linear probe), the probe scored below the rung-5 baseline in all three rounds,
 and every 95\% interval of the difference lay below zero (Table~\ref{tab:ladder}, Fig.~\ref{fig:forest}): $-0.181$ ($-0.276$ to $-0.069$) at step 0, $-0.133$ ($-0.230$ to $-0.031$) at step 1 and
-$-0.159$ ($-0.240$ to $-0.073$) at step 2. Hypothesis H1 was therefore not supported in the pre-registered cell; this matches the third outcome of the interpretation table fixed in advance
+$-0.159$ ($-0.240$ to $-0.073$) at step 2. Hypothesis H1 was therefore not supported in the pre-registered cell; this matches the third outcome of the interpretation table fixed in advance (Appendix Table~\ref{tab:a7})
 (``even the 3B reader does not beat rung 5'').
 
 \paragraph{Exploratory analyses (same 250 episodes).} We then evaluated all 96 combinations of four readers, four depths, two probe types and three rounds (linear cells in Fig.~\ref{fig:heat}; all cells in Appendix Table~\ref{tab:a6}).
@@ -308,7 +308,7 @@ Decision (margin 0.05, set post hoc) & non-inferior & non-inferior & inconclusiv
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
-$n = 250$ episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250.
+$n = 250$ episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250. Margin sensitivity, read from the same intervals (lower bounds $-0.030$, $-0.030$, $-0.087$; upper bounds all above zero): with a margin of 0.025 no step would be non-inferior, and with 0.10 all three would be. Because the margin was set post hoc, the differences and intervals, not the labels, carry the evidence.
 \end{table}
 
 \begin{figure}[tbp]
@@ -333,7 +333,7 @@ $n = 250$ episodes (205 failures). Training used all 500 episodes; evaluation us
 \paragraph{Primary result.} Within games, the probe's pairwise AUROC was 0.520 (95\% CI 0.453--0.583) at step 1, 0.585 (0.522--0.654) at step 2 and 0.619 (0.552--0.687) at step 3 (Table~\ref{tab:within}, Fig.~\ref{fig:forest}).
 Rungs 4 and 5 reached 0.517 and 0.547, 0.611 and 0.626, and 0.565 and 0.612. From step 2 on, all three methods separated failed from successful attempts of the same game above chance
 (within-game permutation $p \le 0.018$), whereas at step 1 only rung 5 did ($p = 0.016$). None of the six probe--baseline differences met the superiority criterion and none was inferior;
-the largest difference was $+0.054$ ($-0.017$ to $+0.136$) against rung 4 at step 3. The result fits no row of the interpretation table cleanly: the probe was not better than the baselines,
+the largest difference was $+0.054$ ($-0.017$ to $+0.136$) against rung 4 at step 3. The result fits no row of the interpretation table (Appendix Table~\ref{tab:a7}) cleanly: the probe was not better than the baselines,
 and no comparison met the equivalence definition (95\% CI within $\pm 0.05$).
 
 \paragraph{Secondary analyses.} Restricting the evaluation to pairs whose prompts differed (139, 158 and 224 pairs at steps 1--3) raised every method (probe 0.568, 0.753 and 0.750; rung 5 0.633, 0.816 and 0.754),
@@ -701,6 +701,29 @@ Reader & 25\% & 50\% & 75\% & 100\% & Probe $-$ rung 5, all 24 cells per reader 
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
 Rung 5 averaged 0.752 over steps 0--2. The last column covers both linear and MLP probes at all four depths and three steps (24 cells per reader, 96 in total). Best depth per reader in bold. The 3B reader at 50\% depth is the pre-registered cell (Table~\ref{tab:ladder}). Full results with CIs and permutation $p$-values: \code{results/explore\_\{0.5B,1.5B,3B,7B-4bit\}.csv} and \code{*\_diff.csv} (supplementary).
+\end{table}
+
+
+\begin{table}[h]
+\centering\small
+\caption{Pre-registered hypothesis, decision rules and interpretation tables (wording from the frozen plans).}\label{tab:a7}
+\begin{tabularx}{\linewidth}{@{}L>{\raggedright\arraybackslash}p{2.9cm}>{\raggedright\arraybackslash}p{2.9cm}@{}}
+\toprule
+Pre-registered item & Fixed & Observed \\
+\midrule
+\textbf{Task level.} H1: on 3B trajectories with the 3B reader, the probe AUROC at rounds 1--3 is higher than rung 5 (95\% CI of the difference excludes zero, above). & Before the primary run (2026-10-15) & Not supported: all three differences below zero \\
+\addlinespace
+Interpretation (a): only the 3B reader beats rung 5 $\rightarrow$ readable information has a size boundary. (b): all reader sizes beat it similarly $\rightarrow$ the information is at text level, so small models read it too. (c): even the 3B reader does not beat it $\rightarrow$ visible information suffices in this setting (negative result). & Before the primary run & (c) \\
+\addlinespace
+Decision rule for a difference: superior if the lower 95\% bound $> 0$; non-inferior if it $> -0.05$; inferior if the upper bound $< 0$; otherwise inconclusive. The 0.05 margin was set after the exploratory analysis. & Margin: after exploration, before the hold-out was evaluated & Hold-out: non-inferior, non-inferior, inconclusive (Table~\ref{tab:confirm}) \\
+\addlinespace
+\textbf{Attempt level.} Probe $>$ rungs 4 and 5 (lower 95\% bound $> 0$) $\rightarrow$ hidden states carry an in-progress failure signal not explained by difficulty text. Probe $\approx$ baseline $\rightarrow$ a signal exists but adds nothing beyond the history. All near 0.5 $\rightarrow$ success and failure within a game are not predicted by these methods. & Before the sampled rollouts were collected & Fits no row cleanly (Section~\ref{sec:attempt}) \\
+\addlinespace
+Supplementary rules for the attempt level: ``$\approx$'' only if the 95\% CI of the difference lies within $\pm 0.05$ (a lower bound above $-0.05$ alone is ``non-inferior, weak''); ``near 0.5'' if the CI includes 0.5 and the within-game permutation $p > 0.05$; Holm adjustment over the six comparisons. & Before the attempt-level results were opened (2026-10-17) & No comparison superior or equivalent \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright\footnotesize
+Sources: \code{docs/paper\_draft\_2026-10-15.md} (Section 2) and \code{docs/multi\_rollout\_plan\_2026-10-15.md} (interpretation rules, supplementary rules of 2026-10-17). The decision rule is also stated in Section~\ref{sec:stats}.
 \end{table}
 
 \end{document}

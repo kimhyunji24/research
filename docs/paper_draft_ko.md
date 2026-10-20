@@ -17,7 +17,7 @@
 모든 데이터는 방 배치 단위로 나누었고, 주 분석은 미리 정해 한 번만 실행했다.
 사전 등록한 비교에서 프로브는 처음 세 action에서 전체 baseline보다 수신자 조작 특성 곡선 아래 면적이 0.13–0.18 낮았고(95% 신뢰구간 모두 0 아래), 새 250개 게임에서는 우수한 action이 없었다(차이 −0.029 ~ +0.039, 신뢰구간 모두 0 포함).
 게임은 결과 분산의 69.5%를 설명했다(95% 신뢰구간 61.3–76.5%). 게임 안에서는 세 번째 action부터 프로브와 baseline 모두 실패 시도와 성공 시도를 우연보다 잘 구분했지만, 프로브는 비교 6개 중 어디에서도 우수하지 않았다.
-40억 파라미터 Qwen3 에이전트와 외부 프롬프트에서도 결과는 같았고 두 경우 모두 우수한 action이 없었다.
+40억 파라미터 Qwen3 에이전트와 외부 프롬프트에서도 프로브가 우수한 action은 없었고, 외부 프롬프트의 세 번째 action에서는 프로브가 baseline보다 낮았다(차이 −0.128, 95% 신뢰구간 −0.204 ~ −0.058).
 실패할 episode를 멈추는 데 쓰면, 프로브가 고정 상한보다 action을 더 아낀다는 것은 보이지 않았다(차이 −0.032, 95% 신뢰구간 −0.183 ~ +0.119).
 이 설정에서 hidden state는 겉보기 정보에 더하는 것이 없었으며, 에이전트 hidden state의 실패 신호에 관한 주장은 과제를 보는 baseline과 과제 내 평가로 검증해야 한다.
 
@@ -217,7 +217,7 @@ seed 2개로 반복해 평균했으므로, 모든 행은 그 장면을 보지 �
 같은 episode에서 그 뒤에 한 분석은 모두 탐색적이라고 표시한다. 그중 한 설정(75% 깊이, 선형)을 확증용 홀드아웃에서 검증했으며,
 500개 episode 전체로 학습하고 250–499번 episode만 평가했다. 판정 규칙은 차이의 95% 하한이 0보다 크면 우수, −0.05보다 크면 비열등,
 상한이 0보다 작으면 열등, 그 밖에는 결론 없음이다. 마진 0.05는 탐색 분석 뒤에 정했다.
-시도 수준 분석(75% 깊이, 선형, 4·5단과 비교, step 1–3)과 결과별 해석표는 샘플링 rollout을 수집하기 전에 정했다.
+시도 수준 분석(75% 깊이, 선형, 4·5단과 비교, step 1–3)과 결과별 해석표(부록 표 A7)는 샘플링 rollout을 수집하기 전에 정했다.
 고정한 절차를 바꾼 경우는 모두 날짜와 함께 저장소에 기록했다.
 100 action 재수집의 판정 전에 중간 집계를 두 번 보았다(처음 116개 게임에서 늦은 성공 최대 3개). 판정 규칙은 그 전에 commit했고 바꾸지 않았다.
 
@@ -244,7 +244,7 @@ step 번호만 쓰는 1단은 의도대로 모든 라운드에서 정확히 0.50
 **사전 등록 비교.** 한 번 실행한 사전 등록 분석(3B reader, 50% 깊이, 선형 프로브)에서 프로브는 세 라운드 모두 5단 baseline보다 낮았고,
 차이의 95% 신뢰구간은 모두 0 아래였다(Table 1, Fig. 3). step 0에서 −0.181(−0.276 ~ −0.069), step 1에서 −0.133(−0.230 ~ −0.031),
 step 2에서 −0.159(−0.240 ~ −0.073)였다. 따라서 사전 등록한 조건에서 가설 H1은 지지되지 않았다.
-이는 미리 고정한 해석표의 세 번째 경우("3B reader도 5단을 이기지 못함")에 해당한다.
+이는 미리 고정한 해석표(부록 표 A7)의 세 번째 경우("3B reader도 5단을 이기지 못함")에 해당한다.
 
 **탐색 분석(같은 250개 episode).** 이어서 reader 4종, 깊이 4종, 프로브 2종, 라운드 3개의 96개 조합을 모두 평가했다(선형 프로브 칸은 Fig. 4, 전체는 부록 표 A6).
 baseline보다 0.004 넘게 높은 조합은 없었고, 차이가 양수인 두 조합(+0.004, +0.001)도 신뢰구간이 0을 포함했다.
@@ -278,7 +278,7 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 | Probe − rung 5 (95% CI) | +0.039 (−0.030, +0.100) | +0.035 (−0.030, +0.096) | −0.029 (−0.087, +0.029) |
 | Decision (margin 0.05, set post hoc) | non-inferior | non-inferior | inconclusive |
 
-*n* = 250 episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250.
+*n* = 250 episodes (205 failures). Training used all 500 episodes; evaluation used only the new 250. 마진 민감도(같은 신뢰구간으로 읽음; 하한 −0.030, −0.030, −0.087, 상한은 모두 0 위): 마진 0.025이면 비열등인 step이 없고, 0.10이면 세 step 모두 비열등이다. 마진을 사후에 정했으므로 근거는 판정 라벨이 아니라 차이와 신뢰구간이다.
 
 ![Fig. 2](../figures/fig2_baseline_ladder_ko.png)
 
@@ -295,7 +295,7 @@ reader 쌍 비교 36개 중 신뢰구간이 0을 벗어난 것은 4개로, 우�
 **주 결과.** 게임 안에서 프로브의 쌍 AUROC는 step 1에서 0.520(95% CI 0.453–0.583), step 2에서 0.585(0.522–0.654), step 3에서 0.619(0.552–0.687)였다(Table 3, Fig. 3).
 4단과 5단은 각각 0.517과 0.547, 0.611과 0.626, 0.565와 0.612였다. step 2부터는 세 방법 모두 같은 게임의 실패 시도와 성공 시도를 우연보다 잘 구분했고(게임 안 순열 p ≤ 0.018),
 step 1에서는 5단만 그랬다(p = 0.016). 프로브–baseline 차이 6개 중 우수 기준을 충족한 것은 없었고 열등한 것도 없었다. 가장 큰 차이는 step 3의 4단 대비 +0.054(−0.017 ~ +0.136)였다.
-결과는 해석표의 어느 줄에도 깔끔하게 들어가지 않는다. 프로브는 baseline보다 낫지 않았고, 동등 정의(95% CI가 ±0.05 안)를 충족한 비교도 없었다.
+결과는 해석표(부록 표 A7)의 어느 줄에도 깔끔하게 들어가지 않는다. 프로브는 baseline보다 낫지 않았고, 동등 정의(95% CI가 ±0.05 안)를 충족한 비교도 없었다.
 
 **보조 분석.** 프롬프트가 다른 쌍만으로 평가하면(step 1–3에서 139, 158, 224쌍) 모든 방법이 높아졌지만(프로브 0.568, 0.753, 0.750; 5단 0.633, 0.816, 0.754),
 차이 6개는 모두 결론이 나지 않았다(구간 약 ±0.1–0.2). 시점을 맞춘 4t·5t단과 비교하면 프로브는 어느 step에서도 낫지 않았고, step 1에서는 둘보다 낮았다
@@ -560,6 +560,16 @@ step당 *n* = 250(실패 194). 장면 단위 cluster bootstrap 1,000회. 출처:
 | 7B reader (4-bit) | 0.608 | 0.643 | 0.704 | **0.717** | −0.191, −0.004 |
 
 5단은 step 0–2 평균 0.752였다. 마지막 열은 네 깊이·세 step의 선형·MLP 프로브를 모두 포함한다(reader당 24칸, 모두 96칸). 굵은 글씨는 reader별 최고 깊이이다. 3B reader 50% 깊이가 사전 등록 조건이다(표 1). CI와 순열 p를 포함한 전체 결과: `results/explore_{0.5B,1.5B,3B,7B-4bit}.csv`와 `*_diff.csv`(보조 자료).
+
+| Table A7. Pre-registered hypothesis, decision rules and interpretation tables (wording from the frozen plans) | Fixed | Observed |
+|---|---|---|
+| **Task level.** H1: on 3B trajectories with the 3B reader, the probe AUROC at rounds 1–3 is higher than rung 5 (95% CI of the difference excludes zero, above). | Before the primary run (2026-10-15) | Not supported: all three differences below zero |
+| Interpretation (a): only the 3B reader beats rung 5 → readable information has a size boundary. (b): all reader sizes beat it similarly → the information is at text level, so small models read it too. (c): even the 3B reader does not beat it → visible information suffices in this setting (negative result). | Before the primary run | (c) |
+| Decision rule for a difference: superior if the lower 95% bound > 0; non-inferior if it > −0.05; inferior if the upper bound < 0; otherwise inconclusive. The 0.05 margin was set after the exploratory analysis. | Margin: after exploration, before the hold-out was evaluated | Hold-out: non-inferior, non-inferior, inconclusive (Table 2) |
+| **Attempt level.** Probe > rungs 4 and 5 (lower 95% bound > 0) → hidden states carry an in-progress failure signal not explained by difficulty text. Probe ≈ baseline → a signal exists but adds nothing beyond the history. All near 0.5 → success and failure within a game are not predicted by these methods. | Before the sampled rollouts were collected | Fits no row cleanly (Section 4.2) |
+| Supplementary rules for the attempt level: "≈" only if the 95% CI of the difference lies within ±0.05 (a lower bound above −0.05 alone is "non-inferior, weak"); "near 0.5" if the CI includes 0.5 and the within-game permutation p > 0.05; Holm adjustment over the six comparisons. | Before the attempt-level results were opened (2026-10-17) | No comparison superior or equivalent |
+
+출처: `docs/paper_draft_2026-10-15.md`(2절), `docs/multi_rollout_plan_2026-10-15.md`(해석 규칙, 2026-10-17 보완 규칙). 판정 규칙은 3.6절에도 적었다.
 
 ## 참고문헌
 <!-- [1]–[10], [12]–[15]는 2026-10-20 arXiv HTML 원문 대조(작성 세션). [11], [14], [16]은 2026-10-20 arXiv 초록으로 확인(주 세션; [14]는 "zero measured inference overhead"). 선행연구 수치 전부를 2026-10-20 arXiv PDF로 다시 대조(docs/citation_check_2026-10-20.md PDF 열), 바뀐 것은 [11] 문구뿐.
