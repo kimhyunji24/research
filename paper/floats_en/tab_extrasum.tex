@@ -6,7 +6,7 @@
 \toprule
 Check & Question & Result (mean over steps 0--2, 95\% CI) & Conclusion changed? \\
 \midrule
-Training-set size & Does the gap to rung 5 close with more training data? & 75\% probe $-$ rung 5, first 250: $-0.002$ (about 50 training episodes) to $-0.025$ (about 200); all 500 with fixed evaluation folds: $+0.016$ (about 50) to $+0.006$ (about 400), change $-0.010$ ($-0.038$, 0.022); all CIs include zero & Not resolved (CI of the change $-0.038$ to $+0.022$) \\
+Training-set size & Does the gap to rung 5 close with more training data? & 75\% probe $-$ rung 5, first 250: $-0.002$ (about 50 training episodes) to $-0.025$ (about 200); all 500 with fixed evaluation folds: $+0.016$ (about 50) to $+0.006$ (about 400), change $-0.010$ ($-0.038$, 0.022); all 1,500 (500 + 1,000 new) with fixed evaluation folds: $+0.016$ (about 50), $+0.002$ (about 400), $-0.006$ (about 1,200), change from about 400 to about 1,200 $-0.008$ ($-0.017$, 0.002); all CIs include zero & No narrowing detected up to about 1,200 episodes (CI of the change $-0.017$ to $+0.002$) \\
 Low false-positive region & Is the probe better where stopping matters? & Detection at 10\% false positives, probe $-$ rung 5: $-0.139$ ($-0.273$, 0.075) & No \\
 Split unit & Does splitting by game inflate the real methods? & Game $-$ scene split: $-0.006$ (probe), $-0.027$ (rung 5) & No \\
 Interval coverage & Are task-level intervals too narrow? & Shuffled-label coverage 90.0\% (probe), 85.0\% (rung 5), 88.3\% (difference) & No; pre-registered step 1 only narrowly below zero after widening \\

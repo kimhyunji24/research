@@ -191,6 +191,8 @@ reader는 bfloat16의 Qwen2.5-0.5B, 1.5B, 3B-Instruct와, 12\,GB GPU 메모리�
 탐욕 결과에 따른 층화는 파일럿 뒤에 정했으며, 선택 단계로 보고한다. 모두 800개 rollout을 사용했다. 이 100게임은 탐욕 게임 500개에서 뽑았으므로 앞 250개와 겹칠 수 있고, 시도 수준에서 프로브와 baseline은 샘플링 rollout만으로 장면 단위 교차적합했다.
 새로 설치한 환경에서 본 규모의 처음 24개 rollout을 다시 수집했을 때 action, 결과, hidden state가 모두 같았다.
 
+\paragraph{추가 탐욕 데이터(학습 표본 수 sweep).} \ref{sec:extra}절의 학습 표본 수 sweep을 위해, 앞 500개에 들지 않은 학습 게임 3,053개에서 seed 0으로 비복원 추출한 새 게임 1,000개(층화 없음)에서 같은 actor, 프롬프트, 디코딩으로 탐욕 episode 1,000개를 더 수집했다. sweep은 이를 앞 500개와 합쳐 쓴다(1,500개 episode, step 0--2).
+
 \subsection{평가 단위}
 \paragraph{과제 수준(게임 간).} 라운드 $r$마다 step $r$에 아직 진행 중인 episode당 한 행을 두고 실패 예측 AUROC를 계산했다.
 한 라운드 안에서는 step 번호가 같으므로 episode 길이가 예측 변수가 될 수 없다. 사전 등록한 라운드 1--3은 step 0--2(처음 세 action)이며,
@@ -542,7 +544,7 @@ Rung 5 + hidden state & $-0.034$ ($-0.101$, 0.037) & $-0.023$ ($-0.096$, 0.047) 
 \end{table}
 
 \subsection{추가 점검}\label{sec:extra}
-앞 250개 episode의 step 0--2에서 점검 여섯 가지를 더 했다(탐색; 계획은 실행 전 고정, 분석마다 1회 실행; 아래 500개 sweep 외에는 홀드아웃 데이터를 쓰지 않음). 신뢰구간은 장면 단위 cluster bootstrap(1,000회)이고, 따로 적지 않으면 값은 세 step의 평균이다(표~\ref{tab:extrasum}, \ref{tab:extra}). 학습 fold 전체로 학습하면 네 방법(75\%·50\% 프로브, 4단, 5단) 모두 앞선 값을 그대로 재현했다.
+앞 250개 episode의 step 0--2에서 점검 여섯 가지를 더 했다(탐색; 계획은 실행 전 고정, 분석마다 1회 실행; 아래 학습 표본 수 sweep 두 개 외에는 홀드아웃 데이터를 쓰지 않음). 신뢰구간은 장면 단위 cluster bootstrap(1,000회)이고, 따로 적지 않으면 값은 세 step의 평균이다(표~\ref{tab:extrasum}, \ref{tab:extra}). 학습 fold 전체로 학습하면 네 방법(75\%·50\% 프로브, 4단, 5단) 모두 앞선 값을 그대로 재현했다.
 
 \begin{table}[t]
 \centering\small
@@ -551,7 +553,7 @@ Rung 5 + hidden state & $-0.034$ ($-0.101$, 0.037) & $-0.023$ ($-0.096$, 0.047) 
 \toprule
 Check & Question & Result (mean over steps 0--2, 95\% CI) & Conclusion changed? \\
 \midrule
-Training-set size & Does the gap to rung 5 close with more training data? & 75\% probe $-$ rung 5, first 250: $-0.002$ (about 50 training episodes) to $-0.025$ (about 200); all 500 with fixed evaluation folds: $+0.016$ (about 50) to $+0.006$ (about 400), change $-0.010$ ($-0.038$, 0.022); all CIs include zero & Not resolved (CI of the change $-0.038$ to $+0.022$) \\
+Training-set size & Does the gap to rung 5 close with more training data? & 75\% probe $-$ rung 5, first 250: $-0.002$ (about 50 training episodes) to $-0.025$ (about 200); all 500 with fixed evaluation folds: $+0.016$ (about 50) to $+0.006$ (about 400), change $-0.010$ ($-0.038$, 0.022); all 1,500 (500 + 1,000 new) with fixed evaluation folds: $+0.016$ (about 50), $+0.002$ (about 400), $-0.006$ (about 1,200), change from about 400 to about 1,200 $-0.008$ ($-0.017$, 0.002); all CIs include zero & No narrowing detected up to about 1,200 episodes (CI of the change $-0.017$ to $+0.002$) \\
 Low false-positive region & Is the probe better where stopping matters? & Detection at 10\% false positives, probe $-$ rung 5: $-0.139$ ($-0.273$, 0.075) & No \\
 Split unit & Does splitting by game inflate the real methods? & Game $-$ scene split: $-0.006$ (probe), $-0.027$ (rung 5) & No \\
 Interval coverage & Are task-level intervals too narrow? & Shuffled-label coverage 90.0\% (probe), 85.0\% (rung 5), 88.3\% (difference) & No; pre-registered step 1 only narrowly below zero after widening \\
@@ -561,7 +563,11 @@ Text encoder & Is there a stronger text baseline? & bge embedding + rung 4 $-$ r
 \end{tabularx}
 \end{table}
 
-\paragraph{학습 표본 수.} 75\% 프로브와 5단을 각 바깥 학습 fold의 25, 50, 75, 100\%(약 50--200개 episode, 100\% 미만은 5번 뽑기)로 학습했다. 프로브 $-$ 5단은 $-0.002$, $-0.011$, $-0.021$, $-0.025$였고 신뢰구간은 모두 0을 포함했다. 점추정은 줄지 않고 오히려 벌어졌는데, 5단이 데이터에서 얻은 이득(0.684에서 0.752)이 프로브(0.681에서 0.727)보다 컸기 때문이다. 약 400개 episode로 학습한 유일한 결과인 확증 홀드아웃(500개 전체, 5-fold)은 반대 방향(평균 $+0.015$)이었지만 평가 집합이 달라(step 0의 5단 0.607 대 0.701) 둘을 비교할 수 없다. 50\% 프로브는 모든 크기에서 5단보다 낮았다($-0.104$ \textasciitilde{} $-0.158$; 표~\ref{tab:extra}). 같은 평가 행에서 크기를 비교하려고, 500개 episode 전체에서 평가 fold를 고정하고 각 학습 fold의 12.5--100\%(약 50--400개 episode)로 sweep을 다시 했다(탐색; 위 결과를 본 뒤 계획했고 홀드아웃을 씀). 프로브 $-$ 5단은 $+0.016$, $+0.005$, $+0.011$, $+0.009$, $+0.006$으로 신뢰구간이 모두 0을 포함했다. 약 50개에서 약 400개로 갈 때의 변화는 $-0.010$이고 95\% 신뢰구간이 $-0.038$ \textasciitilde{} $+0.022$라, 변화는 탐지되지 않았지만 약 0.02까지의 좁아짐은 배제하지 못한다. 같은 평가 행(앞 250개)에서 학습을 약 200개(앞 250개)에서 약 400개(500개 전체)로 늘리면 차이가 $-0.025$에서 $-0.003$으로, 좁아지는 방향으로 $+0.022$ 움직였다. 두 값 모두 구간 안의 변동이다. 전체 크기로 학습한 결과를 뒤 250개로 제한하면 확증 값이 그대로 재현되었다. 약 400개에서도 두 방법 모두 계속 올라(프로브 0.651에서 0.707, 5단 0.635에서 0.701) 곡선이 평평해지지 않았으므로, 이 범위 너머로 외삽하지 않는다. 50\% 프로브는 여기서도 모든 크기에서 5단보다 낮았다($-0.042$ \textasciitilde{} $-0.057$).
+\paragraph{학습 표본 수.} 75\% 프로브와 5단을 각 바깥 학습 fold의 25, 50, 75, 100\%(약 50--200개 episode, 100\% 미만은 5번 뽑기)로 학습했다. 프로브 $-$ 5단은 $-0.002$, $-0.011$, $-0.021$, $-0.025$였고 신뢰구간은 모두 0을 포함했다. 점추정은 줄지 않고 오히려 벌어졌는데, 5단이 데이터에서 얻은 이득(0.684에서 0.752)이 프로브(0.681에서 0.727)보다 컸기 때문이다. 약 400개 episode로 학습한 유일한 결과인 확증 홀드아웃(500개 전체, 5-fold)은 반대 방향(평균 $+0.015$)이었지만 평가 집합이 달라(step 0의 5단 0.607 대 0.701) 둘을 비교할 수 없다. 50\% 프로브는 모든 크기에서 5단보다 낮았다($-0.104$ \textasciitilde{} $-0.158$; 표~\ref{tab:extra}). 같은 평가 행에서 크기를 비교하려고, 500개 episode 전체에서 평가 fold를 고정하고 각 학습 fold의 12.5--100\%(약 50--400개 episode)로 sweep을 다시 했다(탐색; 위 결과를 본 뒤 계획했고 홀드아웃을 씀). 프로브 $-$ 5단은 $+0.016$, $+0.005$, $+0.011$, $+0.009$, $+0.006$으로 신뢰구간이 모두 0을 포함했다. 약 50개에서 약 400개로 갈 때의 변화는 $-0.010$이고 95\% 신뢰구간이 $-0.038$ \textasciitilde{} $+0.022$라, 변화는 탐지되지 않았지만 약 0.02까지의 좁아짐은 배제하지 못한다. 같은 평가 행(앞 250개)에서 학습을 약 200개(앞 250개)에서 약 400개(500개 전체)로 늘리면 차이가 $-0.025$에서 $-0.003$으로, 좁아지는 방향으로 $+0.022$ 움직였다. 두 값 모두 구간 안의 변동이다. 전체 크기로 학습한 결과를 뒤 250개로 제한하면 확증 값이 그대로 재현되었다. 약 400개에서도 두 방법 모두 계속 올라(프로브 0.651에서 0.707, 5단 0.635에서 0.701) 곡선이 평평해지지 않았고, 이것이 아래의 더 큰 sweep의 동기가 되었다. 50\% 프로브는 여기서도 모든 크기에서 5단보다 낮았다($-0.042$ \textasciitilde{} $-0.057$).
+
+\paragraph{더 큰 학습 집합(1,500개 episode).} 표본을 늘리지 않는다는 규칙의 예외로, 새 게임에서 탐욕 episode 1,000개를 더 수집했다(앞 500개와 겹치는 게임 없음, 같은 actor·프롬프트·디코딩). 크기, 주 대비, 해석 규칙은 수집 전에 썼고 계획과 변경 이력은 저장소에 있다(부록 표~\ref{tab:a8}). 1,500개 episode 전체(step 0--2, 방 배치 108개)에서 평가 fold를 고정하고 각 바깥 학습 fold의 1/24--전체(약 50--1,200개 episode)로 sweep을 다시 했다(탐색; 분석은 1회 실행, 저장되지 않은 첫 실행 뒤). 75\% 프로브 $-$ 5단은 학습 episode 약 50, 400, 1,200개에서 $+0.016$, $+0.002$, $-0.006$이고 신뢰구간이 모두 0을 포함했다(표~\ref{tab:extra}). 주 대비, 즉 약 1,200개에서의 격차 빼기 약 400개에서의 격차는 $-0.008$(95\% 신뢰구간 $-0.017$ \textasciitilde{} $+0.002$)로, 좁아짐은 탐지되지 않았고 점추정은 반대 방향이었다. AUROC 상승의 대부분은 약 400개 이전에 있었다(약 50, 400, 1,200개에서 프로브 0.652, 0.730, 0.742; 5단 0.636, 0.728, 0.747). 차이의 구간 폭(약 0.037)은 학습 크기에 따라 줄지 않았으므로, 폭은 학습 집합이 아니라 평가 행이 정한다. 75\% 깊이를 앞 250개에서 고른 선택에서 자유로운 새 1,000개 episode만으로 평가하면 차이는 약 400개에서 $-0.000$($-0.022$, $+0.022$), 약 1,200개에서 $-0.014$($-0.037$, $+0.010$)였다. 동등성 마진을 등록하지 않았으므로 두 방법을 동등하다고 부르지 않는다. 기술적으로, 모든 크기에서 차이의 구간은 $\pm$0.05와 $\pm$0.10 안에 있었고 $\pm$0.02 안에 있는 크기는 없었다(\texttt{results/sweep1500\_margin.csv}). 약 1,200개 학습 episode 너머로 외삽하지 않는다.
+
+\paragraph{4단과의 비교(사후).} sweep 결과를 읽은 뒤, 같은 절차로 프로브 $-$ 4단과 5단 $-$ 4단의 구간을 추가했다(다시 계산한 점수가 sweep과 $10^{-16}$ 안에서 일치; 탐색, 비교 횟수 보정 없음). 75\% 프로브 $-$ 4단은 학습 episode 약 50, 400, 1,200개에서 $+0.024$(0.004, 0.044), $+0.024$($-0.001$, 0.049), $+0.023$($-0.004$, 0.049)였고, 5단 $-$ 4단은 $+0.008$(0.001, 0.014), $+0.022$(0.009, 0.035), $+0.028$(0.011, 0.045)였다(표~\ref{tab:extra}). 프로브가 4단을 앞서는 정도는 학습 크기에 따라 변하지 않은 반면(약 400개에서 약 1,200개로의 변화 $-0.001$, $-0.010$ \textasciitilde{} $+0.008$) 5단이 앞서는 정도는 커졌으므로, 프로브 $-$ 5단의 작은 이동은 5단이 추가 데이터에서 더 많이 얻은 데서 온 것으로 보인다. 이런 대비 12개(프로브 $-$ 4단, 5단 $-$ 4단, 프로브 $-$ 5단을 각각 두 학습 크기 사이에서, 1,500개 전체와 새 1,000개만으로 계산) 중 다섯 개는 구간이 0을 벗어났다. 5단 $-$ 4단이 커졌고(1,500개 전체에서 약 50개에서 1,200개로 $+0.020$, 0.004 \textasciitilde{} 0.035; 새 episode만으로는 $+0.012$와 $+0.025$), 프로브 $-$ 5단은 새 episode만으로 $-0.014$($-0.025$ \textasciitilde{} $-0.003$, 약 400개에서 1,200개)와 $-0.036$($-0.060$ \textasciitilde{} $-0.008$, 약 50개에서 1,200개) 변했다. 1,500개 전체의 주 대비는 0을 포함했고, 이 구간들은 사후이고 보정하지 않았으며 한 평가 부분집합에 한정되므로 격차가 벌어졌다는 증거로 읽지 않는다.
 
 \paragraph{낮은 오탐 구간.} 오탐률 10\%에서 프로브는 실패의 0.268을, 5단은 0.407을 검출했다(차이 $-0.139$, $-0.273$ \textasciitilde{} $+0.075$). 오탐률 5\%의 검출률, 오탐률 10\%까지의 부분 AUROC, AUPRC의 차이도 신뢰구간이 모두 0을 포함했고 AUROC와 같은 방향이었다. 성공이 56개라 오탐률 5\%는 성공 약 3개에 해당하므로 이 추정은 불안정하다. 조기 중단 규칙의 성공 손실 대 절감률은 그림~\ref{fig:early}에 그렸다.
 
@@ -590,6 +596,18 @@ Training data 75\% & 50\% probe vs.\ rung 5 & 0.600 & 0.733 & $-0.133$ ($-0.185$
 Training data 100\% & 50\% probe vs.\ rung 5 & 0.594 & 0.752 & $-0.158$ ($-0.216$, $-0.090$) \\
 All 500 episodes, training about 50 & 75\% probe vs.\ rung 5 & 0.651 & 0.635 & $+0.016$ ($-0.018$, 0.049) \\
 All 500 episodes, training about 400 & 75\% probe vs.\ rung 5 & 0.707 & 0.701 & $+0.006$ ($-0.024$, 0.037) \\
+All 1,500 episodes, training about 50 & 75\% probe vs.\ rung 5 & 0.652 & 0.636 & $+0.016$ ($-0.005$, 0.035) \\
+All 1,500 episodes, training about 400 & 75\% probe vs.\ rung 5 & 0.730 & 0.728 & $+0.002$ ($-0.016$, 0.021) \\
+All 1,500 episodes, training about 1,200 & 75\% probe vs.\ rung 5 & 0.742 & 0.747 & $-0.006$ ($-0.024$, 0.013) \\
+All 1,500 episodes, change from about 400 to about 1,200 & 75\% probe $-$ rung 5 & -- & -- & $-0.008$ ($-0.017$, 0.002) \\
+New 1,000 episodes only, training about 400 & 75\% probe vs.\ rung 5 & -- & -- & $-0.000$ ($-0.022$, 0.022) \\
+New 1,000 episodes only, training about 1,200 & 75\% probe vs.\ rung 5 & -- & -- & $-0.014$ ($-0.037$, 0.010) \\
+Post hoc, all 1,500, training about 50 & 75\% probe vs.\ rung 4 & 0.652 & 0.628 & $+0.024$ (0.004, 0.044) \\
+Post hoc, all 1,500, training about 400 & 75\% probe vs.\ rung 4 & 0.730 & 0.706 & $+0.024$ ($-0.001$, 0.049) \\
+Post hoc, all 1,500, training about 1,200 & 75\% probe vs.\ rung 4 & 0.742 & 0.719 & $+0.023$ ($-0.004$, 0.049) \\
+Post hoc, all 1,500, training about 50 & Rung 5 vs.\ rung 4 & 0.636 & 0.628 & $+0.008$ (0.001, 0.014) \\
+Post hoc, all 1,500, training about 400 & Rung 5 vs.\ rung 4 & 0.728 & 0.706 & $+0.022$ (0.009, 0.035) \\
+Post hoc, all 1,500, training about 1,200 & Rung 5 vs.\ rung 4 & 0.747 & 0.719 & $+0.028$ (0.011, 0.045) \\
 Detection at 5\% false positives & 75\% probe vs.\ rung 5 & 0.149 & 0.215 & $-0.065$ ($-0.261$, 0.087) \\
 Detection at 10\% false positives & 75\% probe vs.\ rung 5 & 0.268 & 0.407 & $-0.139$ ($-0.273$, 0.075) \\
 Partial AUROC (FPR $\le$ 0.1) & 75\% probe vs.\ rung 5 & 0.552 & 0.596 & $-0.044$ ($-0.114$, 0.030) \\
@@ -602,8 +620,8 @@ Neural text encoder & Rung 4 + embedding vs.\ rung 5 & 0.637 & 0.752 & $-0.115$ 
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
-step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률.
-% Sources: results/review_b_*.csv, results/review_b6_action*.csv
+step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률. 1,500개 episode 행은 step당 $n = 1{,}500$(방 배치 108개), 평가 fold 고정이고, ``new 1,000 episodes only''는 새 1,000개 episode만 평가한다(그 부분집합의 AUROC는 표로 만들지 않아 --로 표시). post hoc 행은 sweep 결과를 본 뒤 계산했고 비교 횟수 보정을 하지 않았다.
+% Sources: results/review_b_*.csv, results/review_b6_action*.csv, results/sweep1500_{lc,diff,contrast,half,margin}.csv, results/posthoc_r4_{diff,contrast,check}.csv
 \end{table}
 
 \begin{figure}[tbp]
@@ -632,9 +650,9 @@ step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 
 
 \paragraph{여기서 hidden state가 도움이 되지 않은 이유.} 세 가지 설명이 가능하며, 셋째만 탐색적으로 직접 살펴보았다. 첫째, 평가한 step에서는 결과가 대부분 게임으로 정해지고, 프롬프트가 이미 과제와 방을 서술하므로 프로브가 쓸 수 있는 정보는 텍스트에도 있다.
 둘째, 프로브가 일반적인 실패 상태가 아니라 프롬프트의 형식을 담은 방향을 배울 수 있다. 한 프롬프트에서 학습한 프로브는 다른 프롬프트에서 거의 우연 수준이었다(탐색적; 두 프롬프트는 hidden state를 뽑는 토큰도 다르다).
-셋째, fold당 학습 episode가 약 200개(홀드아웃은 약 400개)이고 차원이 2,048이라 정규화한 선형 프로브로는 미세한 신호를 뽑기 어려울 수 있다. 다만 reader, 깊이, 프로브 종류(비선형 포함)의 탐색 조합 96개 중 baseline을 넘은 것도 없었고, 평가 fold를 고정하면 학습 episode 약 50--400개 범위에서 5단과의 격차 변화가 탐지되지 않았다(변화 $-0.010$, 95\% 신뢰구간 $-0.038$ \textasciitilde{} $+0.022$; \ref{sec:extra}절). 다만 두 방법 모두 아직 오르고 있었다.
+셋째, fold당 학습 episode가 약 200개(홀드아웃은 약 400개)이고 차원이 2,048이라 정규화한 선형 프로브로는 미세한 신호를 뽑기 어려울 수 있다. 다만 reader, 깊이, 프로브 종류(비선형 포함)의 탐색 조합 96개 중 baseline을 넘은 것도 없었고, 평가 fold를 고정하면 학습 episode 약 50--400개 범위(변화 $-0.010$, 95\% 신뢰구간 $-0.038$ \textasciitilde{} $+0.022$)와 약 400--1,200개 범위(변화 $-0.008$, 95\% 신뢰구간 $-0.017$ \textasciitilde{} $+0.002$; \ref{sec:extra}절) 모두에서 5단과의 격차가 좁아지는 것은 탐지되지 않았다. 뒤쪽 범위에서 두 곡선은 평평해졌으므로(AUROC 프로브 $+0.012$, 5단 $+0.020$), 시험한 범위 안에서는 학습 집합의 크기가 이득이 없는 이유를 설명하는 것 같지 않다. 이는 탐색적 해석이다.
 
-\paragraph{보완적 해석.} 75\% 깊이에서 토큰 하나를 읽고 손으로 만든 특징 없이 fold당 약 200개 episode로 학습한 프로브는, 앞 250개 episode에서 공들여 만든 5단 baseline과 AUROC 0.011--0.034 차이 안에 있었고, 홀드아웃(학습 episode 약 400개)의 step 0과 1에서는 유의하지 않지만 앞섰다. 75\% 깊이는 탐색한 깊이들을 본 뒤 고른 최선값이며, 사전 등록한 50\% 칸은 5단보다 0.13--0.18 낮았다. 실패와 관련된 정보의 상당 부분이 표현 안에 선형으로 들어 있다는 뜻이다. 평가 행을 고정하면 학습 episode 약 50--400개 범위에서 격차 변화가 탐지되지 않았지만(\ref{sec:extra}절), 구간은 약 0.02까지의 좁아짐을 허용하고, 앞 250개에서는 학습을 약 200개에서 400개로 늘리자 격차가 $-0.025$에서 $-0.003$으로 움직였다. 더 큰 학습 집합에서 격차가 메워지거나 뒤집히는지는 시험하지 않았다.
+\paragraph{보완적 해석.} 75\% 깊이에서 토큰 하나를 읽고 손으로 만든 특징 없이 fold당 약 200개 episode로 학습한 프로브는, 앞 250개 episode에서 공들여 만든 5단 baseline과 AUROC 0.011--0.034 차이 안에 있었고, 홀드아웃(학습 episode 약 400개)의 step 0과 1에서는 유의하지 않지만 앞섰다. 75\% 깊이는 탐색한 깊이들을 본 뒤 고른 최선값이며, 사전 등록한 50\% 칸은 5단보다 0.13--0.18 낮았다. 실패와 관련된 정보의 상당 부분이 표현 안에 선형으로 들어 있다는 뜻이다. 평가 행을 고정하면 학습 episode 약 50--400개 범위에서 격차 변화가 탐지되지 않았고(\ref{sec:extra}절), 약 400--1,200개 범위에서도 탐지되지 않았다($-0.008$, 95\% 신뢰구간 $-0.017$ \textasciitilde{} $+0.002$, 1,500개 episode). 프로브는 모든 크기에서 5단과 약 0.02 안에 있었고($-0.006$ \textasciitilde{} $+0.016$, 구간은 모두 0 포함), 평균적으로 4단을 약 0.02 앞섰다(사후; 구간이 0을 벗어난 것은 약 50개뿐). 더 큰 학습 집합에서 이것이 달라지는지는 시험하지 않았다.
 
 \paragraph{실용적 함의.} 작은 에이전트가 스스로 모니터를 돌린다면 hidden state는 추가 비용이 없으므로 작은 이득이라도 쓸모가 있다. 그러나 그런 이득은 찾지 못했다. 성공 손실 10\% 이하에서 step 상한은 프로브만큼 step을 아꼈고, 겉보기 baseline은 적어도 그만큼 아꼈다.
 에이전트의 텍스트를 읽는 모니터나 단순한 상한이 더 싼 출발점이며 모델 내부에 접근할 필요도 없다. hidden state가 낫다는 주장은 같은 과제 정보를 보는 baseline과 비교해 검증해야 한다.
@@ -653,12 +671,12 @@ step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 
 \item \textbf{두 번째 프롬프트.} 프롬프트는 두 개뿐이고, ReAct 예시는 최소로 고쳤으며, 두 프롬프트는 여러 요소가 동시에 다르다. ReAct 프롬프트의 5단 텍스트에는 가능한 action 목록이 없다. ReAct 점검은 Qwen2.5-3B의 과제 수준에서만 했다.
 \item \textbf{조기 중단.} 비용을 토큰이나 지연이 아니라 action 수로 셌고, 3B actor 자신의 hidden state, 탐욕 정책, 100 action 상한만 평가했으며, 앞선 분석에 이미 쓴 게임을 썼다.
 \item \textbf{외부 감시.} 3B 이외의 reader는 다른 모델이 만든 궤적을 읽는다. 7B reader는 4비트로 양자화되어 크기 효과와 교락된다. reader마다 hidden 차원도 달라(896, 1,536, 2,048, 3,584) 학습 episode 대비 차원 비율이 바뀐다.
-\item \textbf{표본 크기.} 평가 집합마다 250개 episode(성공 약 50개)라 AUROC 차이의 신뢰구간이 약 $\pm$0.06--0.10이다. 작은 차이와 reader 크기 효과는 구분하지 못한다.
-\item \textbf{사후 선택.} 75\% 깊이와 비열등 마진 0.05는 탐색 분석 뒤에 정했다. 마진은 게임 간 AUROC 기준으로 정한 것이라 시도 수준에서는 척도가 다르다.
+\item \textbf{표본 크기.} 평가 집합마다 250개 episode(성공 약 50개)라 AUROC 차이의 신뢰구간이 약 $\pm$0.06--0.10이다. 작은 차이와 reader 크기 효과는 구분하지 못한다. 1,500개 episode(방 배치 108개)에서도 프로브 $-$ 5단의 구간은 약 $\pm$0.02였고 그 폭이 학습 데이터를 늘려도 줄지 않았으므로 0.02 이하의 차이도 구분하지 못한다.
+\item \textbf{사후 선택.} \ref{sec:extra}절의 4단과의 비교는 sweep 결과를 읽은 뒤 추가했다. 75\% 깊이와 비열등 마진 0.05는 탐색 분석 뒤에 정했다. 마진은 게임 간 AUROC 기준으로 정한 것이라 시도 수준에서는 척도가 다르다.
 \item \textbf{비교 설계.} TF-IDF와 로지스틱 회귀는 약한 텍스트 baseline이고, 시험한 신경망 텍스트 인코더 하나(같은 프롬프트의 bge-base-en-v1.5 임베딩)는 이보다도 약했으므로(\ref{sec:extra}절) 더 강한 텍스트 baseline이 격차를 넓힐지는 열려 있다. 주 프로브는~\cite{ruan2026doomed}처럼 action 토큰이 아니라 프롬프트 마지막 토큰을 읽으며, action 토큰을 읽어도 결론이 같다는 것은 앞 250개 episode의 탐색 점검으로만 확인했다. 입력에 가까운 25\% 깊이의 프로브는 더 약했고(3B reader 0.595; 표~\ref{tab:a6}), 미세조정한 텍스트 모델은 시도하지 않았다. step 7부터는 4단의 진행도 특징(조기 중단 분석의 4t·5t단도)이 프롬프트에 보이는 최근 6 step보다 오래된 action을 쓴다.
 \item \textbf{지표와 통계.} AUROC는 중단에 중요한 낮은 오탐 구간을 겨냥하지 않는다. 오탐률 5\%·10\%의 검출률은 탐색 점검에서 AUROC와 같은 방향이었지만 성공 56개에 기대고 있다. 초반 상태로 도달 가능한 AUROC(상한)는 추정하지 않았다. 라벨을 섞은 데이터에서 과제 수준 구간은 귀무값을 95\%가 아니라 85--90\%만 포함해(\ref{sec:extra}절) 일부는 시도 수준 구간처럼 좁을 수 있고(대략 보정하면 사전 등록 차이의 step 1이 간신히 0 아래), 교차검증 seed 사이의 분산은 구간에 들어 있지 않다. 사전 등록·사전 지정·확증 비교 18개는 게임과 baseline을 공유해 독립이 아니다.
 \item \textbf{등록.} 계획은 외부 등록처가 아니라 프로젝트 저장소의 날짜 있는 commit으로 등록했다. 벗어난 점과 이른 노출은 부록 표~\ref{tab:a8}에 적었다.
-\item \textbf{하지 않은 것.} 두 번째 환경은 등록한 계획 밖의 새 수집이 필요해 넣지 않았다. 동등성 마진을 등록하지 않았으므로(0.05 비열등 마진은 탐색 뒤에 정함) 정식 동등성 분석은 하지 않았다. 각 상태에서의 성공 확률(Monte Carlo value 타깃)은 같은 prefix에서 갈라진 여러 continuation, 즉 새 수집이 필요해 추정하지 않았다. 약 400개를 넘는 학습 집합도 시도하지 않았다. 그 지점에서 두 학습 곡선이 아직 오르고 있었고, episode를 늘리려면 새 수집이 필요하다.
+\item \textbf{하지 않은 것.} 두 번째 환경은 등록한 계획 밖의 새 수집이 필요해 넣지 않았다. 동등성 마진을 등록하지 않았으므로(0.05 비열등 마진은 탐색 뒤에 정함) 정식 동등성 분석은 하지 않았다(\ref{sec:extra}절의 마진 표는 기술용이며 이를 대신하지 않는다). 각 상태에서의 성공 확률(Monte Carlo value 타깃)은 같은 prefix에서 갈라진 여러 continuation, 즉 새 수집이 필요해 추정하지 않았다. 약 1,200개를 넘는 학습 집합도 시도하지 않았다(1,000개 episode는 표본 확대 금지 규칙의 등록된 예외로 추가했다; \ref{sec:extra}절). 더 큰 집합에 대해서는 주장하지 않는다.
 \item \textbf{정책 차이.} 시도 수준 결과는 과제 수준의 탐욕 정책이 아니라 샘플링 정책($T = 1$)에서 나왔고, 게임은 탐욕 결과로 골랐다.
 \item \textbf{초반 라운드.} 사전 등록한 라운드는 처음 세 action뿐이다. 후반 라운드는 생존에 조건부이며 탐색적으로만 분석했다.
 \item \textbf{절단.} episode를 30 action에서 끊었으므로 라벨은 ``30 action 안에 풀지 못함''을 뜻한다. 탐욕 실패 399개를 100 action까지 다시 돌리면 2.8\%(95\% CI 1.6--4.9\%)가 늦게 성공했고, 100 action 라벨에서도 결론은 바뀌지 않았다(\ref{sec:robust}절). 시도 수준 라벨은 100 action으로 다시 점검하지 않았다.
@@ -854,6 +872,16 @@ Second prompt (ReAct) & Methods of the secondary success-rate comparison (Wilson
 Additional checks & Six exploratory checks (training-set size, low false-positive region, split unit, interval coverage, action-token position, text encoder) planned after the pre-registered, confirmatory and exploratory results had been read & 2026-10-21, plan fixed before each check was run & Exploratory only; no verdict changed \\
 \addlinespace
 Training-size sweep & Sweep on all 500 episodes reuses the confirmatory hold-out for training and evaluation; planned after the first-250 learning curve and the hold-out results had been read & 2026-10-21, plan fixed before the run & Exploratory only; the confirmatory verdict is unchanged \\
+\addlinespace
+Training-size sweep (1,500 episodes) & 1,000 new greedy episodes collected as an exception to the rule against enlarging samples; plan (sizes, primary contrast, interpretation rules) planned after the 500-episode sweep and the earlier results had been read & 2026-10-21, approved before collection & Exploratory only; the confirmatory verdict is unchanged \\
+\addlinespace
+Training-size sweep (1,500 episodes) & Plan extended by an equivalence-margin table (0.02, 0.05, 0.10) and an evaluation on the 1,000 new episodes only, in anticipation of review questions; no margin was registered & 2026-10-23, before the new data were analysed & Descriptive; primary contrast and interpretation rules unchanged \\
+\addlinespace
+Exposure during collection & The win/loss lines of an interrupted collection of 39 episodes (discarded) were seen in command output; later the win count of the first 251 new episodes and the overall success rate (0.208) were seen in the same way; none was an analysis input & 2026-10-23; the first before, the other two after the plan extension above & Primary contrast and interpretation rules unchanged \\
+\addlinespace
+Training-size sweep (1,500 episodes) & The first run of the analysis (2026-10-23) was interrupted and produced no output; it was run again with unchanged code, data and procedure, and no result of the first run had been seen & 2026-10-24 & None \\
+\addlinespace
+Comparison with rung 4 & Intervals for probe minus rung 4 and rung 5 minus rung 4 added after the sweep results had been read; same procedure, scores recomputed (matching the sweep to $10^{-16}$) & 2026-10-24, plan note written before the run & Exploratory only and uncorrected; primary verdict unchanged \\
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize

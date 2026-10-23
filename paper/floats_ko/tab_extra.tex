@@ -16,6 +16,18 @@ Training data 75\% & 50\% probe vs.\ rung 5 & 0.600 & 0.733 & $-0.133$ ($-0.185$
 Training data 100\% & 50\% probe vs.\ rung 5 & 0.594 & 0.752 & $-0.158$ ($-0.216$, $-0.090$) \\
 All 500 episodes, training about 50 & 75\% probe vs.\ rung 5 & 0.651 & 0.635 & $+0.016$ ($-0.018$, 0.049) \\
 All 500 episodes, training about 400 & 75\% probe vs.\ rung 5 & 0.707 & 0.701 & $+0.006$ ($-0.024$, 0.037) \\
+All 1,500 episodes, training about 50 & 75\% probe vs.\ rung 5 & 0.652 & 0.636 & $+0.016$ ($-0.005$, 0.035) \\
+All 1,500 episodes, training about 400 & 75\% probe vs.\ rung 5 & 0.730 & 0.728 & $+0.002$ ($-0.016$, 0.021) \\
+All 1,500 episodes, training about 1,200 & 75\% probe vs.\ rung 5 & 0.742 & 0.747 & $-0.006$ ($-0.024$, 0.013) \\
+All 1,500 episodes, change from about 400 to about 1,200 & 75\% probe $-$ rung 5 & -- & -- & $-0.008$ ($-0.017$, 0.002) \\
+New 1,000 episodes only, training about 400 & 75\% probe vs.\ rung 5 & -- & -- & $-0.000$ ($-0.022$, 0.022) \\
+New 1,000 episodes only, training about 1,200 & 75\% probe vs.\ rung 5 & -- & -- & $-0.014$ ($-0.037$, 0.010) \\
+Post hoc, all 1,500, training about 50 & 75\% probe vs.\ rung 4 & 0.652 & 0.628 & $+0.024$ (0.004, 0.044) \\
+Post hoc, all 1,500, training about 400 & 75\% probe vs.\ rung 4 & 0.730 & 0.706 & $+0.024$ ($-0.001$, 0.049) \\
+Post hoc, all 1,500, training about 1,200 & 75\% probe vs.\ rung 4 & 0.742 & 0.719 & $+0.023$ ($-0.004$, 0.049) \\
+Post hoc, all 1,500, training about 50 & Rung 5 vs.\ rung 4 & 0.636 & 0.628 & $+0.008$ (0.001, 0.014) \\
+Post hoc, all 1,500, training about 400 & Rung 5 vs.\ rung 4 & 0.728 & 0.706 & $+0.022$ (0.009, 0.035) \\
+Post hoc, all 1,500, training about 1,200 & Rung 5 vs.\ rung 4 & 0.747 & 0.719 & $+0.028$ (0.011, 0.045) \\
 Detection at 5\% false positives & 75\% probe vs.\ rung 5 & 0.149 & 0.215 & $-0.065$ ($-0.261$, 0.087) \\
 Detection at 10\% false positives & 75\% probe vs.\ rung 5 & 0.268 & 0.407 & $-0.139$ ($-0.273$, 0.075) \\
 Partial AUROC (FPR $\le$ 0.1) & 75\% probe vs.\ rung 5 & 0.552 & 0.596 & $-0.044$ ($-0.114$, 0.030) \\
@@ -28,6 +40,6 @@ Neural text encoder & Rung 4 + embedding vs.\ rung 5 & 0.637 & 0.752 & $-0.115$ 
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
-step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률.
-% Sources: results/review_b_*.csv, results/review_b6_action*.csv
+step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률. 1,500개 episode 행은 step당 $n = 1{,}500$(방 배치 108개), 평가 fold 고정이고, ``new 1,000 episodes only''는 새 1,000개 episode만 평가한다(그 부분집합의 AUROC는 표로 만들지 않아 --로 표시). post hoc 행은 sweep 결과를 본 뒤 계산했고 비교 횟수 보정을 하지 않았다.
+% Sources: results/review_b_*.csv, results/review_b6_action*.csv, results/sweep1500_{lc,diff,contrast,half,margin}.csv, results/posthoc_r4_{diff,contrast,check}.csv
 \end{table}
