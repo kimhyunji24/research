@@ -1,0 +1,23 @@
+start 2026-10-24T02:35:06 HEAD 394504a
+Loading weights:   0%|          | 0/434 [00:00<?, ?it/s]Loading weights:  67%|██████▋   | 291/434 [00:00<00:00, 2909.48it/s]Loading weights: 100%|██████████| 434/434 [00:00<00:00, 3722.89it/s]
+  0/4500 max|diff| 0 rel 0
+  250/4500 max|diff| 0 rel 0
+  500/4500 max|diff| 0 rel 0
+  750/4500 max|diff| 0 rel 0
+  1000/4500 max|diff| 0 rel 0
+  1250/4500 max|diff| 0 rel 0
+  1500/4500 max|diff| 0 rel 0
+  1750/4500 max|diff| 0 rel 0
+  2000/4500 max|diff| 0 rel 0
+  2250/4500 max|diff| 0 rel 0
+  2500/4500 max|diff| 0 rel 0
+  2750/4500 max|diff| 0 rel 0
+  3000/4500 max|diff| 0 rel 0
+  3250/4500 max|diff| 0 rel 0
+  3500/4500 max|diff| 0 rel 0
+  3750/4500 max|diff| 0 rel 0
+  4000/4500 max|diff| 0 rel 0
+  4250/4500 max|diff| 0 rel 0
+token count mismatches: 0 | obs tokens min/med/max 10 27 326 | hist tokens 11 40 194
+saved (4500, 5, 2, 2048) end 2026-10-24T02:43:09
+exit=0
