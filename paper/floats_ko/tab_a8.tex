@@ -42,6 +42,14 @@ Exposure during collection & The win/loss lines of an interrupted collection of 
 Training-size sweep (1,500 episodes) & The first run of the analysis (2026-10-23) was interrupted and produced no output; it was run again with unchanged code, data and procedure, and no result of the first run had been seen & 2026-10-24 & None \\
 \addlinespace
 Comparison with rung 4 & Intervals for probe minus rung 4 and rung 5 minus rung 4 added after the sweep results had been read; same procedure, scores recomputed (matching the sweep to $10^{-16}$) & 2026-10-24, plan note written before the run & Exploratory only and uncorrected; primary verdict unchanged \\
+\addlinespace
+Reading positions & Comparison of five prompt positions planned after the sweep and rung-4 results had been read; positions, analysis and interpretation rules fixed before extraction & 2026-10-24, plan committed before the run & Exploratory only; no verdict changed \\
+\addlinespace
+Reading positions & Span boundaries corrected during a tokenizer-only dry run (empty room-description span at step 0; first and last tokens dropped by subword merging); positions and rules unchanged & 2026-10-24, before any AUROC was computed & None \\
+\addlinespace
+Reading positions & A permuted-label smoke run passed the interval-based rule by chance; ten label permutations and a rule requiring a difference to exceed all ten null values were added, then the permutation rule was downgraded to a check for bugs and null size & 2026-10-24, before the real labels were used & Supplementary rule only; no comparison met the main rules \\
+\addlinespace
+Interval calibration & Ratio of the permutation null spread to the bootstrap standard error computed after the real-label run & 2026-10-24, after the run & Reported as a caveat on post hoc intervals; no rerun \\
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize

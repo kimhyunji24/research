@@ -28,6 +28,16 @@ Post hoc, all 1,500, training about 1,200 & 75\% probe vs.\ rung 4 & 0.742 & 0.7
 Post hoc, all 1,500, training about 50 & Rung 5 vs.\ rung 4 & 0.636 & 0.628 & $+0.008$ (0.001, 0.014) \\
 Post hoc, all 1,500, training about 400 & Rung 5 vs.\ rung 4 & 0.728 & 0.706 & $+0.022$ (0.009, 0.035) \\
 Post hoc, all 1,500, training about 1,200 & Rung 5 vs.\ rung 4 & 0.747 & 0.719 & $+0.028$ (0.011, 0.045) \\
+Post hoc, all 1,500, positions (75\%) & C1 \texttt{assistant} token vs.\ last prompt token & 0.727 & 0.742 & $-0.014$ ($-0.029$, 0.001) \\
+Post hoc, all 1,500, positions (75\%) & C2 end of latest observation vs.\ last prompt token & 0.739 & 0.742 & $-0.002$ ($-0.018$, 0.013) \\
+Post hoc, all 1,500, positions (75\%) & C3 mean of latest observation vs.\ last prompt token & 0.731 & 0.742 & $-0.011$ ($-0.028$, 0.007) \\
+Post hoc, all 1,500, positions (75\%) & C4 mean of history vs.\ last prompt token & 0.749 & 0.742 & $+0.008$ ($-0.008$, 0.023) \\
+Post hoc, all 1,500, positions (75\%) & C5 mean of whole prompt vs.\ last prompt token & 0.736 & 0.742 & $-0.006$ ($-0.027$, 0.017) \\
+Post hoc, all 1,500, positions (75\%) & C1 vs.\ rung 5 & 0.727 & 0.747 & $-0.020$ ($-0.040$, 0.000) \\
+Post hoc, all 1,500, positions (75\%) & C2 vs.\ rung 5 & 0.739 & 0.747 & $-0.008$ ($-0.025$, 0.010) \\
+Post hoc, all 1,500, positions (75\%) & C3 vs.\ rung 5 & 0.731 & 0.747 & $-0.017$ ($-0.033$, 0.002) \\
+Post hoc, all 1,500, positions (75\%) & C4 vs.\ rung 5 & 0.749 & 0.747 & $+0.002$ ($-0.014$, 0.020) \\
+Post hoc, all 1,500, positions (75\%) & C5 vs.\ rung 5 & 0.736 & 0.747 & $-0.012$ ($-0.032$, 0.010) \\
 Detection at 5\% false positives & 75\% probe vs.\ rung 5 & 0.149 & 0.215 & $-0.065$ ($-0.261$, 0.087) \\
 Detection at 10\% false positives & 75\% probe vs.\ rung 5 & 0.268 & 0.407 & $-0.139$ ($-0.273$, 0.075) \\
 Partial AUROC (FPR $\le$ 0.1) & 75\% probe vs.\ rung 5 & 0.552 & 0.596 & $-0.044$ ($-0.114$, 0.030) \\
@@ -40,6 +50,6 @@ Neural text encoder & Rung 4 + embedding vs.\ rung 5 & 0.637 & 0.752 & $-0.115$ 
 \bottomrule
 \end{tabularx}
 \par\smallskip\raggedright\footnotesize
-step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률. 1,500개 episode 행은 step당 $n = 1{,}500$(방 배치 108개), 평가 fold 고정이고, ``new 1,000 episodes only''는 새 1,000개 episode만 평가한다(그 부분집합의 AUROC는 표로 만들지 않아 --로 표시). post hoc 행은 sweep 결과를 본 뒤 계산했고 비교 횟수 보정을 하지 않았다.
-% Sources: results/review_b_*.csv, results/review_b6_action*.csv, results/sweep1500_{lc,diff,contrast,half,margin}.csv, results/posthoc_r4_{diff,contrast,check}.csv
+step당 $n = 250$(실패 194). 장면 단위 cluster bootstrap 1,000회. 학습 데이터는 각 바깥 학습 fold에 대한 비율, 검출률은 해당 오탐률에서의 참양성률. 1,500개 episode 행은 step당 $n = 1{,}500$(방 배치 108개), 평가 fold 고정이고, ``new 1,000 episodes only''는 새 1,000개 episode만 평가한다(그 부분집합의 AUROC는 표로 만들지 않아 --로 표시). post hoc 행은 sweep 결과를 본 뒤 계산했고 비교 횟수 보정을 하지 않았다. 다만 위치 $-$ 마지막 프롬프트 토큰 차이 다섯 개의 Holm 보정 $p$는 0.33--1.00이다. 위치 행은 학습 fold 전체(약 1,200개 episode)로 학습했다. 순열 점검에 따르면 1,500개 episode 행의 구간은 너무 좁을 수 있다(\ref{sec:extra}절).
+% Sources: results/review_b_*.csv, results/review_b6_action*.csv, results/sweep1500_{lc,diff,contrast,half,margin}.csv, results/posthoc_r4_{diff,contrast,check}.csv, results/positions_{lc,diff,check,null}.csv
 \end{table}
